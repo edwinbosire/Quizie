@@ -23,17 +23,20 @@ struct SectionTabPill: View {
     let title: String
     let isActive: Bool
     let theme: ChapterTheme
+    @Environment(\.readingTheme) private var readingTheme
+
+    private var rt: ReadingThemeStyle { readingTheme.style }
 
     var body: some View {
         Text(title)
             .font(HBFont.sans(13, weight: .medium))
-            .foregroundColor(isActive ? .white : Color.hbTextSecondary)
+            .foregroundColor(isActive ? .white : rt.textSecondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
-            .background(isActive ? theme.accent : Color.hbSurface)
+            .background(isActive ? theme.accent : rt.surface)
             .overlay(
                 Capsule()
-                    .stroke(isActive ? theme.accent : Color.hbBorder, lineWidth: 1)
+                    .stroke(isActive ? theme.accent : rt.border, lineWidth: 1)
             )
             .clipShape(Capsule())
             .animation(.easeInOut(duration: 0.15), value: isActive)
@@ -69,12 +72,21 @@ struct SectionTabBar: View {
 struct InlineText: View {
     let raw: String
     let fontSize: CGFloat
-    let color: Color
+    let color: Color?
+    @Environment(\.readingTheme) private var readingTheme
 
-    init(_ raw: String, fontSize: CGFloat = 16, color: Color = .hbTextSecondary) {
+    init(_ raw: String, fontSize: CGFloat = 16, color: Color? = nil) {
         self.raw = raw
         self.fontSize = fontSize
         self.color = color
+    }
+
+    private var resolvedColor: Color {
+        color ?? readingTheme.style.textSecondary
+    }
+
+    private var resolvedSize: CGFloat {
+        fontSize + readingTheme.fontSizeAdjustment
     }
 
     var body: some View {
@@ -87,11 +99,11 @@ struct InlineText: View {
         for (i, part) in parts.enumerated() {
             var attr = AttributedString(part)
             if i % 2 == 1 {
-                attr.font = HBFont.sans(fontSize, weight: .semibold)
+                attr.font = HBFont.sans(resolvedSize, weight: .semibold)
             } else {
-                attr.font = HBFont.sans(fontSize)
+                attr.font = HBFont.sans(resolvedSize)
             }
-            attr.foregroundColor = color
+            attr.foregroundColor = resolvedColor
             result += attr
         }
         return result
@@ -103,6 +115,7 @@ struct BulletListRow: View {
     let item: BulletItem
     let accentColor: Color
     let isLast: Bool
+    @Environment(\.readingTheme) private var readingTheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -113,14 +126,14 @@ struct BulletListRow: View {
                     .frame(width: 22, alignment: .leading)
                     .padding(.top, 1)
 
-                InlineText(item.text.raw, fontSize: 15.5, color: .hbTextSecondary)
+                InlineText(item.text.raw, fontSize: 15.5)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.vertical, 6)
             }
 
             if !isLast {
                 Divider()
-                    .background(Color.hbSurface2)
+                    .background(readingTheme.style.surface2)
             }
         }
     }
@@ -145,6 +158,9 @@ struct BulletListBlock: View {
 struct CheckUnderstandBox: View {
     let items: [String]
     let theme: ChapterTheme
+    @Environment(\.readingTheme) private var readingTheme
+
+    private var fs: CGFloat { readingTheme.fontSizeAdjustment }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -167,7 +183,7 @@ struct CheckUnderstandBox: View {
                             .frame(width: 20, alignment: .leading)
                             .padding(.top, 1)
                         Text(item)
-                            .font(HBFont.sans(14))
+                            .font(HBFont.sans(14 + fs))
                             .foregroundColor(theme.accent.opacity(0.85))
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.vertical, 5)
@@ -194,6 +210,7 @@ struct CheckUnderstandBox: View {
 struct BlockquoteView: View {
     let text: String
     let accentColor: Color
+    @Environment(\.readingTheme) private var readingTheme
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
@@ -203,13 +220,13 @@ struct BlockquoteView: View {
                 .cornerRadius(1.5)
 
             Text(text)
-                .font(HBFont.loraItalic(15))
-                .foregroundColor(.hbTextSecondary)
-                .lineSpacing(6)
+                .font(HBFont.loraItalic(15 + readingTheme.fontSizeAdjustment))
+                .foregroundColor(readingTheme.style.textSecondary)
+                .lineSpacing(6 + (readingTheme.fontSizeAdjustment * 0.5))
                 .padding(.leading, 14)
                 .padding(.vertical, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.hbSurface2)
+                .background(readingTheme.style.surface2)
         }
         .cornerRadius(HBRadius.sm)
         .padding(.vertical, 8)
@@ -220,17 +237,18 @@ struct BlockquoteView: View {
 struct SectionSubheading: View {
     let text: String
     let isFirst: Bool
+    @Environment(\.readingTheme) private var readingTheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !isFirst {
                 Divider()
-                    .background(Color.hbBorder)
+                    .background(readingTheme.style.border)
                     .padding(.bottom, 16)
             }
             Text(text)
-                .font(HBFont.lora(17))
-                .foregroundColor(.hbTextPrimary)
+                .font(HBFont.lora(17 + readingTheme.fontSizeAdjustment))
+                .foregroundColor(readingTheme.style.textPrimary)
                 .padding(.top, isFirst ? 0 : 0)
                 .padding(.bottom, 8)
         }
@@ -241,12 +259,13 @@ struct SectionSubheading: View {
 // MARK: - Section Subheading2 (h4)
 struct SectionSubheading2: View {
     let text: String
+    @Environment(\.readingTheme) private var readingTheme
 
     var body: some View {
         Text(text.uppercased())
-            .font(HBFont.sans(13, weight: .semibold))
+            .font(HBFont.sans(13 + readingTheme.fontSizeAdjustment, weight: .semibold))
             .kerning(0.5)
-            .foregroundColor(.hbTextPrimary)
+            .foregroundColor(readingTheme.style.textPrimary)
             .padding(.top, 12)
             .padding(.bottom, 4)
     }
@@ -256,6 +275,10 @@ struct SectionSubheading2: View {
 struct DataTableView: View {
     let headers: [String]
     let rows: [[String]]
+    @Environment(\.readingTheme) private var readingTheme
+
+    private var rt: ReadingThemeStyle { readingTheme.style }
+    private var fs: CGFloat { readingTheme.fontSizeAdjustment }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -263,40 +286,40 @@ struct DataTableView: View {
             HStack(spacing: 0) {
                 ForEach(Array(headers.enumerated()), id: \.offset) { _, header in
                     Text(header.uppercased())
-                        .font(HBFont.sans(12, weight: .semibold))
+                        .font(HBFont.sans(12 + fs, weight: .semibold))
                         .kerning(0.5)
-                        .foregroundColor(.hbTextPrimary)
+                        .foregroundColor(rt.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                 }
             }
-            .background(Color.hbSurface2)
+            .background(rt.surface2)
 
-            Divider().background(Color.hbBorder)
+            Divider().background(rt.border)
 
             // Data rows
             ForEach(Array(rows.enumerated()), id: \.offset) { rowIdx, row in
                 HStack(spacing: 0) {
                     ForEach(Array(row.enumerated()), id: \.offset) { _, cell in
                         Text(cell)
-                            .font(HBFont.sans(14))
-                            .foregroundColor(.hbTextSecondary)
+                            .font(HBFont.sans(14 + fs))
+                            .foregroundColor(rt.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
                     }
                 }
                 if rowIdx < rows.count - 1 {
-                    Divider().background(Color.hbBorder)
+                    Divider().background(rt.border)
                 }
             }
         }
-        .background(Color.hbSurface)
+        .background(rt.surface)
         .cornerRadius(HBRadius.sm)
         .overlay(
             RoundedRectangle(cornerRadius: HBRadius.sm)
-                .stroke(Color.hbBorder, lineWidth: 1)
+                .stroke(rt.border, lineWidth: 1)
         )
         .padding(.vertical, 8)
     }
@@ -306,22 +329,26 @@ struct DataTableView: View {
 struct SectionCard: View {
     let section: HandbookSection
     let theme: ChapterTheme
+    @Environment(\.readingTheme) private var readingTheme
+
+    private var rt: ReadingThemeStyle { readingTheme.style }
+    private var fs: CGFloat { readingTheme.fontSizeAdjustment }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Title bar
             VStack(alignment: .leading, spacing: 0) {
                 Text(section.title)
-                    .font(HBFont.lora(20))
-                    .foregroundColor(.hbTextPrimary)
+                    .font(HBFont.lora(20 + fs))
+                    .foregroundColor(rt.textPrimary)
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .padding(.bottom, 16)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.hbSurface)
+            .background(rt.surface)
             .overlay(alignment: .bottom) {
-                Rectangle().fill(Color.hbBorder).frame(height: 1)
+                Rectangle().fill(rt.border).frame(height: 1)
             }
 
             // Content
@@ -331,12 +358,12 @@ struct SectionCard: View {
             .padding(.horizontal, 20)
             .padding(.top, 16)
             .padding(.bottom, 24)
-            .background(Color.hbSurface)
+            .background(rt.surface)
         }
         .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
         .overlay(
             RoundedRectangle(cornerRadius: HBRadius.md)
-                .stroke(Color.hbBorder, lineWidth: 1)
+                .stroke(rt.border, lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.07), radius: 6, x: 0, y: 2)
     }
@@ -346,6 +373,10 @@ struct SectionCard: View {
 struct ContentBlocksView: View {
     let blocks: [ContentBlock]
     let theme: ChapterTheme
+    @Environment(\.readingTheme) private var readingTheme
+
+    private var rt: ReadingThemeStyle { readingTheme.style }
+    private var fs: CGFloat { readingTheme.fontSizeAdjustment }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -360,9 +391,9 @@ struct ContentBlocksView: View {
         switch block {
         case .paragraph(let text):
             Text(text)
-                .font(HBFont.sans(16))
-                .foregroundColor(.hbTextSecondary)
-                .lineSpacing(8)
+                .font(HBFont.sans(16 + fs))
+                .foregroundColor(rt.textSecondary)
+                .lineSpacing(8 + (fs * 0.5))
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, 14)
 

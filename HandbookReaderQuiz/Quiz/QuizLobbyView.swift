@@ -122,23 +122,17 @@ struct LobbyHero: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .offset(x: -30, y: 140)
 
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 10) {
-                    Image(systemName: "pencil.and.list.clipboard")
-                        .font(.system(size: 28, weight: .medium))
-                        .foregroundColor(Color.white.opacity(0.9))
-                    Text("PRACTICE TEST")
-                        .font(HBFont.sans(11, weight: .semibold))
-                        .kerning(2)
-                        .foregroundColor(Color.white.opacity(0.6))
-                }
-                .padding(.bottom, 14)
+			VStack(alignment: .leading, spacing: 16) {
+				Text("PRACTICE TEST")
+					.font(HBFont.sans(11, weight: .semibold))
+					.kerning(2)
+					.foregroundColor(Color.white.opacity(0.6))
+					.frame(maxWidth: .infinity, alignment: .leading)
 
                 Text("Life in the UK\nPractice Exam")
                     .font(HBFont.lora(30))
                     .foregroundColor(.white)
                     .lineSpacing(4)
-                    .padding(.bottom, 10)
 
                 Text("Test your knowledge with a full-length timed exam, just like the real thing.")
                     .font(HBFont.sans(15))

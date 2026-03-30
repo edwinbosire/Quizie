@@ -83,6 +83,134 @@ enum HBRadius {
     static let pill: CGFloat = 20
 }
 
+// MARK: - Reading Theme (user-selectable page appearance)
+enum ReadingThemeStyle: String, CaseIterable, Identifiable {
+    case classic  // Original warm parchment
+    case paper    // Pure white, clean
+    case sepia    // Deep warm sepia
+    case night    // Dark mode
+
+    var id: String { rawValue }
+
+    var name: String {
+        switch self {
+        case .classic: return "Classic"
+        case .paper:   return "Paper"
+        case .sepia:   return "Sepia"
+        case .night:   return "Night"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .classic: return "book"
+        case .paper:   return "doc.text"
+        case .sepia:   return "sun.max"
+        case .night:   return "moon"
+        }
+    }
+
+    var background: Color {
+        switch self {
+        case .classic: return Color(hex: "#F7F5F0")
+        case .paper:   return Color(hex: "#FFFFFF")
+        case .sepia:   return Color(hex: "#F5EDDC")
+        case .night:   return Color(hex: "#1C1C1E")
+        }
+    }
+
+    var surface: Color {
+        switch self {
+        case .classic: return Color(hex: "#FFFFFF")
+        case .paper:   return Color(hex: "#F8F8F8")
+        case .sepia:   return Color(hex: "#FBF5EB")
+        case .night:   return Color(hex: "#2C2C2E")
+        }
+    }
+
+    var surface2: Color {
+        switch self {
+        case .classic: return Color(hex: "#F0EDE6")
+        case .paper:   return Color(hex: "#F0F0F0")
+        case .sepia:   return Color(hex: "#EDE4D3")
+        case .night:   return Color(hex: "#3A3A3C")
+        }
+    }
+
+    var border: Color {
+        switch self {
+        case .classic: return Color(hex: "#E2DDD4")
+        case .paper:   return Color(hex: "#E0E0E0")
+        case .sepia:   return Color(hex: "#D9CEBC")
+        case .night:   return Color(hex: "#48484A")
+        }
+    }
+
+    var textPrimary: Color {
+        switch self {
+        case .classic: return Color(hex: "#1A1814")
+        case .paper:   return Color(hex: "#111111")
+        case .sepia:   return Color(hex: "#3B2F1E")
+        case .night:   return Color(hex: "#E5E5E7")
+        }
+    }
+
+    var textSecondary: Color {
+        switch self {
+        case .classic: return Color(hex: "#3D3830")
+        case .paper:   return Color(hex: "#333333")
+        case .sepia:   return Color(hex: "#5C4B35")
+        case .night:   return Color(hex: "#AEAEB2")
+        }
+    }
+
+    var textMuted: Color {
+        switch self {
+        case .classic: return Color(hex: "#8C8478")
+        case .paper:   return Color(hex: "#888888")
+        case .sepia:   return Color(hex: "#9A8B76")
+        case .night:   return Color(hex: "#636366")
+        }
+    }
+
+    /// Preview swatch color used in the theme picker
+    var swatchColor: Color {
+        switch self {
+        case .classic: return Color(hex: "#F7F5F0")
+        case .paper:   return Color(hex: "#FFFFFF")
+        case .sepia:   return Color(hex: "#F5EDDC")
+        case .night:   return Color(hex: "#1C1C1E")
+        }
+    }
+
+    /// Swatch border for visibility
+    var swatchBorder: Color {
+        switch self {
+        case .classic: return Color(hex: "#D5D0C8")
+        case .paper:   return Color(hex: "#CCCCCC")
+        case .sepia:   return Color(hex: "#CBBEA8")
+        case .night:   return Color(hex: "#555555")
+        }
+    }
+}
+
+// MARK: - Reading Theme Environment
+struct ReadingTheme {
+    var style: ReadingThemeStyle = .classic
+    var fontSizeAdjustment: CGFloat = 0  // -2 to +4 offset applied to body text sizes
+}
+
+struct ReadingThemeKey: EnvironmentKey {
+    static let defaultValue = ReadingTheme()
+}
+
+extension EnvironmentValues {
+    var readingTheme: ReadingTheme {
+        get { self[ReadingThemeKey.self] }
+        set { self[ReadingThemeKey.self] = newValue }
+    }
+}
+
 // MARK: - Chapter Theme
 struct ChapterTheme {
     let accent: Color

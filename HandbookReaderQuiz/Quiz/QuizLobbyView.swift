@@ -19,38 +19,44 @@ struct QuizLobbyView: View {
                             .padding(.top, 24)
                     }
 
-                    // Info cards grid
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(), spacing: 12),
-                        GridItem(.flexible(), spacing: 12)
-                    ], spacing: 12) {
-                        InfoCard(
-                            icon: "questionmark.circle.fill",
-                            value: "24",
-                            label: "Questions",
-                            color: Color.hbAccent
-                        )
-                        InfoCard(
-                            icon: "clock.fill",
-                            value: "45",
-                            label: "Minutes",
-                            color: Color(hex: "#145A32")
-                        )
-                        InfoCard(
-                            icon: "checkmark.seal.fill",
-                            value: "18/24",
-                            label: "Pass Mark",
-                            color: Color(hex: "#6E2C00")
-                        )
-                        InfoCard(
-                            icon: "shuffle",
-                            value: "∞",
-                            label: "Random",
-                            color: Color(hex: "#512E5F")
-                        )
+                    // Info cards grid (only show for first-time users)
+                    if attempts.isEmpty {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(), spacing: 12),
+                            GridItem(.flexible(), spacing: 12)
+                        ], spacing: 12) {
+                            InfoCard(
+                                icon: "questionmark.circle.fill",
+                                value: "24",
+                                label: "Questions",
+                                color: Color.hbAccent
+                            )
+                            InfoCard(
+                                icon: "clock.fill",
+                                value: "45",
+                                label: "Minutes",
+                                color: Color(hex: "#145A32")
+                            )
+                            InfoCard(
+                                icon: "checkmark.seal.fill",
+                                value: "18/24",
+                                label: "Pass Mark",
+                                color: Color(hex: "#6E2C00")
+                            )
+                            InfoCard(
+                                icon: "shuffle",
+                                value: "∞",
+                                label: "Random",
+                                color: Color(hex: "#512E5F")
+                            )
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 24)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.95)),
+                            removal: .opacity.combined(with: .scale(scale: 0.95))
+                        ))
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.top, attempts.isEmpty ? 24 : 20)
 
                     // Recent Attempts (show last 3 if available)
                     if !attempts.isEmpty {

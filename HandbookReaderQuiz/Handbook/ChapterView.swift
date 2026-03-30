@@ -161,6 +161,7 @@ struct ChapterView: View {
             }
         }
         .navigationBarHidden(true)
+        .toolbar(.hidden, for: .tabBar)
     }
     
     private func updateReadingProgress() {

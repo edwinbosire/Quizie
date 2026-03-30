@@ -19,20 +19,26 @@ struct HandbookReaderQuizApp: App {
 }
 
 struct RootTabView: View {
-	var body: some View {
-		TabView {
-			NavigationStack {
-				HandbookView()
-			}
-			.tabItem {
-				Label("Handbook", systemImage: "book.fill")
-			}
+	@AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
-			QuizRootView()
-				.tabItem {
-					Label("Practice Test", systemImage: "pencil.and.list.clipboard")
+	var body: some View {
+		if hasCompletedOnboarding {
+			TabView {
+				NavigationStack {
+					HandbookView()
 				}
+				.tabItem {
+					Label("Handbook", systemImage: "book.fill")
+				}
+
+				QuizRootView()
+					.tabItem {
+						Label("Practice Test", systemImage: "pencil.and.list.clipboard")
+					}
+			}
+			.tint(Color.hbAccent)
+		} else {
+			OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
 		}
-		.tint(Color.hbAccent)
 	}
 }

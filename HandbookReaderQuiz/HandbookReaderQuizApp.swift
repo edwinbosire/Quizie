@@ -14,29 +14,31 @@ struct HandbookReaderQuizApp: App {
         WindowGroup {
 			RootTabView()
         }
-        .modelContainer(for: [ExamAttempt.self, ReadingProgress.self])
+        .modelContainer(for: [ExamAttempt.self, ReadingProgress.self, Highlight.self])
     }
 }
 
 struct RootTabView: View {
 	@AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-
 	var body: some View {
 		if hasCompletedOnboarding {
 			TabView {
-				NavigationStack {
-					HandbookView()
-				}
-				.tabItem {
-					Label("Handbook", systemImage: "book.fill")
+				Tab("Quiz", systemImage: "pencil.and.list.clipboard") {
+					QuizRootView()
 				}
 
-				QuizRootView()
-					.tabItem {
-						Label("Practice Test", systemImage: "pencil.and.list.clipboard")
+				Tab("Handbook", systemImage: "checklist") {
+					NavigationStack {
+						HandbookView()
 					}
+				}
+
+				Tab("Search", systemImage: "magnifyingglass", role: .search) {
+					SearchView()
+				}
 			}
 			.tint(Color.hbAccent)
+
 		} else {
 			OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
 		}

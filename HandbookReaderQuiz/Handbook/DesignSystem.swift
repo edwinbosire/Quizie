@@ -211,6 +211,20 @@ extension EnvironmentValues {
     }
 }
 
+// MARK: - Search Highlight Environment
+
+struct SearchHighlightKey: EnvironmentKey {
+    static let defaultValue: String? = nil
+}
+
+extension EnvironmentValues {
+    /// The search term to highlight in chapter content. Nil when not navigated from search.
+    var searchHighlight: String? {
+        get { self[SearchHighlightKey.self] }
+        set { self[SearchHighlightKey.self] = newValue }
+    }
+}
+
 // MARK: - Chapter Theme
 struct ChapterTheme {
     let accent: Color

@@ -1,6 +1,24 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Search Highlight Utility
+
+/// Applies a yellow background highlight to all case-insensitive occurrences of `term` within an `AttributedString`.
+func applySearchHighlight(to attributed: inout AttributedString, term: String?) {
+    guard let term, !term.isEmpty else { return }
+    let plain = String(attributed.characters)
+    let lowercased = plain.lowercased()
+    let lowercasedTerm = term.lowercased()
+    var searchStart = lowercased.startIndex
+    while let range = lowercased.range(of: lowercasedTerm, range: searchStart..<lowercased.endIndex) {
+        if let attrRange = Range(range, in: attributed) {
+            attributed[attrRange].backgroundColor = Color.yellow.opacity(0.4)
+            attributed[attrRange].foregroundColor = Color.hbTextPrimary
+        }
+        searchStart = range.upperBound
+    }
+}
+
 // MARK: - Chapter Badge (pill label at top of chapter)
 struct ChapterBadge: View {
     let text: String
@@ -74,6 +92,7 @@ struct InlineText: View {
     let fontSize: CGFloat
     let color: Color?
     @Environment(\.readingTheme) private var readingTheme
+    @Environment(\.searchHighlight) private var searchHighlight
 
     init(_ raw: String, fontSize: CGFloat = 16, color: Color? = nil) {
         self.raw = raw
@@ -106,6 +125,7 @@ struct InlineText: View {
             attr.foregroundColor = resolvedColor
             result += attr
         }
+        applySearchHighlight(to: &result, term: searchHighlight)
         return result
     }
 }
@@ -159,6 +179,7 @@ struct CheckUnderstandBox: View {
     let items: [String]
     let theme: ChapterTheme
     @Environment(\.readingTheme) private var readingTheme
+    @Environment(\.searchHighlight) private var searchHighlight
 
     private var fs: CGFloat { readingTheme.fontSizeAdjustment }
 
@@ -182,9 +203,7 @@ struct CheckUnderstandBox: View {
                             .foregroundColor(theme.accent)
                             .frame(width: 20, alignment: .leading)
                             .padding(.top, 1)
-                        Text(item)
-                            .font(HBFont.sans(14 + fs))
-                            .foregroundColor(theme.accent.opacity(0.85))
+                        Text(highlightedItem(item))
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.vertical, 5)
                     }
@@ -204,6 +223,14 @@ struct CheckUnderstandBox: View {
         .cornerRadius(HBRadius.sm)
         .padding(.top, 8)
     }
+
+    private func highlightedItem(_ item: String) -> AttributedString {
+        var attr = AttributedString(item)
+        attr.font = HBFont.sans(14 + fs)
+        attr.foregroundColor = theme.accent.opacity(0.85)
+        applySearchHighlight(to: &attr, term: searchHighlight)
+        return attr
+    }
 }
 
 // MARK: - Blockquote
@@ -211,6 +238,7 @@ struct BlockquoteView: View {
     let text: String
     let accentColor: Color
     @Environment(\.readingTheme) private var readingTheme
+    @Environment(\.searchHighlight) private var searchHighlight
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
@@ -219,9 +247,7 @@ struct BlockquoteView: View {
                 .frame(width: 3)
                 .cornerRadius(1.5)
 
-            Text(text)
-                .font(HBFont.loraItalic(15 + readingTheme.fontSizeAdjustment))
-                .foregroundColor(readingTheme.style.textSecondary)
+            Text(highlightedText)
                 .lineSpacing(6 + (readingTheme.fontSizeAdjustment * 0.5))
                 .padding(.leading, 14)
                 .padding(.vertical, 12)
@@ -231,6 +257,14 @@ struct BlockquoteView: View {
         .cornerRadius(HBRadius.sm)
         .padding(.vertical, 8)
     }
+
+    private var highlightedText: AttributedString {
+        var attr = AttributedString(text)
+        attr.font = HBFont.loraItalic(15 + readingTheme.fontSizeAdjustment)
+        attr.foregroundColor = readingTheme.style.textSecondary
+        applySearchHighlight(to: &attr, term: searchHighlight)
+        return attr
+    }
 }
 
 // MARK: - Section Subheading (h3)
@@ -238,6 +272,7 @@ struct SectionSubheading: View {
     let text: String
     let isFirst: Bool
     @Environment(\.readingTheme) private var readingTheme
+    @Environment(\.searchHighlight) private var searchHighlight
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -246,13 +281,19 @@ struct SectionSubheading: View {
                     .background(readingTheme.style.border)
                     .padding(.bottom, 16)
             }
-            Text(text)
-                .font(HBFont.lora(17 + readingTheme.fontSizeAdjustment))
-                .foregroundColor(readingTheme.style.textPrimary)
+            Text(highlightedText)
                 .padding(.top, isFirst ? 0 : 0)
                 .padding(.bottom, 8)
         }
         .padding(.top, isFirst ? 0 : 8)
+    }
+
+    private var highlightedText: AttributedString {
+        var attr = AttributedString(text)
+        attr.font = HBFont.lora(17 + readingTheme.fontSizeAdjustment)
+        attr.foregroundColor = readingTheme.style.textPrimary
+        applySearchHighlight(to: &attr, term: searchHighlight)
+        return attr
     }
 }
 
@@ -260,14 +301,21 @@ struct SectionSubheading: View {
 struct SectionSubheading2: View {
     let text: String
     @Environment(\.readingTheme) private var readingTheme
+    @Environment(\.searchHighlight) private var searchHighlight
 
     var body: some View {
-        Text(text.uppercased())
-            .font(HBFont.sans(13 + readingTheme.fontSizeAdjustment, weight: .semibold))
+        Text(highlightedText)
             .kerning(0.5)
-            .foregroundColor(readingTheme.style.textPrimary)
             .padding(.top, 12)
             .padding(.bottom, 4)
+    }
+
+    private var highlightedText: AttributedString {
+        var attr = AttributedString(text.uppercased())
+        attr.font = HBFont.sans(13 + readingTheme.fontSizeAdjustment, weight: .semibold)
+        attr.foregroundColor = readingTheme.style.textPrimary
+        applySearchHighlight(to: &attr, term: searchHighlight)
+        return attr
     }
 }
 
@@ -276,6 +324,7 @@ struct DataTableView: View {
     let headers: [String]
     let rows: [[String]]
     @Environment(\.readingTheme) private var readingTheme
+    @Environment(\.searchHighlight) private var searchHighlight
 
     private var rt: ReadingThemeStyle { readingTheme.style }
     private var fs: CGFloat { readingTheme.fontSizeAdjustment }
@@ -285,10 +334,8 @@ struct DataTableView: View {
             // Header row
             HStack(spacing: 0) {
                 ForEach(Array(headers.enumerated()), id: \.offset) { _, header in
-                    Text(header.uppercased())
-                        .font(HBFont.sans(12 + fs, weight: .semibold))
+                    Text(highlightedHeader(header))
                         .kerning(0.5)
-                        .foregroundColor(rt.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
@@ -302,9 +349,7 @@ struct DataTableView: View {
             ForEach(Array(rows.enumerated()), id: \.offset) { rowIdx, row in
                 HStack(spacing: 0) {
                     ForEach(Array(row.enumerated()), id: \.offset) { _, cell in
-                        Text(cell)
-                            .font(HBFont.sans(14 + fs))
-                            .foregroundColor(rt.textSecondary)
+                        Text(highlightedCell(cell))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
@@ -323,12 +368,30 @@ struct DataTableView: View {
         )
         .padding(.vertical, 8)
     }
+
+    private func highlightedHeader(_ text: String) -> AttributedString {
+        var attr = AttributedString(text.uppercased())
+        attr.font = HBFont.sans(12 + fs, weight: .semibold)
+        attr.foregroundColor = rt.textPrimary
+        applySearchHighlight(to: &attr, term: searchHighlight)
+        return attr
+    }
+
+    private func highlightedCell(_ text: String) -> AttributedString {
+        var attr = AttributedString(text)
+        attr.font = HBFont.sans(14 + fs)
+        attr.foregroundColor = rt.textSecondary
+        applySearchHighlight(to: &attr, term: searchHighlight)
+        return attr
+    }
 }
 
 // MARK: - Section Content Card
 struct SectionCard: View {
     let section: HandbookSection
     let theme: ChapterTheme
+    var chapterId: Int = 0
+    var highlights: [Highlight] = []
     @Environment(\.readingTheme) private var readingTheme
 
     private var rt: ReadingThemeStyle { readingTheme.style }
@@ -353,7 +416,13 @@ struct SectionCard: View {
 
             // Content
             VStack(alignment: .leading, spacing: 0) {
-                ContentBlocksView(blocks: section.blocks, theme: theme)
+                ContentBlocksView(
+                    blocks: section.blocks,
+                    theme: theme,
+                    chapterId: chapterId,
+                    sectionId: section.id,
+                    highlights: highlights
+                )
             }
             .padding(.horizontal, 20)
             .padding(.top, 16)
@@ -373,7 +442,11 @@ struct SectionCard: View {
 struct ContentBlocksView: View {
     let blocks: [ContentBlock]
     let theme: ChapterTheme
+    var chapterId: Int = 0
+    var sectionId: String = ""
+    var highlights: [Highlight] = []
     @Environment(\.readingTheme) private var readingTheme
+    @Environment(\.searchHighlight) private var searchHighlight
 
     private var rt: ReadingThemeStyle { readingTheme.style }
     private var fs: CGFloat { readingTheme.fontSizeAdjustment }
@@ -381,7 +454,22 @@ struct ContentBlocksView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(blocks.enumerated()), id: \.offset) { idx, block in
-                blockView(block, index: idx)
+                let existing = highlights.first { $0.blockIndex == idx }
+                let prev = highlights.first { $0.blockIndex == idx - 1 }
+                let next = highlights.first { $0.blockIndex == idx + 1 }
+
+                HighlightableBlock(
+                    chapterId: chapterId,
+                    sectionId: sectionId,
+                    blockIndex: idx,
+                    totalBlockCount: blocks.count,
+                    block: block,
+                    existingHighlight: existing,
+                    previousHighlight: prev,
+                    nextHighlight: next
+                ) {
+                    blockView(block, index: idx)
+                }
             }
         }
     }
@@ -390,9 +478,7 @@ struct ContentBlocksView: View {
     func blockView(_ block: ContentBlock, index: Int) -> some View {
         switch block {
         case .paragraph(let text):
-            Text(text)
-                .font(HBFont.sans(16 + fs))
-                .foregroundColor(rt.textSecondary)
+            Text(highlightedText(text, font: HBFont.sans(16 + fs), color: rt.textSecondary))
                 .lineSpacing(8 + (fs * 0.5))
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, 14)
@@ -418,6 +504,14 @@ struct ContentBlocksView: View {
             DataTableView(headers: headers, rows: rows)
 
         }
+    }
+
+    private func highlightedText(_ text: String, font: Font, color: Color) -> AttributedString {
+        var attr = AttributedString(text)
+        attr.font = font
+        attr.foregroundColor = color
+        applySearchHighlight(to: &attr, term: searchHighlight)
+        return attr
     }
 }
 

@@ -3,6 +3,7 @@ import SwiftData
 
 struct ChapterView: View {
     @State var chapter: HandbookChapter
+    var initialSectionIndex: Int? = nil
     @State private var selectedSectionIndex: Int = 0
     @State private var scrollPosition: String? = nil
     @State private var scrollOffset: CGFloat = 0
@@ -19,6 +20,17 @@ struct ChapterView: View {
     @AppStorage("readingFontSizeAdjustment") private var fontSizeAdjustment: Double = 0
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query private var highlights: [Highlight]
+
+    init(chapter: HandbookChapter, initialSectionIndex: Int? = nil) {
+        self._chapter = State(initialValue: chapter)
+        self.initialSectionIndex = initialSectionIndex
+        let chapterId = chapter.id
+        _highlights = Query(
+            filter: #Predicate<Highlight> { $0.chapterId == chapterId },
+            sort: [SortDescriptor(\Highlight.sectionId), SortDescriptor(\Highlight.blockIndex)]
+        )
+    }
 
     private var readingThemeStyle: ReadingThemeStyle {
         ReadingThemeStyle(rawValue: themeStyleRaw) ?? .classic
@@ -53,7 +65,12 @@ struct ChapterView: View {
                         // Section content
                         VStack(spacing: 24) {
                             ForEach(Array(chapter.sections.enumerated()), id: \.offset) { idx, section in
-                                SectionCard(section: section, theme: theme)
+                                SectionCard(
+                                    section: section,
+                                    theme: theme,
+                                    chapterId: chapter.id,
+                                    highlights: highlights.filter { $0.sectionId == section.id }
+                                )
                                     .id(section.id)
                                     .padding(.horizontal, 16)
                                     .onAppear {
@@ -155,13 +172,25 @@ struct ChapterView: View {
                     progress.startReadingSession()
                     try? modelContext.save()
                     
-                    // Check if user has previously read this chapter (>5% and <95%)
-                    if progress.isStarted && !progress.isCompleted && progress.scrollOffset > 100 {
-                        savedScrollOffset = progress.scrollOffset
-                        // Show banner after a brief delay to avoid animation conflicts
+                    // If launched from search with a specific section, scroll there
+                    if let targetIndex = initialSectionIndex,
+                       targetIndex < chapter.sections.count {
+                        selectedSectionIndex = targetIndex
+                        let targetSection = chapter.sections[targetIndex]
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            withAnimation {
-                                showContinueReading = true
+                            withAnimation(.easeInOut(duration: 0.4)) {
+                                proxy.scrollTo(targetSection.id, anchor: .top)
+                            }
+                        }
+                    } else {
+                        // Check if user has previously read this chapter (>5% and <95%)
+                        if progress.isStarted && !progress.isCompleted && progress.scrollOffset > 100 {
+                            savedScrollOffset = progress.scrollOffset
+                            // Show banner after a brief delay to avoid animation conflicts
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                withAnimation {
+                                    showContinueReading = true
+                                }
                             }
                         }
                     }
@@ -552,5 +581,5 @@ struct ChapterHeaderView: View {
     NavigationStack {
         ChapterView(chapter: HandbookData.chapters[0])
     }
-    .modelContainer(for: [ReadingProgress.self, ExamAttempt.self])
+    .modelContainer(for: [ReadingProgress.self, ExamAttempt.self, Highlight.self])
 }

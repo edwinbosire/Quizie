@@ -30,7 +30,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		64C37BC82F782363009C85F1 /* Exceptions for "HandbookReaderQuiz" folder in "Quizie" target */ = {
+		64C37BC82F782363009C85F1 /* Exceptions for "Quizie" folder in "Quizie" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -40,22 +40,22 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		64C37B632F78206E009C85F1 /* HandbookReaderQuiz */ = {
+		64C37B632F78206E009C85F1 /* Quizie */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				64C37BC82F782363009C85F1 /* Exceptions for "HandbookReaderQuiz" folder in "Quizie" target */,
+				64C37BC82F782363009C85F1 /* Exceptions for "Quizie" folder in "Quizie" target */,
 			);
-			path = HandbookReaderQuiz;
+			path = Quizie;
 			sourceTree = "<group>";
 		};
-		64C37B712F782070009C85F1 /* HandbookReaderQuizTests */ = {
+		64C37B712F782070009C85F1 /* QuizieTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = HandbookReaderQuizTests;
+			path = QuizieTests;
 			sourceTree = "<group>";
 		};
-		64C37B7B2F782070009C85F1 /* HandbookReaderQuizUITests */ = {
+		64C37B7B2F782070009C85F1 /* QuizieUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = HandbookReaderQuizUITests;
+			path = QuizieUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -88,9 +88,9 @@
 		64C37B582F78206E009C85F1 = {
 			isa = PBXGroup;
 			children = (
-				64C37B632F78206E009C85F1 /* HandbookReaderQuiz */,
-				64C37B712F782070009C85F1 /* HandbookReaderQuizTests */,
-				64C37B7B2F782070009C85F1 /* HandbookReaderQuizUITests */,
+				64C37B632F78206E009C85F1 /* Quizie */,
+				64C37B712F782070009C85F1 /* QuizieTests */,
+				64C37B7B2F782070009C85F1 /* QuizieUITests */,
 				64C37B622F78206E009C85F1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -121,7 +121,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				64C37B632F78206E009C85F1 /* HandbookReaderQuiz */,
+				64C37B632F78206E009C85F1 /* Quizie */,
 			);
 			name = Quizie;
 			packageProductDependencies = (
@@ -144,7 +144,7 @@
 				64C37B702F782070009C85F1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				64C37B712F782070009C85F1 /* HandbookReaderQuizTests */,
+				64C37B712F782070009C85F1 /* QuizieTests */,
 			);
 			name = QuizieTests;
 			packageProductDependencies = (
@@ -167,7 +167,7 @@
 				64C37B7A2F782070009C85F1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				64C37B7B2F782070009C85F1 /* HandbookReaderQuizUITests */,
+				64C37B7B2F782070009C85F1 /* QuizieUITests */,
 			);
 			name = QuizieUITests;
 			packageProductDependencies = (
@@ -411,7 +411,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = HandbookReaderQuiz/Info.plist;
+				INFOPLIST_FILE = Quizie/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -427,7 +427,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.edwin.neurofocus.HandbookReaderQuiz;
+				PRODUCT_BUNDLE_IDENTIFIER = uk.co.edwinb.Quizie;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -456,7 +456,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = HandbookReaderQuiz/Info.plist;
+				INFOPLIST_FILE = Quizie/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -472,7 +472,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.edwin.neurofocus.HandbookReaderQuiz;
+				PRODUCT_BUNDLE_IDENTIFIER = uk.co.edwinb.Quizie;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;

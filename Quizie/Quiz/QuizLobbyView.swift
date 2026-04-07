@@ -19,43 +19,15 @@ struct QuizLobbyView: View {
                             .padding(.top, 24)
                     }
 
-                    // Info cards grid (only show for first-time users)
+                    // Info cards (only show for first-time users)
                     if attempts.isEmpty {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible(), spacing: 12),
-                            GridItem(.flexible(), spacing: 12)
-                        ], spacing: 12) {
-                            InfoCard(
-                                icon: "questionmark.circle.fill",
-                                value: "24",
-                                label: "Questions",
-                                color: Color.hbAccent
-                            )
-                            InfoCard(
-                                icon: "clock.fill",
-                                value: "45",
-                                label: "Minutes",
-                                color: Color(hex: "#145A32")
-                            )
-                            InfoCard(
-                                icon: "checkmark.seal.fill",
-                                value: "18/24",
-                                label: "Pass Mark",
-                                color: Color(hex: "#6E2C00")
-                            )
-                            InfoCard(
-                                icon: "shuffle",
-                                value: "∞",
-                                label: "Random",
-                                color: Color(hex: "#512E5F")
-                            )
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 24)
-                        .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .scale(scale: 0.95)),
-                            removal: .opacity.combined(with: .scale(scale: 0.95))
-                        ))
+                        ExamInfoBar()
+                            .padding(.horizontal, 16)
+                            .padding(.top, 24)
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .scale(scale: 0.95)),
+                                removal: .opacity.combined(with: .scale(scale: 0.95))
+                            ))
                     }
 
                     // Recent Attempts (show last 3 if available)
@@ -148,54 +120,54 @@ struct LobbyHero: View {
     }
 }
 
-// MARK: - Info Card (Grid Style)
-struct InfoCard: View {
+// MARK: - Exam Info Bar (Compact)
+struct ExamInfoBar: View {
+    var body: some View {
+        HStack(spacing: 0) {
+            ExamInfoItem(icon: "questionmark.circle.fill", value: "24", label: "Questions", color: .hbAccent)
+            ExamInfoDivider()
+            ExamInfoItem(icon: "clock.fill", value: "45 min", label: "Time Limit", color: Color(hex: "#145A32"))
+            ExamInfoDivider()
+            ExamInfoItem(icon: "checkmark.seal.fill", value: "75%", label: "Pass Mark", color: Color(hex: "#6E2C00"))
+            ExamInfoDivider()
+            ExamInfoItem(icon: "shuffle", value: "Random", label: "Order", color: Color(hex: "#512E5F"))
+        }
+        .padding(.vertical, 14)
+        .background(Color.hbSurface)
+        .cornerRadius(HBRadius.md)
+        .overlay(RoundedRectangle(cornerRadius: HBRadius.md).stroke(Color.hbBorder, lineWidth: 1))
+    }
+}
+
+private struct ExamInfoItem: View {
     let icon: String
     let value: String
     let label: String
     let color: Color
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(color.opacity(0.2))
-                    .frame(width: 48, height: 48)
-                Image(systemName: icon)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(color)
-            }
-            
-            // Large value
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(color)
             Text(value)
-                .font(HBFont.lora(36))
+                .font(HBFont.sans(14, weight: .semibold))
                 .foregroundColor(.hbTextPrimary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            
-            // Label
+                .minimumScaleFactor(0.8)
             Text(label)
-                .font(HBFont.sans(13))
-                .foregroundColor(.hbTextSecondary)
-                .multilineTextAlignment(.center)
+                .font(HBFont.sans(10))
+                .foregroundColor(.hbTextMuted)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
-        .padding(.horizontal, 12)
-        .background(
-            LinearGradient(
-                colors: [
-                    color.opacity(0.08),
-                    color.opacity(0.04)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .cornerRadius(HBRadius.md)
-        .overlay(RoundedRectangle(cornerRadius: HBRadius.md).stroke(color.opacity(0.15), lineWidth: 1))
-        .shadow(color: color.opacity(0.08), radius: 4, x: 0, y: 2)
+    }
+}
+
+private struct ExamInfoDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color.hbBorder)
+            .frame(width: 1, height: 36)
     }
 }
 

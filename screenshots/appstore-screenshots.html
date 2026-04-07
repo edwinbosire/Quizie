@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quizie - App Store Screenshots</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE6;
+    --border: #E2DDD4;
+    --text-primary: #1A1814;
+    --text-secondary: #3D3830;
+    --text-muted: #8C8478;
+    --accent: #1B4F72;
+    --accent-light: #D6E8F5;
+    --ch3-accent: #6E2C00;
+    --ch3-light: #F5E6DA;
+    --ch4-accent: #145A32;
+    --ch4-light: #D5F5E3;
+    --ch5-accent: #512E5F;
+    --ch5-light: #EAD9F5;
+    --union-red: #CF142B;
+    --union-blue: #012169;
+  }
+
+  body {
+    background: #0a0a0a;
+    font-family: 'Source Sans 3', -apple-system, sans-serif;
+    padding: 40px 20px;
+    color: #fff;
+    text-align: center;
+  }
+
+  h1 { font-family: 'Lora', serif; font-size: 32px; margin-bottom: 8px; }
+  .subtitle { color: #888; margin-bottom: 40px; font-size: 15px; }
+
+  .screenshots-row {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 60px;
+  }
+
+  .screenshot-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .screenshot-label {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* iPhone 15 Pro frame */
+  .iphone-frame {
+    width: 280px;
+    height: 606px;
+    background: #1a1a1a;
+    border-radius: 40px;
+    padding: 12px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 0 0 2px #333;
+  }
+
+  .iphone-screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 30px;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg);
+  }
+
+  .iphone-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 22px;
+    background: #1a1a1a;
+    border-radius: 0 0 16px 16px;
+    z-index: 100;
+  }
+
+  .iphone-home-indicator {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 2px;
+    z-index: 100;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 20px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .status-bar .time { font-weight: 700; }
+  .status-icons { display: flex; gap: 4px; align-items: center; }
+  .status-icons svg { width: 14px; height: 11px; }
+
+  /* Common screen elements */
+  .screen-content {
+    padding: 0 14px 14px;
+    overflow: hidden;
+    height: calc(100% - 30px);
+  }
+
+  .tab-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 14px;
+    z-index: 50;
+  }
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+  .tab-item.active { color: var(--accent); }
+  .tab-item svg { width: 20px; height: 20px; }
+
+  /* ========= SCREEN 1: Quiz Lobby ========= */
+  .quiz-lobby .hero-banner {
+    background: linear-gradient(135deg, var(--accent), #2471A3);
+    border-radius: 14px;
+    padding: 16px 14px;
+    color: white;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .quiz-lobby .hero-banner::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .quiz-lobby .hero-banner h2 {
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .quiz-lobby .hero-banner p {
+    font-size: 10px;
+    opacity: 0.85;
+  }
+  .quiz-lobby .hero-stats {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .quiz-lobby .hero-stat {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 6px 8px;
+    flex: 1;
+    text-align: center;
+  }
+  .quiz-lobby .hero-stat .num {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Lora', serif;
+  }
+  .quiz-lobby .hero-stat .label {
+    font-size: 8px;
+    opacity: 0.75;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: left;
+  }
+  .info-card .ic-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .info-card .ic-title {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .info-card .ic-value {
+    font-family: 'Lora', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .section-title {
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: left;
+    margin-bottom: 6px;
+  }
+
+  .rules-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: left;
+    margin-bottom: 10px;
+  }
+  .rule-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    font-size: 10px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .rule-num {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .start-btn {
+    background: var(--accent);
+    color: white;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* ========= SCREEN 2: Quiz Question ========= */
+  .quiz-question { background: var(--bg); }
+  .quiz-question .q-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0 8px;
+  }
+  .quiz-question .timer-badge {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .quiz-question .q-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 12px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), #2980B9);
+  }
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: left;
+    margin-bottom: 12px;
+  }
+  .question-card .q-text {
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .question-card .q-hint {
+    font-size: 9px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .choice-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 12px;
+    text-align: left;
+    font-size: 11.5px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 7px;
+    line-height: 1.4;
+  }
+  .choice-btn .radio {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+  .choice-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .choice-btn.selected .radio {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: inset 0 0 0 3px white;
+  }
+  .choice-btn.correct {
+    border-color: #27AE60;
+    background: #E8F8F0;
+  }
+  .choice-btn.correct .radio {
+    border-color: #27AE60;
+    background: #27AE60;
+    box-shadow: inset 0 0 0 3px white;
+  }
+
+  .submit-btn {
+    background: var(--accent);
+    color: white;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .submit-btn.disabled {
+    background: var(--border);
+    color: var(--text-muted);
+  }
+
+  /* ========= SCREEN 3: Quiz Results ========= */
+  .quiz-results { background: var(--bg); }
+  .results-hero {
+    text-align: center;
+    padding: 14px 0 10px;
+  }
+  .score-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #27AE60, #2ECC71);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    color: white;
+    box-shadow: 0 8px 24px rgba(39,174,96,0.3);
+  }
+  .score-circle .big { font-family: 'Lora', serif; font-size: 32px; font-weight: 700; }
+  .score-circle .of { font-size: 10px; opacity: 0.8; }
+
+  .pass-banner {
+    background: linear-gradient(135deg, #27AE60, #229954);
+    color: white;
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .pass-banner h3 { font-family: 'Lora', serif; font-size: 17px; font-weight: 700; }
+  .pass-banner p { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+
+  .score-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .score-card .sc-val {
+    font-family: 'Lora', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .score-card .sc-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .score-card.green .sc-val { color: #27AE60; }
+  .score-card.red .sc-val { color: #E74C3C; }
+
+  .review-section {
+    text-align: left;
+    margin-bottom: 6px;
+  }
+  .review-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .review-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: white;
+    flex-shrink: 0;
+  }
+  .review-icon.correct { background: #27AE60; }
+  .review-icon.wrong { background: #E74C3C; }
+  .review-text { font-size: 10px; color: var(--text-secondary); line-height: 1.3; }
+
+  .action-btns {
+    display: flex;
+    gap: 6px;
+  }
+  .action-btn {
+    flex: 1;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .action-btn.primary { background: var(--accent); color: white; }
+  .action-btn.secondary { background: var(--surface); color: var(--accent); border: 1.5px solid var(--accent); }
+
+  /* ========= SCREEN 4: Handbook Home ========= */
+  .handbook-home { background: var(--bg); }
+  .handbook-hero {
+    background: linear-gradient(135deg, #012169, #1B4F72);
+    border-radius: 14px;
+    padding: 16px 14px;
+    color: white;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .handbook-hero .union-stripes {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40px;
+    display: flex;
+    flex-direction: column;
+  }
+  .handbook-hero .union-stripes .stripe {
+    flex: 1;
+  }
+  .handbook-hero .union-stripes .stripe:nth-child(1) { background: var(--union-red); opacity: 0.3; }
+  .handbook-hero .union-stripes .stripe:nth-child(2) { background: white; opacity: 0.15; }
+  .handbook-hero .union-stripes .stripe:nth-child(3) { background: var(--union-blue); opacity: 0.3; }
+  .handbook-hero h2 { font-family: 'Lora', serif; font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+  .handbook-hero p { font-size: 10px; opacity: 0.8; }
+
+  .progress-analytics {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .progress-analytics .pa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .progress-analytics .pa-title {
+    font-family: 'Lora', serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .progress-analytics .pa-pct {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .progress-bar-bg {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    margin-bottom: 6px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), #2980B9);
+  }
+  .pa-stats {
+    display: flex;
+    gap: 10px;
+  }
+  .pa-stat {
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+  .pa-stat strong { color: var(--text-secondary); }
+
+  .chapter-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 7px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    text-align: left;
+  }
+  .ch-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+  .ch-info { flex: 1; min-width: 0; }
+  .ch-title {
+    font-family: 'Lora', serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .ch-sections {
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+  .ch-progress-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    margin-top: 4px;
+  }
+  .ch-progress-val {
+    height: 100%;
+    border-radius: 2px;
+  }
+
+  /* ========= SCREEN 5: Chapter Reading ========= */
+  .chapter-reading { background: var(--bg); }
+  .chapter-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0 8px;
+  }
+  .chapter-nav .back-btn {
+    font-size: 14px;
+    color: var(--accent);
+  }
+  .chapter-nav .ch-name {
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+  }
+  .chapter-nav .settings-btn {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .section-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .section-tab {
+    font-size: 9px;
+    padding: 5px 10px;
+    border-radius: 14px;
+    white-space: nowrap;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .section-tab.active {
+    background: var(--ch3-light);
+    color: var(--ch3-accent);
+    border-color: transparent;
+    font-weight: 600;
+  }
+
+  .reading-content {
+    text-align: left;
+  }
+  .reading-content .r-heading {
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+  .reading-content .r-paragraph {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 10px;
+  }
+  .reading-content .r-highlight {
+    background: #FFF3CD;
+    padding: 1px 2px;
+    border-radius: 2px;
+  }
+  .reading-content .r-subheading {
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    margin-top: 4px;
+  }
+  .reading-content .bullet-list {
+    padding-left: 14px;
+    margin-bottom: 10px;
+  }
+  .reading-content .bullet-list li {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 4px;
+  }
+  .reading-content .blockquote {
+    border-left: 3px solid var(--ch3-accent);
+    padding: 8px 12px;
+    background: var(--ch3-light);
+    border-radius: 0 8px 8px 0;
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 11px;
+    color: var(--ch3-accent);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  /* ========= SCREEN 6: Search ========= */
+  .search-screen { background: var(--bg); }
+  .search-bar {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .search-bar .search-icon { color: var(--text-muted); font-size: 13px; }
+  .search-bar .search-text { font-size: 12px; color: var(--text-primary); font-weight: 500; }
+
+  .search-result {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: left;
+    margin-bottom: 6px;
+  }
+  .search-result .sr-breadcrumb {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .search-result .sr-breadcrumb .sr-chap {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .search-result .sr-title {
+    font-family: 'Lora', serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+  }
+  .search-result .sr-snippet {
+    font-size: 10px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .sr-match {
+    background: #FFF3CD;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .search-suggestions {
+    text-align: left;
+    margin-bottom: 10px;
+  }
+  .suggestion-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .suggestion-chip {
+    font-size: 9px;
+    padding: 5px 10px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  /* ========= Marketing frame overlay ========= */
+  .marketing-frame {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(180deg, #F7F5F0, #E8E3D8);
+    border-radius: 24px;
+    padding: 28px 20px 20px;
+    position: relative;
+  }
+  .marketing-frame.blue-bg { background: linear-gradient(180deg, #D6E8F5, #B5D4EE); }
+  .marketing-frame.green-bg { background: linear-gradient(180deg, #D5F5E3, #A9DFBF); }
+  .marketing-frame.navy-bg { background: linear-gradient(180deg, #1B4F72, #0E3252); }
+  .marketing-frame.navy-bg .marketing-heading,
+  .marketing-frame.navy-bg .marketing-subheading { color: white; }
+  .marketing-frame.navy-bg .marketing-subheading { opacity: 0.8; }
+  .marketing-frame.brown-bg { background: linear-gradient(180deg, #F5E6DA, #E4CDB5); }
+  .marketing-frame.purple-bg { background: linear-gradient(180deg, #EAD9F5, #CDA8E0); }
+
+  .marketing-heading {
+    font-family: 'Lora', serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .marketing-subheading {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .marketing-frame .iphone-frame {
+    transform: scale(0.82);
+    transform-origin: top center;
+    margin-top: -8px;
+  }
+
+  /* Print / download styles */
+  .download-note {
+    color: #555;
+    font-size: 13px;
+    margin-top: 40px;
+    line-height: 1.6;
+  }
+  .download-note code {
+    background: #222;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .confetti-dot {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+
+<h1>Quizie App Store Screenshots</h1>
+<p class="subtitle">iPhone 6.7" (1290 x 2796) &mdash; Open in browser and screenshot each frame, or use a screenshot tool</p>
+
+<div class="screenshots-row">
+
+<!-- SCREENSHOT 1: Quiz Lobby -->
+<div class="screenshot-wrapper">
+  <div class="marketing-frame blue-bg">
+    <div class="marketing-heading">Ace Your<br>UK Citizenship Test</div>
+    <div class="marketing-subheading">Practice exams that mirror the real thing</div>
+    <div class="iphone-frame">
+      <div class="iphone-screen quiz-lobby">
+        <div class="iphone-notch"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 17 12"><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9zM13 0h2v12h-2z" fill="currentColor" opacity="0.3"/><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5.4 2 3 3.2 1.4 5.2l1.2 1C3.9 4.4 5.8 3.4 8 3.4s4.1 1 5.4 2.8l1.2-1C13 3.2 10.6 2 8 2zm0 3.4c-1.6 0-3 .7-4 1.8l1.2 1c.7-.8 1.7-1.4 2.8-1.4s2.1.5 2.8 1.4l1.2-1c-1-1.1-2.4-1.8-4-1.8zM8 9.2c-.8 0-1.4.6-1.4 1.4S7.2 12 8 12s1.4-.6 1.4-1.4S8.8 9.2 8 9.2z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="screen-content" style="padding-bottom:70px;">
+          <div class="hero-banner">
+            <h2>Practice Exam</h2>
+            <p>Life in the United Kingdom</p>
+            <div class="hero-stats">
+              <div class="hero-stat">
+                <div class="num">24</div>
+                <div class="label">Questions</div>
+              </div>
+              <div class="hero-stat">
+                <div class="num">45</div>
+                <div class="label">Minutes</div>
+              </div>
+              <div class="hero-stat">
+                <div class="num">75%</div>
+                <div class="label">Pass Mark</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-card">
+              <div class="ic-icon" style="background:#D5F5E3;color:#145A32;">&#10003;</div>
+              <div class="ic-title">Best Score</div>
+              <div class="ic-value">21/24</div>
+            </div>
+            <div class="info-card">
+              <div class="ic-icon" style="background:#D6E8F5;color:#1B4F72;">&#9776;</div>
+              <div class="ic-title">Attempts</div>
+              <div class="ic-value">7</div>
+            </div>
+            <div class="info-card">
+              <div class="ic-icon" style="background:#FDE8E8;color:#C0392B;">&#10005;</div>
+              <div class="ic-title">Pass Rate</div>
+              <div class="ic-value">71%</div>
+            </div>
+            <div class="info-card">
+              <div class="ic-icon" style="background:#EAD9F5;color:#512E5F;">&#9201;</div>
+              <div class="ic-title">Avg. Time</div>
+              <div class="ic-value">32m</div>
+            </div>
+          </div>
+
+          <div class="section-title">Exam Rules</div>
+          <div class="rules-card">
+            <div class="rule-item"><span class="rule-num">1</span> You have 45 minutes to complete the exam</div>
+            <div class="rule-item"><span class="rule-num">2</span> 24 questions selected randomly from the bank</div>
+            <div class="rule-item"><span class="rule-num">3</span> You need 18 correct answers (75%) to pass</div>
+            <div class="rule-item"><span class="rule-num">4</span> Some questions may have multiple correct answers</div>
+          </div>
+
+          <div class="start-btn">&#9654;&nbsp; Start Exam</div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 5h6"/><path d="M9 14l2 2 4-4"/></svg>
+            <span>Quiz</span>
+          </div>
+          <div class="tab-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+            <span>Handbook</span>
+          </div>
+          <div class="tab-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span>Search</span>
+          </div>
+        </div>
+        <div class="iphone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+  <span class="screenshot-label">1. Quiz Lobby</span>
+</div>
+
+<!-- SCREENSHOT 2: Quiz Question -->
+<div class="screenshot-wrapper">
+  <div class="marketing-frame">
+    <div class="marketing-heading">Practice with<br>Real Questions</div>
+    <div class="marketing-subheading">Timed exams with instant feedback</div>
+    <div class="iphone-frame">
+      <div class="iphone-screen quiz-question">
+        <div class="iphone-notch"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 17 12"><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9zM13 0h2v12h-2z" fill="currentColor" opacity="0.3"/><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5.4 2 3 3.2 1.4 5.2l1.2 1C3.9 4.4 5.8 3.4 8 3.4s4.1 1 5.4 2.8l1.2-1C13 3.2 10.6 2 8 2zm0 3.4c-1.6 0-3 .7-4 1.8l1.2 1c.7-.8 1.7-1.4 2.8-1.4s2.1.5 2.8 1.4l1.2-1c-1-1.1-2.4-1.8-4-1.8zM8 9.2c-.8 0-1.4.6-1.4 1.4S7.2 12 8 12s1.4-.6 1.4-1.4S8.8 9.2 8 9.2z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="screen-content">
+          <div class="q-header">
+            <span class="timer-badge">&#9201; 38:24</span>
+            <span class="q-count">8 of 24</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:33%"></div></div>
+
+          <div class="question-card">
+            <div class="q-text">Which TWO of the following are fundamental principles of British life?</div>
+            <div class="q-hint">Select 2 answers</div>
+          </div>
+
+          <div class="choice-btn selected">
+            <div class="radio"></div>
+            <span>Tolerance of those with different faiths and beliefs</span>
+          </div>
+          <div class="choice-btn">
+            <div class="radio"></div>
+            <span>Always obeying the government without question</span>
+          </div>
+          <div class="choice-btn selected">
+            <div class="radio"></div>
+            <span>Participation in community life and the democratic process</span>
+          </div>
+          <div class="choice-btn">
+            <div class="radio"></div>
+            <span>Speaking English at all times in public</span>
+          </div>
+
+          <div class="submit-btn">Check Answer</div>
+        </div>
+        <div class="iphone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+  <span class="screenshot-label">2. Quiz Question</span>
+</div>
+
+<!-- SCREENSHOT 3: Quiz Results -->
+<div class="screenshot-wrapper">
+  <div class="marketing-frame green-bg">
+    <div class="marketing-heading">Track Your<br>Progress</div>
+    <div class="marketing-subheading">Detailed results after every exam</div>
+    <div class="iphone-frame">
+      <div class="iphone-screen quiz-results">
+        <div class="iphone-notch"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 17 12"><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9zM13 0h2v12h-2z" fill="currentColor" opacity="0.3"/><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5.4 2 3 3.2 1.4 5.2l1.2 1C3.9 4.4 5.8 3.4 8 3.4s4.1 1 5.4 2.8l1.2-1C13 3.2 10.6 2 8 2zm0 3.4c-1.6 0-3 .7-4 1.8l1.2 1c.7-.8 1.7-1.4 2.8-1.4s2.1.5 2.8 1.4l1.2-1c-1-1.1-2.4-1.8-4-1.8zM8 9.2c-.8 0-1.4.6-1.4 1.4S7.2 12 8 12s1.4-.6 1.4-1.4S8.8 9.2 8 9.2z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="screen-content">
+          <div class="results-hero">
+            <div class="score-circle">
+              <span class="big">21</span>
+              <span class="of">of 24</span>
+            </div>
+          </div>
+
+          <div class="pass-banner" style="position:relative;overflow:hidden;">
+            <div class="confetti-dot" style="top:8px;left:15%;background:#F1C40F;width:5px;height:5px;"></div>
+            <div class="confetti-dot" style="top:14px;left:75%;background:#E74C3C;width:4px;height:4px;transform:rotate(45deg);border-radius:0;"></div>
+            <div class="confetti-dot" style="top:6px;left:45%;background:#3498DB;width:3px;height:6px;border-radius:1px;"></div>
+            <div class="confetti-dot" style="top:20px;left:85%;background:#2ECC71;width:5px;height:3px;border-radius:1px;"></div>
+            <div class="confetti-dot" style="top:4px;left:60%;background:#9B59B6;width:4px;height:4px;"></div>
+            <h3>Congratulations!</h3>
+            <p>You passed the practice exam</p>
+          </div>
+
+          <div class="score-grid">
+            <div class="score-card green"><div class="sc-val">21</div><div class="sc-label">Correct</div></div>
+            <div class="score-card red"><div class="sc-val">3</div><div class="sc-label">Incorrect</div></div>
+            <div class="score-card"><div class="sc-val">88%</div><div class="sc-label">Score</div></div>
+            <div class="score-card"><div class="sc-val">28:15</div><div class="sc-label">Time</div></div>
+          </div>
+
+          <div class="review-section">
+            <div class="section-title">Answer Review</div>
+            <div class="review-item">
+              <div class="review-icon correct">&#10003;</div>
+              <div class="review-text">Which TWO of the following are fundamental principles of British life?</div>
+            </div>
+            <div class="review-item">
+              <div class="review-icon correct">&#10003;</div>
+              <div class="review-text">When did women in the UK get the right to vote in elections at age 21?</div>
+            </div>
+            <div class="review-item">
+              <div class="review-icon wrong">&#10005;</div>
+              <div class="review-text">What is the title given to the person who chairs debates in the House of Commons?</div>
+            </div>
+          </div>
+
+          <div class="action-btns" style="margin-top:8px;">
+            <div class="action-btn secondary">Review Answers</div>
+            <div class="action-btn primary">Try Again</div>
+          </div>
+        </div>
+        <div class="iphone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+  <span class="screenshot-label">3. Quiz Results</span>
+</div>
+
+<!-- SCREENSHOT 4: Handbook Home -->
+<div class="screenshot-wrapper">
+  <div class="marketing-frame navy-bg">
+    <div class="marketing-heading">Study the<br>Official Handbook</div>
+    <div class="marketing-subheading">All 5 chapters at your fingertips</div>
+    <div class="iphone-frame">
+      <div class="iphone-screen handbook-home">
+        <div class="iphone-notch"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 17 12"><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9zM13 0h2v12h-2z" fill="currentColor" opacity="0.3"/><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5.4 2 3 3.2 1.4 5.2l1.2 1C3.9 4.4 5.8 3.4 8 3.4s4.1 1 5.4 2.8l1.2-1C13 3.2 10.6 2 8 2zm0 3.4c-1.6 0-3 .7-4 1.8l1.2 1c.7-.8 1.7-1.4 2.8-1.4s2.1.5 2.8 1.4l1.2-1c-1-1.1-2.4-1.8-4-1.8zM8 9.2c-.8 0-1.4.6-1.4 1.4S7.2 12 8 12s1.4-.6 1.4-1.4S8.8 9.2 8 9.2z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="screen-content" style="padding-bottom:70px;">
+          <div class="handbook-hero">
+            <div class="union-stripes">
+              <div class="stripe"></div>
+              <div class="stripe"></div>
+              <div class="stripe"></div>
+            </div>
+            <h2>Life in the United Kingdom</h2>
+            <p>Official Study Handbook</p>
+          </div>
+
+          <div class="progress-analytics">
+            <div class="pa-header">
+              <span class="pa-title">Your Progress</span>
+              <span class="pa-pct">42%</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:42%"></div></div>
+            <div class="pa-stats">
+              <div class="pa-stat"><strong>3.5 hrs</strong> reading</div>
+              <div class="pa-stat"><strong>12</strong> highlights</div>
+              <div class="pa-stat">Last read <strong>today</strong></div>
+            </div>
+          </div>
+
+          <div class="section-title">Chapters</div>
+          <div class="chapter-card">
+            <div class="ch-num" style="background:linear-gradient(135deg,#1B4F72,#2471A3);">1</div>
+            <div class="ch-info">
+              <div class="ch-title">The Values and Principles of the UK</div>
+              <div class="ch-sections">4 sections &middot; Complete</div>
+              <div class="ch-progress-bar"><div class="ch-progress-val" style="width:100%;background:#1B4F72;"></div></div>
+            </div>
+          </div>
+          <div class="chapter-card">
+            <div class="ch-num" style="background:linear-gradient(135deg,#1A5276,#2E86C1);">2</div>
+            <div class="ch-info">
+              <div class="ch-title">What Is the UK?</div>
+              <div class="ch-sections">6 sections &middot; 80% complete</div>
+              <div class="ch-progress-bar"><div class="ch-progress-val" style="width:80%;background:#1A5276;"></div></div>
+            </div>
+          </div>
+          <div class="chapter-card">
+            <div class="ch-num" style="background:linear-gradient(135deg,#6E2C00,#BA6B2E);">3</div>
+            <div class="ch-info">
+              <div class="ch-title">A Long and Illustrious History</div>
+              <div class="ch-sections">18 sections &middot; 35% complete</div>
+              <div class="ch-progress-bar"><div class="ch-progress-val" style="width:35%;background:#6E2C00;"></div></div>
+            </div>
+          </div>
+          <div class="chapter-card">
+            <div class="ch-num" style="background:linear-gradient(135deg,#145A32,#27AE60);">4</div>
+            <div class="ch-info">
+              <div class="ch-title">A Modern, Thriving Society</div>
+              <div class="ch-sections">10 sections &middot; Not started</div>
+              <div class="ch-progress-bar"><div class="ch-progress-val" style="width:0%;background:#145A32;"></div></div>
+            </div>
+          </div>
+          <div class="chapter-card">
+            <div class="ch-num" style="background:linear-gradient(135deg,#512E5F,#8E44AD);">5</div>
+            <div class="ch-info">
+              <div class="ch-title">The UK Government, the Law and Your Role</div>
+              <div class="ch-sections">12 sections &middot; Not started</div>
+              <div class="ch-progress-bar"><div class="ch-progress-val" style="width:0%;background:#512E5F;"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 5h6"/><path d="M9 14l2 2 4-4"/></svg>
+            <span>Quiz</span>
+          </div>
+          <div class="tab-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+            <span>Handbook</span>
+          </div>
+          <div class="tab-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span>Search</span>
+          </div>
+        </div>
+        <div class="iphone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+  <span class="screenshot-label">4. Handbook Home</span>
+</div>
+
+<!-- SCREENSHOT 5: Chapter Reading -->
+<div class="screenshot-wrapper">
+  <div class="marketing-frame brown-bg">
+    <div class="marketing-heading">Read & Highlight<br>Key Passages</div>
+    <div class="marketing-subheading">Beautiful reader with multiple themes</div>
+    <div class="iphone-frame">
+      <div class="iphone-screen chapter-reading">
+        <div class="iphone-notch"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 17 12"><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9zM13 0h2v12h-2z" fill="currentColor" opacity="0.3"/><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5.4 2 3 3.2 1.4 5.2l1.2 1C3.9 4.4 5.8 3.4 8 3.4s4.1 1 5.4 2.8l1.2-1C13 3.2 10.6 2 8 2zm0 3.4c-1.6 0-3 .7-4 1.8l1.2 1c.7-.8 1.7-1.4 2.8-1.4s2.1.5 2.8 1.4l1.2-1c-1-1.1-2.4-1.8-4-1.8zM8 9.2c-.8 0-1.4.6-1.4 1.4S7.2 12 8 12s1.4-.6 1.4-1.4S8.8 9.2 8 9.2z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="screen-content">
+          <div class="chapter-nav">
+            <span class="back-btn">&#8249;</span>
+            <span class="ch-name">Ch. 3 &mdash; A Long and Illustrious History</span>
+            <span class="settings-btn">Aa</span>
+          </div>
+
+          <div class="section-tabs">
+            <span class="section-tab">Early Britain</span>
+            <span class="section-tab active">The Middle Ages</span>
+            <span class="section-tab">The Tudors</span>
+            <span class="section-tab">The Stuarts</span>
+          </div>
+
+          <div class="reading-content">
+            <div class="r-heading">The Middle Ages</div>
+            <div class="r-paragraph">
+              The period after the Norman Conquest is known as the Middle Ages. <span class="r-highlight">William the Conqueror</span> became king of England after defeating Harold at the Battle of Hastings in 1066.
+            </div>
+            <div class="r-subheading">The Domesday Book</div>
+            <div class="r-paragraph">
+              William sent people all over England to compile a record of land ownership. This was called the Domesday Book, and it still survives today as an invaluable historical document.
+            </div>
+            <div class="blockquote">
+              "The Domesday Book listed every town and village, who owned them, how many people lived there, and what animals they had."
+            </div>
+            <div class="r-subheading">Magna Carta</div>
+            <div class="r-paragraph">
+              In 1215, <span class="r-highlight">King John</span> was forced to agree to a charter of rights called Magna Carta. This established that even the king was subject to the law.
+            </div>
+            <ul class="bullet-list">
+              <li>Established the rule of law in England</li>
+              <li>Limited the power of the monarchy</li>
+              <li>Protected the rights of the nobility</li>
+            </ul>
+          </div>
+        </div>
+        <div class="iphone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+  <span class="screenshot-label">5. Chapter Reading</span>
+</div>
+
+<!-- SCREENSHOT 6: Search -->
+<div class="screenshot-wrapper">
+  <div class="marketing-frame purple-bg">
+    <div class="marketing-heading">Find Any<br>Topic Instantly</div>
+    <div class="marketing-subheading">Search across all chapters and sections</div>
+    <div class="iphone-frame">
+      <div class="iphone-screen search-screen">
+        <div class="iphone-notch"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 17 12"><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9zM13 0h2v12h-2z" fill="currentColor" opacity="0.3"/><path d="M1 4.5h2v7H1zM5 3h2v8.5H5zM9 1.5h2V12H9z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5.4 2 3 3.2 1.4 5.2l1.2 1C3.9 4.4 5.8 3.4 8 3.4s4.1 1 5.4 2.8l1.2-1C13 3.2 10.6 2 8 2zm0 3.4c-1.6 0-3 .7-4 1.8l1.2 1c.7-.8 1.7-1.4 2.8-1.4s2.1.5 2.8 1.4l1.2-1c-1-1.1-2.4-1.8-4-1.8zM8 9.2c-.8 0-1.4.6-1.4 1.4S7.2 12 8 12s1.4-.6 1.4-1.4S8.8 9.2 8 9.2z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="screen-content" style="padding-bottom:70px;">
+          <div style="font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--text-primary);text-align:left;margin-bottom:10px;padding-top:4px;">Search</div>
+
+          <div class="search-bar">
+            <span class="search-icon">&#128269;</span>
+            <span class="search-text">magna carta</span>
+          </div>
+
+          <div style="font-size:10px;color:var(--text-muted);text-align:left;margin-bottom:8px;">4 results found</div>
+
+          <div class="search-result">
+            <div class="sr-breadcrumb">
+              <span class="sr-chap">Chapter 3</span>
+              <span>&#8250;</span>
+              <span>The Middle Ages</span>
+            </div>
+            <div class="sr-title">Magna Carta</div>
+            <div class="sr-snippet">In 1215, King John was forced to agree to a charter of rights called <span class="sr-match">Magna Carta</span>. This established that even the king was subject to...</div>
+          </div>
+
+          <div class="search-result">
+            <div class="sr-breadcrumb">
+              <span class="sr-chap">Chapter 3</span>
+              <span>&#8250;</span>
+              <span>Constitutional Monarchy</span>
+            </div>
+            <div class="sr-title">Foundation of Parliament</div>
+            <div class="sr-snippet">The ideas in <span class="sr-match">Magna Carta</span> fundamentally influenced the development of Parliament and the principle that government should be...</div>
+          </div>
+
+          <div class="search-result">
+            <div class="sr-breadcrumb">
+              <span class="sr-chap">Chapter 5</span>
+              <span>&#8250;</span>
+              <span>The Constitution</span>
+            </div>
+            <div class="sr-title">Constitutional Documents</div>
+            <div class="sr-snippet">Key constitutional texts include <span class="sr-match">Magna Carta</span> (1215), the Bill of Rights (1689), and the Human Rights Act...</div>
+          </div>
+
+          <div class="search-result">
+            <div class="sr-breadcrumb">
+              <span class="sr-chap">Chapter 5</span>
+              <span>&#8250;</span>
+              <span>The Rule of Law</span>
+            </div>
+            <div class="sr-title">Equal Before the Law</div>
+            <div class="sr-snippet">The principle that everyone is equal before the law dates back to <span class="sr-match">Magna Carta</span> and is a cornerstone of British democracy...</div>
+          </div>
+
+          <div class="search-suggestions" style="margin-top:12px;">
+            <div class="section-title">Suggested Searches</div>
+            <div class="suggestion-chips">
+              <span class="suggestion-chip">Parliament</span>
+              <span class="suggestion-chip">World War</span>
+              <span class="suggestion-chip">Queen Elizabeth</span>
+              <span class="suggestion-chip">NHS</span>
+              <span class="suggestion-chip">Voting rights</span>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 5h6"/><path d="M9 14l2 2 4-4"/></svg>
+            <span>Quiz</span>
+          </div>
+          <div class="tab-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+            <span>Handbook</span>
+          </div>
+          <div class="tab-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span>Search</span>
+          </div>
+        </div>
+        <div class="iphone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+  <span class="screenshot-label">6. Search</span>
+</div>
+
+</div>
+
+<div class="download-note">
+  <strong>How to export:</strong><br>
+  1. Open this file in a browser: <code>open screenshots/appstore-screenshots.html</code><br>
+  2. Right-click each marketing frame &rarr; Inspect &rarr; Screenshot node, or use a tool like <code>screencapture</code><br>
+  3. For pixel-perfect 1290&times;2796 exports, use Puppeteer/Playwright or set browser zoom to 2x and screenshot each frame<br>
+  4. App Store requires iPhone 6.7" screenshots at 1290&times;2796 or 1284&times;2778 pixels
+</div>
+
+</body>
+</html>

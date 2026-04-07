@@ -24,18 +24,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		64C37B612F78206E009C85F1 /* HandbookReaderQuiz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HandbookReaderQuiz.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		64C37B6E2F782070009C85F1 /* HandbookReaderQuizTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HandbookReaderQuizTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		64C37B782F782070009C85F1 /* HandbookReaderQuizUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HandbookReaderQuizUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		64C37B612F78206E009C85F1 /* Quizie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Quizie.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		64C37B6E2F782070009C85F1 /* QuizieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuizieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		64C37B782F782070009C85F1 /* QuizieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuizieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		64C37BC82F782363009C85F1 /* Exceptions for "HandbookReaderQuiz" folder in "HandbookReaderQuiz" target */ = {
+		64C37BC82F782363009C85F1 /* Exceptions for "HandbookReaderQuiz" folder in "Quizie" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 64C37B602F78206E009C85F1 /* HandbookReaderQuiz */;
+			target = 64C37B602F78206E009C85F1 /* Quizie */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -43,7 +43,7 @@
 		64C37B632F78206E009C85F1 /* HandbookReaderQuiz */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				64C37BC82F782363009C85F1 /* Exceptions for "HandbookReaderQuiz" folder in "HandbookReaderQuiz" target */,
+				64C37BC82F782363009C85F1 /* Exceptions for "HandbookReaderQuiz" folder in "Quizie" target */,
 			);
 			path = HandbookReaderQuiz;
 			sourceTree = "<group>";
@@ -98,9 +98,9 @@
 		64C37B622F78206E009C85F1 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				64C37B612F78206E009C85F1 /* HandbookReaderQuiz.app */,
-				64C37B6E2F782070009C85F1 /* HandbookReaderQuizTests.xctest */,
-				64C37B782F782070009C85F1 /* HandbookReaderQuizUITests.xctest */,
+				64C37B612F78206E009C85F1 /* Quizie.app */,
+				64C37B6E2F782070009C85F1 /* QuizieTests.xctest */,
+				64C37B782F782070009C85F1 /* QuizieUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,9 +108,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		64C37B602F78206E009C85F1 /* HandbookReaderQuiz */ = {
+		64C37B602F78206E009C85F1 /* Quizie */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 64C37B822F782070009C85F1 /* Build configuration list for PBXNativeTarget "HandbookReaderQuiz" */;
+			buildConfigurationList = 64C37B822F782070009C85F1 /* Build configuration list for PBXNativeTarget "Quizie" */;
 			buildPhases = (
 				64C37B5D2F78206E009C85F1 /* Sources */,
 				64C37B5E2F78206E009C85F1 /* Frameworks */,
@@ -123,16 +123,16 @@
 			fileSystemSynchronizedGroups = (
 				64C37B632F78206E009C85F1 /* HandbookReaderQuiz */,
 			);
-			name = HandbookReaderQuiz;
+			name = Quizie;
 			packageProductDependencies = (
 			);
 			productName = HandbookReaderQuiz;
-			productReference = 64C37B612F78206E009C85F1 /* HandbookReaderQuiz.app */;
+			productReference = 64C37B612F78206E009C85F1 /* Quizie.app */;
 			productType = "com.apple.product-type.application";
 		};
-		64C37B6D2F782070009C85F1 /* HandbookReaderQuizTests */ = {
+		64C37B6D2F782070009C85F1 /* QuizieTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 64C37B852F782070009C85F1 /* Build configuration list for PBXNativeTarget "HandbookReaderQuizTests" */;
+			buildConfigurationList = 64C37B852F782070009C85F1 /* Build configuration list for PBXNativeTarget "QuizieTests" */;
 			buildPhases = (
 				64C37B6A2F782070009C85F1 /* Sources */,
 				64C37B6B2F782070009C85F1 /* Frameworks */,
@@ -146,16 +146,16 @@
 			fileSystemSynchronizedGroups = (
 				64C37B712F782070009C85F1 /* HandbookReaderQuizTests */,
 			);
-			name = HandbookReaderQuizTests;
+			name = QuizieTests;
 			packageProductDependencies = (
 			);
 			productName = HandbookReaderQuizTests;
-			productReference = 64C37B6E2F782070009C85F1 /* HandbookReaderQuizTests.xctest */;
+			productReference = 64C37B6E2F782070009C85F1 /* QuizieTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		64C37B772F782070009C85F1 /* HandbookReaderQuizUITests */ = {
+		64C37B772F782070009C85F1 /* QuizieUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 64C37B882F782070009C85F1 /* Build configuration list for PBXNativeTarget "HandbookReaderQuizUITests" */;
+			buildConfigurationList = 64C37B882F782070009C85F1 /* Build configuration list for PBXNativeTarget "QuizieUITests" */;
 			buildPhases = (
 				64C37B742F782070009C85F1 /* Sources */,
 				64C37B752F782070009C85F1 /* Frameworks */,
@@ -169,11 +169,11 @@
 			fileSystemSynchronizedGroups = (
 				64C37B7B2F782070009C85F1 /* HandbookReaderQuizUITests */,
 			);
-			name = HandbookReaderQuizUITests;
+			name = QuizieUITests;
 			packageProductDependencies = (
 			);
 			productName = HandbookReaderQuizUITests;
-			productReference = 64C37B782F782070009C85F1 /* HandbookReaderQuizUITests.xctest */;
+			productReference = 64C37B782F782070009C85F1 /* QuizieUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -213,9 +213,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				64C37B602F78206E009C85F1 /* HandbookReaderQuiz */,
-				64C37B6D2F782070009C85F1 /* HandbookReaderQuizTests */,
-				64C37B772F782070009C85F1 /* HandbookReaderQuizUITests */,
+				64C37B602F78206E009C85F1 /* Quizie */,
+				64C37B6D2F782070009C85F1 /* QuizieTests */,
+				64C37B772F782070009C85F1 /* QuizieUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -271,12 +271,12 @@
 /* Begin PBXTargetDependency section */
 		64C37B702F782070009C85F1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 64C37B602F78206E009C85F1 /* HandbookReaderQuiz */;
+			target = 64C37B602F78206E009C85F1 /* Quizie */;
 			targetProxy = 64C37B6F2F782070009C85F1 /* PBXContainerItemProxy */;
 		};
 		64C37B7A2F782070009C85F1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 64C37B602F78206E009C85F1 /* HandbookReaderQuiz */;
+			target = 64C37B602F78206E009C85F1 /* Quizie */;
 			targetProxy = 64C37B792F782070009C85F1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -509,7 +509,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HandbookReaderQuiz.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HandbookReaderQuiz";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Quizie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Quizie";
 				XROS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Debug;
@@ -535,7 +535,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HandbookReaderQuiz.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HandbookReaderQuiz";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Quizie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Quizie";
 				XROS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Release;
@@ -602,7 +602,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		64C37B822F782070009C85F1 /* Build configuration list for PBXNativeTarget "HandbookReaderQuiz" */ = {
+		64C37B822F782070009C85F1 /* Build configuration list for PBXNativeTarget "Quizie" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				64C37B832F782070009C85F1 /* Debug */,
@@ -611,7 +611,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		64C37B852F782070009C85F1 /* Build configuration list for PBXNativeTarget "HandbookReaderQuizTests" */ = {
+		64C37B852F782070009C85F1 /* Build configuration list for PBXNativeTarget "QuizieTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				64C37B862F782070009C85F1 /* Debug */,
@@ -620,7 +620,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		64C37B882F782070009C85F1 /* Build configuration list for PBXNativeTarget "HandbookReaderQuizUITests" */ = {
+		64C37B882F782070009C85F1 /* Build configuration list for PBXNativeTarget "QuizieUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				64C37B892F782070009C85F1 /* Debug */,

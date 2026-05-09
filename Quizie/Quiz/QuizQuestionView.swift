@@ -4,7 +4,6 @@ struct QuizQuestionView: View {
     @EnvironmentObject var engine: QuizEngine
     let questionIndex: Int
 
-    @State private var animateIn = false
     @State private var animateSubmitButton = false
     @State private var showOptionsSheet = false
     @State private var showRestartAlert = false
@@ -31,46 +30,17 @@ struct QuizQuestionView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Top bar: timer + progress + options
-            QuizTopBar(onOptionsPressed: { showOptionsSheet = true })
+		VStack(spacing: 0) {
+			// Top bar: timer + progress + options
+			QuizTopBar(onOptionsPressed: { showOptionsSheet = true })
 
-            // Progress track
-            QuizProgressBar(
-                current: questionIndex + 1,
-                total: engine.totalQuestions
-            )
+			// Progress track
+			QuizProgressBar(current: questionIndex + 1, total: engine.totalQuestions)
 
-            ScrollView {
-                VStack(spacing: 0) {
-                    if let q = question {
-                        // Question card
-                        QuestionCard(question: q, questionIndex: questionIndex)
-							.frame(minHeight: 200)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 20)
-                            .opacity(animateIn ? 1 : 0)
-                            .offset(y: animateIn ? 0 : 14)
-
-                        // Choice options
-                        ChoicesView(question: q)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
-                            .opacity(animateIn ? 1 : 0)
-                            .offset(y: animateIn ? 0 : 20)
-
-                        // Submit button
-                        SubmitButton(question: q)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 20)
-                            .padding(.bottom, 40)
-                            .opacity(animateSubmitButton ? 1 : 0)
-                            .offset(y: animateSubmitButton ? 0 : 20)
-                    }
-                }
-            }
-        }
-        .background(Color.hbBackground)
+			if let question {
+				QuestionView(question: question, questionIndex: questionIndex)
+			}
+		}
         .sheet(isPresented: $showOptionsSheet) {
             QuizOptionsSheet(
                 question: question,
@@ -99,23 +69,14 @@ struct QuizQuestionView: View {
             Text("Your current progress will be lost permanently. You can start a new quiz from the lobby.")
         }
         .onAppear {
-            withAnimation(.bouncy.delay(0.05)) {
-                animateIn = true
-            }
-            
             // Delay submit button animation by 3 seconds
             withAnimation(.bouncy.delay(1.05)) {
                 animateSubmitButton = true
             }
         }
         .onChange(of: questionIndex) { _, _ in
-            animateIn = false
             animateSubmitButton = false
-            
-            withAnimation(.bouncy.delay(0.05)) {
-                animateIn = true
-            }
-            
+
             // Delay submit button animation by 3 seconds
             withAnimation(.bouncy.delay(1.05)) {
                 animateSubmitButton = true
@@ -133,6 +94,37 @@ struct QuizQuestionView: View {
         }
         updateBookmarks(bookmarks)
     }
+}
+
+private struct QuestionView: View {
+	let question: QuizQuestion
+	let questionIndex: Int
+	var body: some View {
+		ScrollView {
+			VStack(spacing: 0) {
+				// Question card
+				QuestionCard(question: question, questionIndex: questionIndex)
+					.frame(minHeight: 200)
+					.padding(.horizontal, 16)
+					.padding(.vertical, 20)
+					.staggered(0.1)
+
+				// Choice options
+				ChoicesView(question: question)
+					.padding(.horizontal, 16)
+					.padding(.top, 16)
+					.staggered(0.2)
+
+				// Submit button
+				SubmitButton(question: question)
+					.padding(.horizontal, 16)
+					.padding(.top, 20)
+					.padding(.bottom, 40)
+					.staggered(0.4)
+			}
+		}
+		.background(Color.hbBackground)
+	}
 }
 
 // MARK: - Top Bar (timer + question count + options)
@@ -305,6 +297,7 @@ struct ChoicesView: View {
                     }
                 }
                 .sensoryFeedback(.selection, trigger: engine.selectedIndices.contains(idx))
+				.staggered(0.2 + (0.1 * Double(idx)))
             }
         }
     }

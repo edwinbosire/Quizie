@@ -10,6 +10,7 @@ struct HandbookView: View {
 
 				// Chapter List
 				ChapterList()
+					.staggered(0.2)
 			}
 		}
 		.background(Color.hbBackground)
@@ -20,6 +21,7 @@ struct HandbookView: View {
 
 // MARK: - Hero Header
 struct HeroHeader: View {
+	@State private var animateBubbles: Bool = false
 	var body: some View {
 		ZStack(alignment: .topLeading) {
 			// Background
@@ -31,43 +33,55 @@ struct HeroHeader: View {
 				.frame(width: 220, height: 220)
 				.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
 				.offset(x: 110, y: -60)
+				.scaleEffect(animateBubbles ? 1.0 : 0.05)
 
 			Circle()
 				.fill(Color.white.opacity(0.04))
 				.frame(width: 160, height: 160)
 				.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 				.offset(x: -20, y: 200)
+				.scaleEffect(animateBubbles ? 1.0 : 0.05)
 
 			// Content
-			VStack(alignment: .leading, spacing: 0) {
+			VStack(alignment: .leading, spacing: 10) {
 				Text("OFFICIAL STUDY GUIDE")
 					.font(HBFont.sans(11, weight: .semibold))
 					.kerning(2)
-					.foregroundColor(Color.white.opacity(0.6))
-					.padding(.bottom, 12)
+					.foregroundColor(Color.hbTextMuted)
+					.staggered(0.1)
 
 				Text("Life in the\nUnited Kingdom")
 					.font(HBFont.lora(32))
 					.foregroundColor(.white)
-					.lineSpacing(4)
-					.padding(.bottom, 10)
+					.staggered(0.2)
 
 				Text("Your complete guide to British values, history, culture and citizenship.")
 					.font(HBFont.sans(15))
 					.foregroundColor(Color.white.opacity(0.7))
-					.lineSpacing(5)
-					.fixedSize(horizontal: false, vertical: true)
 					.padding(.bottom, 20)
+					.staggered(0.4)
 
 				// Union Jack stripe accent
 				FlagStripes()
+					.mask {
+						let diameter = animateBubbles ? 750.0 : 0.0
+						Circle()
+							.frame(width: diameter, height: diameter)
+							.animation(.easeOut(duration: 1), value: animateBubbles)
+					}
 			}
-			.padding(.horizontal, 24)
+			.padding(.horizontal)
 			.padding(.top, 56)
 			.padding(.bottom, 36)
 		}
 		.frame(maxWidth: .infinity)
+		.onAppear {
+			withAnimation(.bouncy(duration: 1).delay(0.6)) {
+				animateBubbles = true
+			}
+		}
 	}
+
 }
 
 // MARK: - Flag Stripe Decoration
@@ -140,6 +154,7 @@ struct ChapterList: View {
 						HomeChapterCard(chapter: chapter)
 					}
 					.buttonStyle(.plain)
+					.staggered(0.4 + (0.1 * Double(chapter.id)))
 				}
 			}
 			.padding(.horizontal, 16)
@@ -154,6 +169,9 @@ struct ProgressAnalyticsCard: View {
 	let totalReadingTime: TimeInterval
 	let lastReadDate: Date?
 
+	// animation
+	@State private var animateProgress: Bool = false
+	@State private var progress: Double = 0.0001
 	private var formattedReadingTime: String {
 		let minutes = Int(totalReadingTime / 60)
 		if minutes < 60 {
@@ -203,8 +221,7 @@ struct ProgressAnalyticsCard: View {
 				Text("Your Progress")
 					.font(HBFont.sans(14, weight: .semibold))
 					.foregroundColor(.hbTextPrimary)
-
-				Spacer()
+					.frame(maxWidth: .infinity, alignment: .leading)
 			}
 
 			// Overall completion progress bar
@@ -213,12 +230,13 @@ struct ProgressAnalyticsCard: View {
 					Text("Overall Completion")
 						.font(HBFont.sans(13))
 						.foregroundColor(.hbTextSecondary)
+						.frame(maxWidth: .infinity, alignment: .leading)
 
-					Spacer()
-
-					Text("\(Int(overallCompletion * 100))%")
+					Text("\(Int(progress * 100))%")
+						.contentTransition(.numericText(value: progress))
 						.font(HBFont.sans(15, weight: .bold))
 						.foregroundColor(.hbAccent)
+						.animation(.easeOut.delay(0.2), value: progress)
 				}
 
 				GeometryReader { geometry in
@@ -237,7 +255,7 @@ struct ProgressAnalyticsCard: View {
 									endPoint: .trailing
 								)
 							)
-							.frame(width: geometry.size.width * overallCompletion, height: 8)
+							.frame(width: animateProgress ? geometry.size.width * overallCompletion : 0.0, height: 8)
 					}
 				}
 				.frame(height: 8)
@@ -260,13 +278,20 @@ struct ProgressAnalyticsCard: View {
 				)
 			}
 		}
-		.padding(20)
+		.padding()
 		.background(Color.hbSurface)
 		.overlay(
 			RoundedRectangle(cornerRadius: HBRadius.md)
 				.stroke(Color.hbAccent.opacity(0.2), lineWidth: 1)
 		)
 		.clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
+		.task {
+			withAnimation(.bouncy.delay(1)) {
+				animateProgress.toggle()
+			}
+			try? await Task.sleep(nanoseconds: 1_000_000_000)
+			progress = overallCompletion
+		}
 	}
 }
 
@@ -279,21 +304,21 @@ struct StatBox: View {
 	var body: some View {
 		HStack(spacing: 10) {
 			// Icon
-			ZStack {
-				Circle()
-					.fill(Color.hbAccent.opacity(0.12))
-					.frame(width: 36, height: 36)
-
-				Image(systemName: icon)
-					.font(.system(size: 14))
-					.foregroundColor(.hbAccent)
-			}
+			Circle()
+				.fill(Color.hbAccent.opacity(0.12))
+				.frame(width: 18, height: 18)
+				.overlay {
+					Image(systemName: icon)
+						.font(.body)
+						.foregroundColor(.hbAccent)
+				}
 
 			// Text
-			VStack(alignment: .leading, spacing: 2) {
+			VStack(alignment: .leading, spacing: 0) {
 				Text(label)
 					.font(HBFont.sans(11))
 					.foregroundColor(.hbTextMuted)
+					.frame(maxWidth: .infinity, alignment: .leading)
 
 				Text(value)
 					.font(HBFont.sans(13, weight: .semibold))
@@ -302,10 +327,9 @@ struct StatBox: View {
 					.minimumScaleFactor(0.8)
 			}
 
-			Spacer(minLength: 0)
 		}
 		.frame(maxWidth: .infinity)
-		.padding(12)
+		.padding(4)
 		.background(Color.hbSurface2.opacity(0.5))
 		.clipShape(RoundedRectangle(cornerRadius: HBRadius.sm))
 	}

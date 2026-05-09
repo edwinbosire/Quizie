@@ -9,35 +9,44 @@ struct QuizResultsView: View {
 
     var body: some View {
         ZStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    if let session {
-                        // Hero result banner
-                        ResultHero(session: session, showConfetti: $showConfetti)
+			ScrollViewReader { proxy in
+				ScrollView {
+					VStack(spacing: 0) {
+						if let session {
+							// Hero result banner
+							ResultHero(session: session, showConfetti: $showConfetti)
 
-                        // Score breakdown cards
-                        ScoreBreakdown(session: session)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 24)
+							// Score breakdown cards
+							ScoreBreakdown(session: session)
+								.padding(.horizontal, 16)
+								.padding(.top, 24)
 
-                        // Action buttons
-                        ActionButtons(showReview: $showReview)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 20)
+							// Action buttons
+							ActionButtons(showReview: $showReview)
+								.padding(.horizontal, 16)
+								.padding(.top, 20)
 
-                        // Answer review list
-                        if showReview {
-                            AnswerReviewList(session: session)
-                                .padding(.top, 24)
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
-                        }
-                    }
-                }
-                .padding(.bottom, 48)
-            }
-            .background(Color.hbBackground)
-            .ignoresSafeArea(edges: .top)
-            
+							// Answer review list
+							if showReview {
+								AnswerReviewList(session: session)
+									.padding(.top, 24)
+									.transition(.move(edge: .bottom).combined(with: .opacity))
+									.id(3)
+							}
+						}
+					}
+					.padding(.bottom, 48)
+				}
+				.background(Color.hbBackground)
+				.ignoresSafeArea(edges: .top)
+				.onChange(of: showReview) { _, newValue in
+					if newValue {
+						withAnimation(.easeIn.delay(1)) {
+							proxy.scrollTo(3, anchor: .top)
+						}
+					}
+				}
+			}
             // Confetti overlay
             if showConfetti {
                 ConfettiView()
@@ -378,12 +387,8 @@ struct AnswerReviewList: View {
             VStack(spacing: 10) {
                 ForEach(Array(session.questions.enumerated()), id: \.offset) { idx, question in
                     let answer = session.answers[question.id]
-                    AnswerReviewRow(
-                        index: idx + 1,
-                        question: question,
-                        answer: answer
-                    )
-                    .padding(.horizontal, 16)
+                    AnswerReviewRow(index: idx + 1, question: question, answer: answer)
+						.padding(.horizontal, 16)
                 }
             }
         }
@@ -502,6 +507,11 @@ struct AnswerReviewRow: View {
             RoundedRectangle(cornerRadius: HBRadius.md)
                 .stroke(isCorrect ? rowBorder : rowBorder, lineWidth: 1)
         )
+		.onTapGesture {
+			withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+				expanded.toggle()
+			}
+		}
         .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
     }
 }

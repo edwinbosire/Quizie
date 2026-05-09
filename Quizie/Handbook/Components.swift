@@ -147,13 +147,15 @@ struct BulletListRow: View {
                     .padding(.top, 1)
 
                 InlineText(item.text.raw, fontSize: 15.5)
-                    .fixedSize(horizontal: false, vertical: true)
+					.frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 6)
             }
 
             if !isLast {
-                Divider()
-                    .background(readingTheme.style.surface2)
+                Rectangle()
+					.fill(readingTheme.style.surface2)
+					.frame(maxWidth: .infinity)
+					.frame(height: 0.77)
             }
         }
     }
@@ -189,22 +191,23 @@ struct CheckUnderstandBox: View {
                 Text("✓")
                     .font(HBFont.sans(11, weight: .semibold))
                     .foregroundColor(theme.accent)
-                Text("CHECK THAT YOU UNDERSTAND")
+
+				Text("CHECK THAT YOU UNDERSTAND")
                     .font(HBFont.sans(11, weight: .semibold))
                     .kerning(1.5)
                     .foregroundColor(theme.accent)
+					.frame(maxWidth: .infinity, alignment: .leading)
             }
 
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.offset) { idx, item in
-                    HStack(alignment: .top, spacing: 0) {
+                    HStack(alignment: .top, spacing: 10) {
                         Text("·")
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(theme.accent)
-                            .frame(width: 20, alignment: .leading)
                             .padding(.top, 1)
                         Text(highlightedItem(item))
-                            .fixedSize(horizontal: false, vertical: true)
+							.frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 5)
                     }
                     if idx < items.count - 1 {
@@ -447,6 +450,10 @@ struct ContentBlocksView: View {
     var highlights: [Highlight] = []
     @Environment(\.readingTheme) private var readingTheme
     @Environment(\.searchHighlight) private var searchHighlight
+    @Environment(\.modelContext) private var modelContext
+
+    @State private var selection: BlockSelection?
+    @State private var blockFrames: [Int: CGRect] = [:]
 
     private var rt: ReadingThemeStyle { readingTheme.style }
     private var fs: CGFloat { readingTheme.fontSizeAdjustment }
@@ -459,18 +466,38 @@ struct ContentBlocksView: View {
                 let next = highlights.first { $0.blockIndex == idx + 1 }
 
                 HighlightableBlock(
-                    chapterId: chapterId,
-                    sectionId: sectionId,
                     blockIndex: idx,
-                    totalBlockCount: blocks.count,
-                    block: block,
-                    existingHighlight: existing,
+                    existingHighlight: selection?.contains(idx) == true ? nil : existing,
                     previousHighlight: prev,
-                    nextHighlight: next
+                    nextHighlight: next,
+                    isSelected: selection?.contains(idx) ?? false,
+                    isSelectionStart: selection?.startIndex == idx,
+                    isSelectionEnd: selection?.endIndex == idx
                 ) {
                     blockView(block, index: idx)
                 }
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(
+                            key: BlockFramePreferenceKey.self,
+                            value: [idx: geo.frame(in: .named("blockContent"))]
+                        )
+                    }
+                )
+//                .simultaneousGesture(blockSelectionGesture(for: idx))
+
+                // Inline toolbar after the last selected block
+                if let sel = selection, sel.endIndex == idx, !sel.isDragging {
+                    selectionToolbar(for: sel)
+                        .padding(.top, 8)
+                        .padding(.bottom, 4)
+                        .transition(.scale(scale: 0.9).combined(with: .opacity))
+                }
             }
+        }
+        .coordinateSpace(name: "blockContent")
+        .onPreferenceChange(BlockFramePreferenceKey.self) { frames in
+            blockFrames = frames
         }
     }
 
@@ -513,6 +540,121 @@ struct ContentBlocksView: View {
         applySearchHighlight(to: &attr, term: searchHighlight)
         return attr
     }
+
+    // MARK: - Selection Gesture
+
+    private func blockSelectionGesture(for blockIdx: Int) -> some Gesture {
+        LongPressGesture(minimumDuration: 0.5)
+            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .named("blockContent")))
+            .onChanged { value in
+                switch value {
+                case .first(true):
+                    break
+                case .second(true, let drag):
+                    if let drag {
+                        if selection == nil {
+                            selection = BlockSelection(
+                                anchorIndex: blockIdx,
+                                currentIndex: blockIdx,
+                                isDragging: true
+                            )
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        }
+                        if selection?.isDragging == true {
+                            let newIndex = resolveBlockIndex(at: drag.location)
+                            if newIndex != selection?.currentIndex {
+                                selection?.currentIndex = newIndex
+                                UISelectionFeedbackGenerator().selectionChanged()
+                            }
+                        }
+                    }
+                default:
+                    break
+                }
+            }
+            .onEnded { _ in
+                withAnimation(.easeOut(duration: 0.2)) {
+                    selection?.isDragging = false
+                }
+            }
+    }
+
+    private func resolveBlockIndex(at point: CGPoint) -> Int {
+        let sorted = blockFrames.sorted { $0.key < $1.key }
+        if let first = sorted.first, point.y < first.value.minY {
+            return first.key
+        }
+        for (index, frame) in sorted {
+            if point.y >= frame.minY && point.y <= frame.maxY {
+                return index
+            }
+        }
+        return sorted.last?.key ?? 0
+    }
+
+    // MARK: - Selection Toolbar
+
+    @ViewBuilder
+    private func selectionToolbar(for sel: BlockSelection) -> some View {
+        let existingInRange = highlights.filter {
+            $0.blockIndex >= sel.startIndex && $0.blockIndex <= sel.endIndex
+        }
+        let hasExisting = !existingInRange.isEmpty
+        let initialColor = existingInRange.first?.highlightColor ?? .yellow
+
+        HighlightSelectionToolbar(
+            hasExistingHighlights: hasExisting,
+            initialColor: initialColor,
+            onSave: { color in
+                saveHighlights(color: color, range: sel.startIndex...sel.endIndex)
+                withAnimation(.easeOut(duration: 0.2)) {
+                    selection = nil
+                }
+            },
+            onDelete: {
+                deleteHighlights(range: sel.startIndex...sel.endIndex)
+                withAnimation(.easeOut(duration: 0.2)) {
+                    selection = nil
+                }
+            },
+            onCancel: {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    selection = nil
+                }
+            }
+        )
+    }
+
+    // MARK: - Save & Delete Highlights
+
+    private func saveHighlights(color: HighlightColor, range: ClosedRange<Int>) {
+        for idx in range {
+            guard idx < blocks.count else { continue }
+            if let existing = highlights.first(where: { $0.blockIndex == idx }) {
+                existing.highlightColor = color
+            } else {
+                let preview = String(blocks[idx].plainText.prefix(80))
+                let highlight = Highlight(
+                    chapterId: chapterId,
+                    sectionId: sectionId,
+                    blockIndex: idx,
+                    color: color,
+                    textPreview: preview
+                )
+                modelContext.insert(highlight)
+            }
+        }
+        try? modelContext.save()
+    }
+
+    private func deleteHighlights(range: ClosedRange<Int>) {
+        for idx in range {
+            if let existing = highlights.first(where: { $0.blockIndex == idx }) {
+                modelContext.delete(existing)
+            }
+        }
+        try? modelContext.save()
+    }
 }
 
 // MARK: - Home Chapter Card
@@ -526,9 +668,7 @@ struct HomeChapterCard: View {
         // Filter the query to only get progress for this specific chapter
         let chapterId = chapter.id
         _allProgress = Query(
-            filter: #Predicate<ReadingProgress> { progress in
-                progress.chapterId == chapterId
-            }
+            filter: #Predicate<ReadingProgress> { $0.chapterId == chapterId }
         )
     }
 
@@ -552,19 +692,28 @@ struct HomeChapterCard: View {
                     Text(chapter.number.uppercased())
                         .font(HBFont.sans(11, weight: .semibold))
                         .kerning(1)
-                        .foregroundColor(.hbTextMuted)
-                    
-                    Spacer()
-                    
+                        .foregroundColor(.white)
+						.frame(maxWidth: .infinity, alignment: .leading)
+
                     // Progress indicator
                     if let progress = readingProgress {
+						// Reading time if available
+						if progress.totalReadingTime > 60 {
+							HStack(spacing: 4) {
+								Image(systemName: "clock.fill")
+									.font(.system(size: 10))
+								Text(progress.formattedReadingTime)
+									.font(HBFont.sans(11, weight: .medium))
+							}
+							.foregroundColor(.white)
+						}
                         ProgressBadge(progress: progress)
                     }
                 }
 
                 Text(chapter.title)
                     .font(HBFont.lora(18))
-                    .foregroundColor(.hbTextPrimary)
+                    .foregroundColor(.white)
                     .lineLimit(2)
 
                 // Pill labels and reading time
@@ -583,36 +732,24 @@ struct HomeChapterCard: View {
                                 .clipShape(Capsule())
                         }
                     }
-                    
-                    Spacer()
-                    
-                    // Reading time if available
-                    if let progress = readingProgress, progress.totalReadingTime > 60 {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock.fill")
-                                .font(.system(size: 10))
-                            Text(progress.formattedReadingTime)
-                                .font(HBFont.sans(11, weight: .medium))
-                        }
-                        .foregroundColor(.hbTextMuted)
-                    }
                 }
             }
-            .padding(20)
+            .padding()
             
             // Progress bar at bottom if started
             if let progress = readingProgress, progress.isStarted {
-                ProgressBar(progress: progress.progress, color: cardAccentColors[min(chapter.id, cardAccentColors.count - 1)])
+                ProgressBar(progress: progress.progress, color: cardAccentColor)
+					.padding(.leading, 10)
+					.padding(.bottom, 1)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.hbSurface)
-        .overlay(alignment: .leading) {
+        .background(alignment: .leading) {
             Rectangle()
-                .fill(cardAccentColors[min(chapter.id, cardAccentColors.count - 1)])
-                .frame(width: 4)
-                .cornerRadius(2)
+                .fill(cardAccentColor)
+				.frame(maxWidth: .infinity)
         }
+		.background(Color.hbSurface)
         .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
         .overlay(
             RoundedRectangle(cornerRadius: HBRadius.md)
@@ -620,6 +757,10 @@ struct HomeChapterCard: View {
         )
         .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
     }
+
+	private var cardAccentColor: Color {
+		cardAccentColors[min(chapter.id, cardAccentColors.count - 1)]
+	}
 }
 
 // MARK: - Progress Badge
@@ -713,4 +854,36 @@ struct FlowLayout: Layout {
             x += size.width + spacing
         }
     }
+}
+
+// MARK: - Previews
+
+private struct HomeChapterCardPreview: View {
+    @Environment(\.modelContext) private var modelContext
+
+    private let chapter = HandbookChapter(
+        id: 0,
+        number: "Chapter 1",
+        title: "The values and principles of the UK",
+        pillLabels: ["British Values", "Responsibilities", "Rights"],
+        sections: []
+    )
+
+    var body: some View {
+        HomeChapterCard(chapter: chapter)
+            .padding()
+            .onAppear {
+                let progress = ReadingProgress(
+                    chapterId: 0,
+                    progress: 0.65,
+                    totalReadingTime: 480
+                )
+                modelContext.insert(progress)
+            }
+    }
+}
+
+#Preview("HomeChapterCard") {
+    HomeChapterCardPreview()
+        .modelContainer(for: ReadingProgress.self, inMemory: true)
 }

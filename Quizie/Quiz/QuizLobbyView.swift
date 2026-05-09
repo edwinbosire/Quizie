@@ -43,6 +43,7 @@ struct QuizLobbyView: View {
                         .padding(.top, 20)
                         .padding(.bottom, 100) // Space for fixed button
                 }
+				.background(Color.hbBackground)
             }
             
             // Fixed Start button at bottom
@@ -71,7 +72,7 @@ struct QuizLobbyView: View {
             }
             .background(Color.hbBackground)
         }
-        .background(Color.hbBackground)
+        .background(Color.hbAccent)
         .ignoresSafeArea(edges: .top)
     }
 }
@@ -80,7 +81,7 @@ struct QuizLobbyView: View {
 struct LobbyHero: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
-            Color.hbAccent
+			Color.hbAccent
 
             Circle()
                 .fill(Color.white.opacity(0.06))

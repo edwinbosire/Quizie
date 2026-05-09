@@ -99,7 +99,7 @@ Quizie/
 
 ## Getting Started
 
-1. Open `/home/runner/work/Quizie/Quizie/Quizie.xcodeproj` in Xcode.
+1. Open `Quizie.xcodeproj` in Xcode.
 2. Select the **Quizie** scheme.
 3. Choose an iOS Simulator device (for example, iPhone 15).
 4. Build and run (`⌘R`).
@@ -123,6 +123,6 @@ It currently uses `swift build` and `swift test`, which is best suited for Swift
 
 ## Additional Project Docs
 
-- `/home/runner/work/Quizie/Quizie/Quizie/Quiz/README.md` – quiz module notes
-- `/home/runner/work/Quizie/Quizie/Quizie/Handbook/QUICK_REFERENCE.md` – handbook/progress notes
-- `/home/runner/work/Quizie/Quizie/screenshots/appstore-screenshots.html` – App Store screenshot composition page
+- `Quizie/Quiz/README.md` – quiz module notes
+- `Quizie/Handbook/QUICK_REFERENCE.md` – handbook/progress notes
+- `screenshots/appstore-screenshots.html` – App Store screenshot composition page

@@ -5,76 +5,83 @@ struct QuizLobbyView: View {
     @EnvironmentObject var engine: QuizEngine
     @Query(sort: \ExamAttempt.attemptDate, order: .reverse) private var attempts: [ExamAttempt]
 
-    var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Hero
-                    LobbyHero()
+	var body: some View {
+		content
+			.background(Color.hbAccent)
+			.ignoresSafeArea(edges: .top)
+	}
 
-                    // Performance Summary (only show if there are attempts)
-                    if !attempts.isEmpty {
-                        PerformanceSummary(attempts: attempts)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 24)
-                    }
+	private var content: some View {
+		ScrollView {
+			VStack(spacing: 0) {
+				// Hero
+				HeroHeader()
 
-                    // Info cards (only show for first-time users)
-                    if attempts.isEmpty {
-                        ExamInfoBar()
-                            .padding(.horizontal, 16)
-                            .padding(.top, 24)
-                            .transition(.asymmetric(
-                                insertion: .opacity.combined(with: .scale(scale: 0.95)),
-                                removal: .opacity.combined(with: .scale(scale: 0.95))
-                            ))
-                    }
+				// Performance Summary (only show if there are attempts)
+				if !attempts.isEmpty {
+					PerformanceSummary(attempts: attempts)
+						.padding(.horizontal, 16)
+						.padding(.top, 24)
+				}
 
-                    // Recent Attempts (show last 3 if available)
-                    if !attempts.isEmpty {
-                        RecentAttemptsList(attempts: Array(attempts.prefix(3)))
-                            .padding(.horizontal, 16)
-                            .padding(.top, 20)
-                    }
+				// Info cards (only show for first-time users)
+				if attempts.isEmpty {
+					ExamInfoBar()
+						.padding(.horizontal, 16)
+						.padding(.top, 24)
+						.transition(.asymmetric(
+							insertion: .opacity.combined(with: .scale(scale: 0.95)),
+							removal: .opacity.combined(with: .scale(scale: 0.95))
+						))
+				}
 
-                    // Rules card
-                    RulesCard()
-                        .padding(.horizontal, 16)
-                        .padding(.top, 20)
-                        .padding(.bottom, 100) // Space for fixed button
-                }
-				.background(Color.hbBackground)
-            }
-            
-            // Fixed Start button at bottom
-            VStack(spacing: 0) {
-                Divider()
-                
-                Button {
-                    engine.startExam()
-                } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 15, weight: .semibold))
-                        Text(attempts.isEmpty ? "Start Practice Exam" : "Try Another Exam")
-                            .font(HBFont.sans(17, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.hbAccent)
-                    .cornerRadius(HBRadius.md)
-                    .shadow(color: Color.hbAccent.opacity(0.35), radius: 8, x: 0, y: 4)
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 16)
-            }
-            .background(Color.hbBackground)
-        }
-        .background(Color.hbAccent)
-        .ignoresSafeArea(edges: .top)
-    }
+				// Recent Attempts (show last 3 if available)
+				if !attempts.isEmpty {
+					RecentAttemptsList(attempts: Array(attempts.prefix(3)))
+						.padding(.horizontal, 16)
+						.padding(.top, 20)
+				}
+
+				// Rules card
+				RulesCard()
+					.padding(.horizontal, 16)
+					.padding(.top, 20)
+			}
+			.padding(.bottom, 20) // Space for fixed button
+			.background(Color.hbBackground)
+		}
+		.safeAreaInset(edge: .bottom, spacing: 0.0) {
+			// Fixed Start button at bottom
+			startExamButton
+		}
+	}
+
+	private var startExamButton: some View {
+		VStack(spacing: 0) {
+			Divider()
+
+			Button {
+				engine.startExam()
+			} label: {
+				HStack(spacing: 10) {
+					Image(systemName: "play.fill")
+						.font(.system(size: 15, weight: .semibold))
+					Text(attempts.isEmpty ? "Start Practice Exam" : "Try Another Exam")
+						.font(HBFont.sans(17, weight: .semibold))
+				}
+				.foregroundColor(.white)
+				.frame(maxWidth: .infinity)
+				.padding(.vertical, 16)
+				.background(Color.hbAccent)
+				.cornerRadius(HBRadius.md)
+				.shadow(color: Color.hbAccent.opacity(0.35), radius: 8, x: 0, y: 4)
+			}
+			.padding(.horizontal, 16)
+			.padding(.top, 12)
+			.padding(.bottom, 16)
+		}
+		.background(Color.hbBackground)
+	}
 }
 
 // MARK: - Lobby Hero
@@ -359,43 +366,45 @@ struct RecentAttemptRow: View {
     var body: some View {
         HStack(spacing: 12) {
             // Status indicator
-            ZStack {
-                Circle()
-                    .fill(attempt.passed ? Color(hex: "#D5F5E3") : Color(hex: "#FADBD8"))
-                    .frame(width: 42, height: 42)
-                
-                Image(systemName: attempt.passed ? "checkmark.circle.fill" : "xmark.circle.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(attempt.passed ? Color(hex: "#145A32") : Color(hex: "#922B21"))
-            }
-            
+			Circle()
+				.fill(attempt.passed ? Color(hex: "#D5F5E3") : Color(hex: "#FADBD8"))
+				.frame(width: 42, height: 42)
+				.overlay {
+					Image(systemName: attempt.passed ? "checkmark.circle.fill" : "xmark.circle.fill")
+						.font(.system(size: 18, weight: .semibold))
+						.foregroundColor(attempt.passed ? Color(hex: "#145A32") : Color(hex: "#922B21"))
+				}
+
             // Attempt details
-            VStack(alignment: .leading, spacing: 3) {
-                HStack {
-                    Text(attempt.passed ? "Passed" : "Not Passed")
-                        .font(HBFont.sans(14, weight: .semibold))
-                        .foregroundColor(attempt.passed ? Color(hex: "#145A32") : Color(hex: "#922B21"))
-                    
-                    Spacer()
-                    
-                    Text("\(attempt.score)/\(attempt.totalQuestions)")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(.hbTextPrimary)
-                }
-                
-                HStack(spacing: 8) {
-                    Label(attempt.formattedElapsed, systemImage: "clock")
-                        .font(HBFont.sans(12))
-                        .foregroundColor(.hbTextMuted)
-                    
-                    Text("•")
-                        .foregroundColor(.hbTextMuted)
-                    
-                    Text(attempt.attemptDate, style: .relative)
-                        .font(HBFont.sans(12))
-                        .foregroundColor(.hbTextMuted)
-                }
-            }
+			HStack {
+				VStack(alignment: .leading, spacing: 3) {
+					Text(attempt.passed ? "Passed" : "Not Passed")
+						.font(HBFont.sans(14, weight: .semibold))
+						.foregroundColor(attempt.passed ? Color(hex: "#145A32") : Color(hex: "#922B21"))
+						.frame(maxWidth: .infinity, alignment: .leading)
+
+					HStack(spacing: 8) {
+						Label(attempt.formattedElapsed, systemImage: "clock")
+							.font(HBFont.sans(12))
+							.foregroundColor(.hbTextMuted)
+
+						Text("•")
+							.foregroundColor(.hbTextMuted)
+
+						Text(attempt.formattedAttemptedDate)
+							.font(HBFont.sans(12))
+							.foregroundColor(.hbTextMuted)
+					}
+				}
+
+				HStack(alignment: .firstTextBaseline,spacing: 0.0) {
+					Text("\(attempt.score)")
+						.font(.system(size: 26, weight: .medium, design: .rounded))
+					Text("/\(attempt.totalQuestions)")
+						.font(.system(size: 16, design: .rounded))
+						.foregroundColor(.hbTextSecondary)
+				}
+			}
         }
         .padding(12)
         .background(Color.hbSurface)
@@ -422,8 +431,8 @@ struct RecentAttemptRow: View {
     // Add sample attempts
     let context = container.mainContext
     let attempts = [
-        ExamAttempt(attemptDate: Date().addingTimeInterval(-86400), score: 20, totalQuestions: 24, passed: true, elapsedSeconds: 1800),
-        ExamAttempt(attemptDate: Date().addingTimeInterval(-172800), score: 16, totalQuestions: 24, passed: false, elapsedSeconds: 2100),
+        ExamAttempt(attemptDate: Date().addingTimeInterval(-13*60*60*60), score: 20, totalQuestions: 24, passed: true, elapsedSeconds: 678000),
+        ExamAttempt(attemptDate: Date().addingTimeInterval(-172800), score: 19, totalQuestions: 24, passed: false, elapsedSeconds: 2100),
         ExamAttempt(attemptDate: Date().addingTimeInterval(-259200), score: 22, totalQuestions: 24, passed: true, elapsedSeconds: 1650),
     ]
     attempts.forEach { context.insert($0) }

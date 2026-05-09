@@ -22,8 +22,15 @@ final class ExamAttempt {
         let s = elapsedSeconds
         return String(format: "%d:%02d", s / 60, s % 60)
     }
-    
-    init(
+
+	var formattedAttemptedDate: String {
+		let formatter = RelativeDateTimeFormatter()
+		formatter.unitsStyle = .full  // "1 hour ago"
+		let string = formatter.localizedString(for: attemptDate, relativeTo: Date())
+		return string
+	}
+
+	init(
         id: UUID = UUID(),
         attemptDate: Date = Date(),
         score: Int,

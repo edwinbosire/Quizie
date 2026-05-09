@@ -120,6 +120,8 @@ GitHub Actions workflow is defined at:
 - `.github/workflows/swift.yml`
 
 It currently uses `swift build` and `swift test`, which is best suited for Swift Package projects.
+For this Xcode-based iOS app, CI is typically configured with `xcodebuild build` and `xcodebuild test`
+against the `Quizie` scheme and a simulator destination.
 
 ## Additional Project Docs
 

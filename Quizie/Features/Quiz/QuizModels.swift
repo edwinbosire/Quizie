@@ -49,6 +49,7 @@ struct UserAnswer {
 // MARK: - Exam Session
 struct ExamSession: Identifiable {
     let id = UUID()
+    var testID: String? = nil
     let questions: [QuizQuestion]
     var answers: [String: UserAnswer] = [:]   // keyed by question ID
     var startedAt: Date = Date()
@@ -118,12 +119,37 @@ class QuestionBank {
         }
     }
 
-    /// Returns a new shuffled exam of `count` questions, balanced across categories
-    func generateExam(count: Int = ExamSession.questionCount) -> [QuizQuestion] {
+    /// Returns a new shuffled exam of `count` questions, balanced across categories.
+    /// If `seed` is provided, the same seed always produces the same questions in the same order.
+    func generateExam(count: Int = ExamSession.questionCount, seed: String? = nil) -> [QuizQuestion] {
         guard !allQuestions.isEmpty else { return [] }
+        if let seed {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            let shuffled = allQuestions.shuffled(using: &rng)
+            return Array(shuffled.prefix(count))
+        }
         let shuffled = allQuestions.shuffled()
-        // Take first `count` from shuffle for a random exam each time
         return Array(shuffled.prefix(count))
+    }
+}
+
+// MARK: - Deterministic RNG (splitmix64)
+struct SeededRandomNumberGenerator: RandomNumberGenerator {
+    private var state: UInt64
+
+    init(seed: String) {
+        var hasher = Hasher()
+        hasher.combine(seed)
+        let hash = UInt64(bitPattern: Int64(hasher.finalize()))
+        self.state = hash == 0 ? 0x9E3779B97F4A7C15 : hash
+    }
+
+    mutating func next() -> UInt64 {
+        state &+= 0x9E3779B97F4A7C15
+        var z = state
+        z = (z ^ (z &>> 30)) &* 0xBF58476D1CE4E5B9
+        z = (z ^ (z &>> 27)) &* 0x94D049BB133111EB
+        return z ^ (z &>> 31)
     }
 }
 

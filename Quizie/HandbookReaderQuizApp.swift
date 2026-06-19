@@ -23,8 +23,12 @@ struct RootTabView: View {
 	var body: some View {
 		if hasCompletedOnboarding {
 			TabView {
-				Tab("Quiz", systemImage: "pencil.and.list.clipboard") {
+				Tab("Home", systemImage: "square.grid.2x2") {
 					QuizRootView()
+				}
+
+				Tab("Tests", systemImage: "sparkle.text.clipboard") {
+					TestsView()
 				}
 
 				Tab("Handbook", systemImage: "checklist") {

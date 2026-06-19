@@ -30,9 +30,9 @@ class QuizEngine: ObservableObject {
     var modelContext: ModelContext?
 
     // MARK: Start
-    func startExam() {
-        let questions = bank.generateExam()
-        session = ExamSession(questions: questions)
+    func startExam(testID: String? = nil) {
+        let questions = bank.generateExam(seed: testID)
+        session = ExamSession(testID: testID, questions: questions)
         selectedIndices = []
         timeRemaining = ExamSession.timeLimitSeconds
         didTimeOut = false

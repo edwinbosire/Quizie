@@ -3,8 +3,13 @@ import SwiftData
 
 /// Root view that coordinates all quiz phases via QuizEngine
 struct QuizRootView: View {
+    let initialTestID: String?
     @StateObject private var engine = QuizEngine()
     @Environment(\.modelContext) private var modelContext
+
+    init(initialTestID: String? = nil) {
+        self.initialTestID = initialTestID
+    }
 
     var body: some View {
         NavigationStack {
@@ -51,6 +56,9 @@ struct QuizRootView: View {
         }
         .onAppear {
             engine.modelContext = modelContext
+            if let initialTestID, case .lobby = engine.phase {
+                engine.startExam(testID: initialTestID)
+            }
         }
     }
 }

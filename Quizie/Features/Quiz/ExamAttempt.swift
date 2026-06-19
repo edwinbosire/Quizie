@@ -11,6 +11,8 @@ final class ExamAttempt {
     var passed: Bool
     var elapsedSeconds: Int
     var didTimeOut: Bool
+    /// Identifier of the practice test taken (nil for ad-hoc random exams).
+    var testID: String?
     
     /// Derived properties
     var percentage: Double {
@@ -37,7 +39,8 @@ final class ExamAttempt {
         totalQuestions: Int,
         passed: Bool,
         elapsedSeconds: Int,
-        didTimeOut: Bool = false
+        didTimeOut: Bool = false,
+        testID: String? = nil
     ) {
         self.id = id
         self.attemptDate = attemptDate
@@ -46,6 +49,7 @@ final class ExamAttempt {
         self.passed = passed
         self.elapsedSeconds = elapsedSeconds
         self.didTimeOut = didTimeOut
+        self.testID = testID
     }
     
     /// Create an ExamAttempt from an ExamSession
@@ -56,7 +60,8 @@ final class ExamAttempt {
             totalQuestions: session.questions.count,
             passed: session.passed,
             elapsedSeconds: session.elapsedSeconds,
-            didTimeOut: didTimeOut
+            didTimeOut: didTimeOut,
+            testID: session.testID
         )
     }
 }

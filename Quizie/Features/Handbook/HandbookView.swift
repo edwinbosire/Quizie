@@ -6,7 +6,7 @@ struct HandbookView: View {
 		ScrollView {
 			VStack(spacing: 0) {
 				// Hero Section (matches .hero in CSS)
-				HeroHeader()
+//				HeroHeader()
 
 				// Chapter List
 				ChapterList()

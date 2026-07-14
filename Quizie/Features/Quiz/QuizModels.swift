@@ -89,8 +89,12 @@ class QuestionBank {
     static let shared = QuestionBank()
     private(set) var allQuestions: [QuizQuestion] = []
 
-    init() {
-        load()
+    init(questions: [QuizQuestion]? = nil) {
+        if let questions {
+            allQuestions = questions
+        } else {
+            load()
+        }
     }
 
     private func load() {
@@ -138,9 +142,10 @@ struct SeededRandomNumberGenerator: RandomNumberGenerator {
     private var state: UInt64
 
     init(seed: String) {
-        var hasher = Hasher()
-        hasher.combine(seed)
-        let hash = UInt64(bitPattern: Int64(hasher.finalize()))
+        // FNV-1a is stable across launches, unlike Swift's randomized Hasher.
+        let hash = seed.utf8.reduce(UInt64(0xcbf29ce484222325)) { hash, byte in
+            (hash ^ UInt64(byte)) &* 0x100000001b3
+        }
         self.state = hash == 0 ? 0x9E3779B97F4A7C15 : hash
     }
 

@@ -30,10 +30,15 @@ final class ReadingProgress {
     }
     
     /// Update progress based on scroll position
-    func updateProgress(scrollOffset: Double, contentHeight: Double, viewportHeight: Double) {
+    func updateProgress(
+        scrollOffset: Double,
+        contentHeight: Double,
+        viewportHeight: Double,
+        at date: Date = Date()
+    ) {
         self.scrollOffset = scrollOffset
         self.contentHeight = contentHeight
-        self.lastReadDate = Date()
+        self.lastReadDate = date
         
         // Calculate progress: how far through the scrollable content
         let maxScroll = max(contentHeight - viewportHeight, 1) // Avoid division by zero

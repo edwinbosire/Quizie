@@ -53,11 +53,14 @@ final class HandbookSearchEngine {
         }
     }
 
-    private static func performSearch(query: String) -> [SearchResult] {
+    static func performSearch(
+        query: String,
+        chapters: [HandbookChapter] = HandbookData.chapters
+    ) -> [SearchResult] {
         let lowercasedQuery = query.lowercased()
         var results: [SearchResult] = []
 
-        for chapter in HandbookData.chapters {
+        for chapter in chapters {
             for (sectionIndex, section) in chapter.sections.enumerated() {
                 for block in section.blocks {
                     let plainText = block.plainText

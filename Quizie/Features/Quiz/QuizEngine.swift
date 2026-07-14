@@ -24,15 +24,24 @@ class QuizEngine: ObservableObject {
 
     private var timer: AnyCancellable?
     private var autoAdvanceTask: Task<Void, Never>?
-    private let bank = QuestionBank.shared
+    private let bank: QuestionBank
+    private let now: () -> Date
     
     // SwiftData context for saving exam attempts
     var modelContext: ModelContext?
 
+    init(
+        bank: QuestionBank? = nil,
+        now: @escaping () -> Date = Date.init
+    ) {
+        self.bank = bank ?? .shared
+        self.now = now
+    }
+
     // MARK: Start
     func startExam(testID: String? = nil) {
         let questions = bank.generateExam(seed: testID)
-        session = ExamSession(testID: testID, questions: questions)
+        session = ExamSession(testID: testID, questions: questions, startedAt: now())
         selectedIndices = []
         timeRemaining = ExamSession.timeLimitSeconds
         didTimeOut = false
@@ -176,9 +185,13 @@ class QuizEngine: ObservableObject {
 
     // MARK: Finish
     func finishExam() {
+        // Timer expiry, navigation, and repeated UI actions can converge here.
+        // Persist a completed session exactly once.
+        if case .results = phase { return }
+
         stopTimer()
         var s = session
-        s?.finishedAt = Date()
+        s?.finishedAt = now()
         session = s
         
         // Save the exam attempt to SwiftData

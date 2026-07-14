@@ -25,8 +25,13 @@ private let onboardingPages: [OnboardingPage] = [
         accentColor: .ch4Accent,
         tagline: "PRACTICE EXAMS",
         title: "Test Your\nKnowledge",
-        description: "Take timed practice exams that mirror the real Life in the UK test — 24 questions, 45 minutes, with instant results and detailed scoring.",
-        decorativeItems: ["24 Questions", "45 Minutes", "Timed", "Instant Results"]
+        description: "Take timed practice exams that mirror the real Life in the UK test — \(QuizConfiguration.practice.questionCount) questions, \(QuizConfiguration.practice.durationMinutes) minutes, with instant results and detailed scoring.",
+        decorativeItems: [
+            "\(QuizConfiguration.practice.questionCount) Questions",
+            "\(QuizConfiguration.practice.durationMinutes) Minutes",
+            "Timed",
+            "Instant Results"
+        ]
     ),
     OnboardingPage(
         icon: "chart.line.uptrend.xyaxis",

@@ -4,11 +4,15 @@ import SwiftData
 /// Root view that coordinates all quiz phases via QuizEngine
 struct QuizRootView: View {
     let initialTestID: String?
-    @StateObject private var engine = QuizEngine()
+    @StateObject private var engine: QuizEngine
     @Environment(\.modelContext) private var modelContext
 
-    init(initialTestID: String? = nil) {
+    init(
+        initialTestID: String? = nil,
+        configuration: QuizConfiguration = .practice
+    ) {
         self.initialTestID = initialTestID
+        _engine = StateObject(wrappedValue: QuizEngine(configuration: configuration))
     }
 
     var body: some View {

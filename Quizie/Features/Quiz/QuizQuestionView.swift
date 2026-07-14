@@ -727,7 +727,7 @@ class PreviewQuizEngine {
         
         engine.session = ExamSession(questions: mockQuestions)
         engine.phase = .question(index: 0)
-        engine.timeRemaining = 2700 // 45 minutes
+        engine.timeRemaining = engine.configuration.timeLimitSeconds
         return engine
     }
     
@@ -800,4 +800,3 @@ class PreviewQuizEngine {
         return engine
     }
 }
-

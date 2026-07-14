@@ -164,7 +164,7 @@ struct ResultHero: View {
                 ScoreArcView(
                     score: session.score,
                     total: session.questions.count,
-                    passAt: ExamSession.passMarkCount,
+                    passAt: session.configuration.passMarkCount,
                     passed: passed
                 )
                 .frame(height: 8)
@@ -791,4 +791,3 @@ class PreviewResultsEngine {
         }
     }
 }
-

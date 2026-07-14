@@ -16,7 +16,7 @@ class QuizEngine: ObservableObject {
     @Published var phase: QuizPhase = .lobby
     @Published var session: ExamSession?
     @Published var selectedIndices: Set<Int> = []
-    @Published var timeRemaining: Int = ExamSession.timeLimitSeconds
+    @Published var timeRemaining: Int
     @Published var didTimeOut = false
     @Published var showAnswerFeedback = false   // brief flash after submitting
     @Published var hasSubmittedAnswer = false
@@ -26,24 +26,33 @@ class QuizEngine: ObservableObject {
     private var autoAdvanceTask: Task<Void, Never>?
     private let bank: QuestionBank
     private let now: () -> Date
+    let configuration: QuizConfiguration
     
     // SwiftData context for saving exam attempts
     var modelContext: ModelContext?
 
     init(
+        configuration: QuizConfiguration = .practice,
         bank: QuestionBank? = nil,
         now: @escaping () -> Date = Date.init
     ) {
+        self.configuration = configuration
+        self.timeRemaining = configuration.timeLimitSeconds
         self.bank = bank ?? .shared
         self.now = now
     }
 
     // MARK: Start
     func startExam(testID: String? = nil) {
-        let questions = bank.generateExam(seed: testID)
-        session = ExamSession(testID: testID, questions: questions, startedAt: now())
+        let questions = bank.generateExam(count: configuration.questionCount, seed: testID)
+        session = ExamSession(
+            testID: testID,
+            configuration: configuration,
+            questions: questions,
+            startedAt: now()
+        )
         selectedIndices = []
-        timeRemaining = ExamSession.timeLimitSeconds
+        timeRemaining = configuration.timeLimitSeconds
         didTimeOut = false
         showAnswerFeedback = false
         hasSubmittedAnswer = false

@@ -1,6 +1,49 @@
 import Foundation
 import Observation
 
+// MARK: - Quiz Configuration
+
+struct QuizConfiguration: Equatable, Hashable, Sendable {
+    let questionCount: Int
+    let timeLimitSeconds: Int
+    let passMarkCount: Int
+
+    nonisolated static let practice = QuizConfiguration(
+        questionCount: 24,
+        timeLimitSeconds: 45 * 60,
+        passMarkCount: 18
+    )
+
+    nonisolated static let mock = QuizConfiguration(
+        questionCount: 24,
+        timeLimitSeconds: 45 * 60,
+        passMarkCount: 18
+    )
+
+    static func custom(
+        questionCount: Int,
+        timeLimitSeconds: Int,
+        passMarkCount: Int
+    ) -> QuizConfiguration {
+        QuizConfiguration(
+            questionCount: questionCount,
+            timeLimitSeconds: timeLimitSeconds,
+            passMarkCount: passMarkCount
+        )
+    }
+
+    var durationMinutes: Int { timeLimitSeconds / 60 }
+
+    var passPercentage: Int {
+        guard questionCount > 0 else { return 0 }
+        return Int((Double(passMarkCount) / Double(questionCount) * 100).rounded())
+    }
+
+    var summaryLabel: String {
+        "\(questionCount) questions · \(durationMinutes) min"
+    }
+}
+
 // MARK: - Raw JSON model (matches questions.json exactly)
 struct RawQuestion: Codable {
     let question_id: String
@@ -49,22 +92,35 @@ struct UserAnswer {
 // MARK: - Exam Session
 struct ExamSession: Identifiable {
     let id = UUID()
-    var testID: String? = nil
+    var testID: String?
+    let configuration: QuizConfiguration
     let questions: [QuizQuestion]
-    var answers: [String: UserAnswer] = [:]   // keyed by question ID
-    var startedAt: Date = Date()
+    var answers: [String: UserAnswer]   // keyed by question ID
+    var startedAt: Date
     var finishedAt: Date?
 
-    static let questionCount = 24
-    static let timeLimitSeconds = 45 * 60     // 45 minutes
-    static let passMarkCount   = 18
+    init(
+        testID: String? = nil,
+        configuration: QuizConfiguration = .practice,
+        questions: [QuizQuestion],
+        answers: [String: UserAnswer] = [:],
+        startedAt: Date = Date(),
+        finishedAt: Date? = nil
+    ) {
+        self.testID = testID
+        self.configuration = configuration
+        self.questions = questions
+        self.answers = answers
+        self.startedAt = startedAt
+        self.finishedAt = finishedAt
+    }
 
     var score: Int {
         answers.values.filter { $0.isCorrect }.count
     }
 
     var passed: Bool {
-        score >= ExamSession.passMarkCount
+        score >= configuration.passMarkCount
     }
 
     var answeredCount: Int { answers.count }
@@ -125,7 +181,7 @@ class QuestionBank {
 
     /// Returns a new shuffled exam of `count` questions, balanced across categories.
     /// If `seed` is provided, the same seed always produces the same questions in the same order.
-    func generateExam(count: Int = ExamSession.questionCount, seed: String? = nil) -> [QuizQuestion] {
+    func generateExam(count: Int = QuizConfiguration.practice.questionCount, seed: String? = nil) -> [QuizQuestion] {
         guard !allQuestions.isEmpty else { return [] }
         if let seed {
             var rng = SeededRandomNumberGenerator(seed: seed)

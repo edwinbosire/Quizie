@@ -6,17 +6,20 @@ struct PracticeTest: Identifiable, Hashable {
     let number: Int
     let title: String
     let subtitle: String
+    let configuration: QuizConfiguration
 }
 
 enum TestCatalog {
     static let count = 10
+    static let configuration = QuizConfiguration.practice
 
     static let tests: [PracticeTest] = (1...count).map { i in
         PracticeTest(
             id: "test-\(i)",
             number: i,
             title: "Practice Test \(i)",
-            subtitle: "24 questions · 45 min"
+            subtitle: configuration.summaryLabel,
+            configuration: configuration
         )
     }
 }

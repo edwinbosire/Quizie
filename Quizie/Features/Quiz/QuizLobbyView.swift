@@ -130,13 +130,15 @@ struct LobbyHero: View {
 
 // MARK: - Exam Info Bar (Compact)
 struct ExamInfoBar: View {
+    @EnvironmentObject private var engine: QuizEngine
+
     var body: some View {
         HStack(spacing: 0) {
-            ExamInfoItem(icon: "questionmark.circle.fill", value: "24", label: "Questions", color: .hbAccent)
+            ExamInfoItem(icon: "questionmark.circle.fill", value: "\(engine.configuration.questionCount)", label: "Questions", color: .hbAccent)
             ExamInfoDivider()
-            ExamInfoItem(icon: "clock.fill", value: "45 min", label: "Time Limit", color: Color(hex: "#145A32"))
+            ExamInfoItem(icon: "clock.fill", value: "\(engine.configuration.durationMinutes) min", label: "Time Limit", color: Color(hex: "#145A32"))
             ExamInfoDivider()
-            ExamInfoItem(icon: "checkmark.seal.fill", value: "75%", label: "Pass Mark", color: Color(hex: "#6E2C00"))
+            ExamInfoItem(icon: "checkmark.seal.fill", value: "\(engine.configuration.passPercentage)%", label: "Pass Mark", color: Color(hex: "#6E2C00"))
             ExamInfoDivider()
             ExamInfoItem(icon: "shuffle", value: "Random", label: "Order", color: Color(hex: "#512E5F"))
         }
@@ -181,6 +183,8 @@ private struct ExamInfoDivider: View {
 
 // MARK: - Rules Card
 struct RulesCard: View {
+    @EnvironmentObject private var engine: QuizEngine
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("BEFORE YOU START")
@@ -192,7 +196,7 @@ struct RulesCard: View {
                 RuleItem(icon: "1.circle", text: "Read each question carefully before answering")
                 RuleItem(icon: "2.circle", text: "Some questions require TWO correct answers — select all that apply")
                 RuleItem(icon: "3.circle", text: "You cannot go back to a previous question")
-                RuleItem(icon: "4.circle", text: "The exam ends when you answer all 24 questions or time runs out")
+                RuleItem(icon: "4.circle", text: "The exam ends when you answer all \(engine.configuration.questionCount) questions or time runs out")
             }
         }
         .padding(18)
@@ -443,5 +447,3 @@ struct RecentAttemptRow: View {
     }
     .modelContainer(container)
 }
-
-

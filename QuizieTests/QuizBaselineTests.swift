@@ -21,15 +21,16 @@ struct QuizScoringTests {
 
     @Test("Pass threshold is inclusive", arguments: [17, 18, 19])
     func passThreshold(score: Int) {
-        let questions = TestFixtures.questions(count: ExamSession.questionCount)
-        var session = ExamSession(questions: questions, startedAt: TestFixtures.startDate)
+        let configuration = QuizConfiguration.practice
+        let questions = TestFixtures.questions(count: configuration.questionCount)
+        var session = ExamSession(configuration: configuration, questions: questions, startedAt: TestFixtures.startDate)
 
         for question in questions.prefix(score) {
             session.submit(answer: question.correctIndices, for: question)
         }
 
         #expect(session.score == score)
-        #expect(session.passed == (score >= ExamSession.passMarkCount))
+        #expect(session.passed == (score >= configuration.passMarkCount))
     }
 
     @Test("Multi-select requires the complete exact selection")
@@ -57,6 +58,69 @@ struct QuizScoringTests {
 
         #expect(first == ["q-2", "q-7", "q-0", "q-3", "q-4"])
         #expect(second == first)
+    }
+}
+
+@MainActor
+struct QuizConfigurationTests {
+    private let customConfiguration = QuizConfiguration.custom(
+        questionCount: 4,
+        timeLimitSeconds: 90,
+        passMarkCount: 3
+    )
+
+    @Test("A score immediately below the configured pass mark fails")
+    func scoreBelowPassMarkFails() {
+        var session = ExamSession(
+            configuration: customConfiguration,
+            questions: TestFixtures.questions(count: 4),
+            startedAt: TestFixtures.startDate
+        )
+
+        for question in session.questions.prefix(2) {
+            session.submit(answer: question.correctIndices, for: question)
+        }
+
+        #expect(session.score == 2)
+        #expect(!session.passed)
+    }
+
+    @Test("A score equal to the configured pass mark passes")
+    func scoreAtPassMarkPasses() {
+        var session = ExamSession(
+            configuration: customConfiguration,
+            questions: TestFixtures.questions(count: 4),
+            startedAt: TestFixtures.startDate
+        )
+
+        for question in session.questions.prefix(3) {
+            session.submit(answer: question.correctIndices, for: question)
+        }
+
+        #expect(session.score == 3)
+        #expect(session.passed)
+    }
+
+    @Test("Engine uses the supplied question count and duration")
+    func engineUsesSuppliedConfiguration() {
+        let engine = QuizEngine(
+            configuration: customConfiguration,
+            bank: QuestionBank(questions: TestFixtures.questions(count: 10)),
+            now: { TestFixtures.startDate }
+        )
+
+        #expect(engine.timeRemaining == 90)
+        engine.startExam(testID: "custom-test")
+        #expect(engine.session?.questions.count == 4)
+        #expect(engine.session?.configuration == customConfiguration)
+        #expect(engine.timeRemaining == 90)
+        engine.stopTimer()
+    }
+
+    @Test("Configuration derives display labels from its rules")
+    func derivedLabels() {
+        #expect(customConfiguration.summaryLabel == "4 questions · 1 min")
+        #expect(customConfiguration.passPercentage == 75)
     }
 }
 

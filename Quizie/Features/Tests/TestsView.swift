@@ -10,7 +10,10 @@ struct TestsView: View {
             .background(Color.hbAccent)
             .ignoresSafeArea(edges: .top)
             .fullScreenCover(item: $selectedTest) { test in
-                QuizRootView(initialTestID: test.id)
+                QuizRootView(
+                    initialTestID: test.id,
+                    configuration: test.configuration
+                )
             }
     }
 

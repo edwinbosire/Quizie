@@ -1,11 +1,10 @@
 import SwiftUI
-import SwiftData
 
 /// Root view that coordinates all quiz phases via QuizEngine
 struct QuizRootView: View {
     let initialTestID: String?
     @StateObject private var engine: QuizEngine
-    @Environment(\.modelContext) private var modelContext
+    @Environment(AttemptHistory.self) private var attemptHistory
 
     init(
         questionRepository: any QuestionRepository,
@@ -74,7 +73,7 @@ struct QuizRootView: View {
             Text(engine.contentError?.localizedDescription ?? "The question content could not be loaded.")
         }
         .onAppear {
-            engine.installAttemptStore(SwiftDataExamAttemptStore(context: modelContext))
+            engine.installAttemptStore(attemptHistory)
             if let initialTestID, case .lobby = engine.phase {
                 engine.startExam(testID: initialTestID)
             }

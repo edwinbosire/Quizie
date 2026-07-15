@@ -131,7 +131,7 @@ final class HandbookSearchEngine {
 
 extension ContentBlock {
     var plainText: String {
-        switch self {
+        switch content {
         case .paragraph(let text):
             return text.strippingMarkdownBold
         case .subheading(let text), .subheading2(let text), .blockquote(let text):

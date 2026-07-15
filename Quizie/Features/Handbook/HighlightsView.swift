@@ -1,16 +1,15 @@
 import SwiftUI
-import SwiftData
 
 struct HighlightsView: View {
 	@Environment(HandbookCatalog.self) private var catalog
-    @Query(sort: [SortDescriptor(\Highlight.chapterId), SortDescriptor(\Highlight.createdDate, order: .reverse)])
-    private var highlights: [Highlight]
+    @Environment(HighlightLibrary.self) private var library
+    private var highlights: [HighlightSnapshot] { library.highlights }
 
     /// Highlights grouped by chapter ID, preserving chapter order
-    private var groupedHighlights: [(chapter: HandbookChapter, highlights: [Highlight])] {
-        let grouped = Dictionary(grouping: highlights) { $0.chapterId }
+    private var groupedHighlights: [(chapter: HandbookChapter, highlights: [HighlightSnapshot])] {
+        let grouped = Dictionary(grouping: highlights) { $0.chapterID }
         return catalog.chapters.compactMap { chapter in
-            guard let items = grouped[chapter.id], !items.isEmpty else { return nil }
+            guard let items = grouped[chapter.contentID], !items.isEmpty else { return nil }
             return (chapter: chapter, highlights: items)
         }
     }
@@ -71,7 +70,7 @@ struct HighlightsView: View {
     }
 
     @ViewBuilder
-    private func chapterSection(chapter: HandbookChapter, highlights: [Highlight]) -> some View {
+    private func chapterSection(chapter: HandbookChapter, highlights: [HighlightSnapshot]) -> some View {
         let theme = ChapterTheme.forChapter(chapter.id)
 
         // Chapter header
@@ -113,11 +112,11 @@ struct HighlightsView: View {
 // MARK: - Navigation Destination
 
 struct HighlightNavDestination: Hashable {
-    let highlight: Highlight
+    let highlight: HighlightSnapshot
     let chapter: HandbookChapter
 
     var sectionIndex: Int {
-        chapter.sections.firstIndex { $0.id == highlight.sectionId } ?? 0
+        chapter.sections.firstIndex { $0.id == highlight.sectionID } ?? 0
     }
 
     static func == (lhs: HighlightNavDestination, rhs: HighlightNavDestination) -> Bool {
@@ -132,11 +131,11 @@ struct HighlightNavDestination: Hashable {
 // MARK: - Highlight Row
 
 struct HighlightRow: View {
-    let highlight: Highlight
+    let highlight: HighlightSnapshot
     let chapter: HandbookChapter
 
     private var sectionTitle: String {
-        chapter.sections.first { $0.id == highlight.sectionId }?.title ?? ""
+        chapter.sections.first { $0.id == highlight.sectionID }?.title ?? ""
     }
 
     private var relativeDate: String {
@@ -191,9 +190,10 @@ struct HighlightRow: View {
 }
 
 #Preview {
+    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
     NavigationStack {
         HighlightsView()
     }
-    .modelContainer(for: [Highlight.self])
     .environment(HandbookCatalog(repository: BundleHandbookRepository()))
+    .environment(services.highlights)
 }

@@ -4,6 +4,8 @@ import Foundation
 
 struct HandbookChapter: Identifiable {
     let id: Int
+    /// Stable identity authored in handbook.json. `id` remains display order.
+    let contentID: String
     let number: String
     let title: String
     let pillLabels: [String]
@@ -16,7 +18,12 @@ struct HandbookSection: Identifiable {
     let blocks: [ContentBlock]
 }
 
-enum ContentBlock {
+struct ContentBlock: Identifiable {
+    let id: String
+    let content: ContentBlockContent
+}
+
+enum ContentBlockContent {
     case paragraph(String)
     case subheading(String)
     case subheading2(String)          // h4 equivalent
@@ -44,7 +51,36 @@ struct AttributedContent {
 // MARK: - JSON Codable Types (private)
 
 private struct HandbookJSON: Codable {
+    let contentVersion: Int
+    let identityMigrations: ContentIdentityMigrations
     let chapters: [ChapterJSON]
+
+    enum CodingKeys: String, CodingKey {
+        case contentVersion = "content_version"
+        case identityMigrations = "identity_migrations"
+        case chapters
+    }
+}
+
+struct ContentIdentityMigrations: Codable, Equatable {
+    let renamedChapterIDs: [String: String]
+    let renamedSectionIDs: [String: String]
+    let renamedBlockIDs: [String: String]
+    let removedBlockIDs: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case renamedChapterIDs = "renamed_chapter_ids"
+        case renamedSectionIDs = "renamed_section_ids"
+        case renamedBlockIDs = "renamed_block_ids"
+        case removedBlockIDs = "removed_block_ids"
+    }
+}
+
+struct HandbookDocument {
+    let contentVersion: Int
+    let identityMigrations: ContentIdentityMigrations
+    let chapters: [HandbookChapter]
+    var validBlockIDs: Set<String> { Set(chapters.flatMap(\.sections).flatMap(\.blocks).map(\.id)) }
 }
 
 private struct ChapterJSON: Codable {
@@ -58,9 +94,16 @@ private struct SectionJSON: Codable {
     let title: String
     let content: [ContentItemJSON]
     let facts: [String]?
+    let factsID: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, content, facts
+        case factsID = "facts_id"
+    }
 }
 
 private struct ContentItemJSON: Codable {
+    let id: String
     let type: String
     let text: String?
     let level: Int?
@@ -70,11 +113,11 @@ private struct ContentItemJSON: Codable {
 // MARK: - Handbook document decoding
 
 enum HandbookDocumentDecoder {
-    static func decode(_ data: Data, decoder: JSONDecoder = JSONDecoder()) throws -> [HandbookChapter] {
+    static func decode(_ data: Data, decoder: JSONDecoder = JSONDecoder()) throws -> HandbookDocument {
         let handbook = try decoder.decode(HandbookJSON.self, from: data)
-        return handbook.chapters.enumerated().map { index, chapterJSON in
+        let chapters = handbook.chapters.enumerated().map { index, chapterJSON in
             let sections = chapterJSON.sections.enumerated().map { sectionIndex, sectionJSON in
-                let blocks = buildBlocks(from: sectionJSON.content, facts: sectionJSON.facts)
+                let blocks = buildBlocks(from: sectionJSON.content, facts: sectionJSON.facts, factsID: sectionJSON.factsID)
                 return HandbookSection(
                     id: sectionJSON.id.isEmpty ? "c\(index + 1)s\(sectionIndex)" : sectionJSON.id,
                     title: sectionJSON.title,
@@ -87,12 +130,14 @@ enum HandbookDocumentDecoder {
 
             return HandbookChapter(
                 id: index,
+                contentID: chapterJSON.id,
                 number: number,
                 title: title,
                 pillLabels: pillLabels,
                 sections: sections
             )
         }
+        return HandbookDocument(contentVersion: handbook.contentVersion, identityMigrations: handbook.identityMigrations, chapters: chapters)
     }
 
     /// Parse "Chapter 1 : The values and principles of the UK" into ("Chapter 1", "The values and principles of the UK")
@@ -112,16 +157,8 @@ enum HandbookDocumentDecoder {
     /// Convert the section's structured content + facts array into ContentBlock values.
     /// Consecutive paragraphs that begin with a "·"/"•" bullet marker are merged into a bulletList.
     /// The `facts` array (if non-empty) becomes a trailing `.checkUnderstand` block.
-    private static func buildBlocks(from items: [ContentItemJSON], facts: [String]?) -> [ContentBlock] {
+    private static func buildBlocks(from items: [ContentItemJSON], facts: [String]?, factsID: String?) -> [ContentBlock] {
         var blocks: [ContentBlock] = []
-        var bulletBuffer: [BulletItem] = []
-
-        func flushBullets() {
-            if !bulletBuffer.isEmpty {
-                blocks.append(.bulletList(bulletBuffer))
-                bulletBuffer.removeAll()
-            }
-        }
 
         for item in items {
             switch item.type {
@@ -131,44 +168,39 @@ enum HandbookDocumentDecoder {
                 if trimmed.isEmpty { continue }
 
                 if isBulletPrefixed(trimmed) {
-                    bulletBuffer.append(BulletItem(stripBulletPrefix(trimmed)))
+                    blocks.append(ContentBlock(id: item.id, content: .bulletList([BulletItem(stripBulletPrefix(trimmed))])))
                 } else {
-                    flushBullets()
-                    blocks.append(.paragraph(trimmed))
+                    blocks.append(ContentBlock(id: item.id, content: .paragraph(trimmed)))
                 }
 
             case "bulletList":
-                flushBullets()
                 let bulletItems = (item.items ?? [])
                     .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                     .filter { !$0.isEmpty }
                     .map { BulletItem($0) }
                 if !bulletItems.isEmpty {
-                    blocks.append(.bulletList(bulletItems))
+                    blocks.append(ContentBlock(id: item.id, content: .bulletList(bulletItems)))
                 }
 
             case "heading":
-                flushBullets()
                 let headingText = (item.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                 if headingText.isEmpty { continue }
                 if (item.level ?? 3) >= 4 {
-                    blocks.append(.subheading2(headingText))
+                    blocks.append(ContentBlock(id: item.id, content: .subheading2(headingText)))
                 } else {
-                    blocks.append(.subheading(headingText))
+                    blocks.append(ContentBlock(id: item.id, content: .subheading(headingText)))
                 }
 
             default:
                 continue
             }
         }
-        flushBullets()
-
         if let facts = facts {
             let cleaned = facts
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
             if !cleaned.isEmpty {
-                blocks.append(.checkUnderstand(cleaned))
+                if let factsID { blocks.append(ContentBlock(id: factsID, content: .checkUnderstand(cleaned))) }
             }
         }
 

@@ -1,8 +1,8 @@
 import SwiftUI
-import SwiftData
 
 struct TestsView: View {
-    @Query(sort: \ExamAttempt.attemptDate, order: .reverse) private var attempts: [ExamAttempt]
+    @Environment(AttemptHistory.self) private var attemptHistory
+    private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
     @State private var selectedTest: PracticeTest?
     let questionRepository: any QuestionRepository
 
@@ -88,7 +88,7 @@ private struct TestsHero: View {
 
 // MARK: - Stats Card
 private struct TestsStatsCard: View {
-    let attempts: [ExamAttempt]
+    let attempts: [ExamAttemptSnapshot]
 
     var hasAttempts: Bool { !attempts.isEmpty }
 
@@ -164,7 +164,7 @@ private struct TestsStatsCard: View {
 // MARK: - Tests List
 private struct TestsList: View {
     let tests: [PracticeTest]
-    let attempts: [ExamAttempt]
+    let attempts: [ExamAttemptSnapshot]
     let onSelect: (PracticeTest) -> Void
 
     var body: some View {
@@ -285,23 +285,19 @@ private struct TestRow: View {
 
 // MARK: - Previews
 #Preview("Tests - empty") {
+    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
     TestsView(questionRepository: BundleQuestionRepository())
-        .modelContainer(for: [ExamAttempt.self, ReadingProgress.self, Highlight.self], inMemory: true)
+        .environment(services.attempts)
 }
 
 #Preview("Tests - with attempts") {
-    let container = try! ModelContainer(
-        for: ExamAttempt.self,
-        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-    )
-    let context = container.mainContext
-    let samples: [ExamAttempt] = [
-        ExamAttempt(attemptDate: Date().addingTimeInterval(-3600), score: 21, totalQuestions: 24, passed: true, elapsedSeconds: 1500, testID: "test-1"),
-        ExamAttempt(attemptDate: Date().addingTimeInterval(-86400), score: 14, totalQuestions: 24, passed: false, elapsedSeconds: 2100, testID: "test-3"),
-        ExamAttempt(attemptDate: Date().addingTimeInterval(-172800), score: 19, totalQuestions: 24, passed: true, elapsedSeconds: 1800, testID: "test-5"),
+    let samples: [ExamAttemptSnapshot] = [
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-3600), score: 21, totalQuestions: 24, passed: true, elapsedSeconds: 1500, didTimeOut: false, testID: "test-1"),
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-86400), score: 14, totalQuestions: 24, passed: false, elapsedSeconds: 2100, didTimeOut: false, testID: "test-3"),
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-172800), score: 19, totalQuestions: 24, passed: true, elapsedSeconds: 1800, didTimeOut: false, testID: "test-5"),
     ]
-    samples.forEach { context.insert($0) }
+    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(attempts: samples), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
 
-    return TestsView(questionRepository: BundleQuestionRepository())
-        .modelContainer(container)
+    TestsView(questionRepository: BundleQuestionRepository())
+        .environment(services.attempts)
 }

@@ -38,7 +38,7 @@ struct PracticeTestStats {
     }
 }
 
-extension Array where Element == ExamAttempt {
+extension Array where Element == ExamAttemptSnapshot {
     /// Best attempt summary for a given testID, or nil if no attempts exist.
     func stats(for testID: String) -> PracticeTestStats? {
         let filtered = filter { $0.testID == testID }

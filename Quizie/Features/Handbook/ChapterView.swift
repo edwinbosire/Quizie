@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 struct ChapterView: View {
 	@Environment(HandbookCatalog.self) private var catalog
@@ -20,17 +19,14 @@ struct ChapterView: View {
     @AppStorage("readingThemeStyle") private var themeStyleRaw: String = ReadingThemeStyle.classic.rawValue
     @AppStorage("readingFontSizeAdjustment") private var fontSizeAdjustment: Double = 0
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
-    @Query private var highlights: [Highlight]
+    @Environment(ReadingProgressLibrary.self) private var progressLibrary
+    @Environment(HighlightLibrary.self) private var highlightLibrary
+
+    private var highlights: [HighlightSnapshot] { highlightLibrary.forChapter(chapter.contentID) }
 
     init(chapter: HandbookChapter, initialSectionIndex: Int? = nil) {
         self._chapter = State(initialValue: chapter)
         self.initialSectionIndex = initialSectionIndex
-        let chapterId = chapter.id
-        _highlights = Query(
-            filter: #Predicate<Highlight> { $0.chapterId == chapterId },
-            sort: [SortDescriptor(\Highlight.sectionId), SortDescriptor(\Highlight.blockIndex)]
-        )
     }
 
     private var readingThemeStyle: ReadingThemeStyle {
@@ -69,8 +65,8 @@ struct ChapterView: View {
                                 SectionCard(
                                     section: section,
                                     theme: theme,
-                                    chapterId: chapter.id,
-                                    highlights: highlights.filter { $0.sectionId == section.id }
+                                    chapterID: chapter.contentID,
+                                    highlights: highlights.filter { $0.sectionID == section.id }
                                 )
                                     .id(section.id)
                                     .padding(.horizontal, 16)
@@ -167,11 +163,7 @@ struct ChapterView: View {
                 }
                 .onAppear {
                     // Initialize progress record
-                    let progress = ReadingProgress.getOrCreate(for: chapter.id, in: modelContext)
-                    
-                    // Start tracking reading session
-                    progress.startReadingSession()
-                    try? modelContext.save()
+                    let progress = progressLibrary.start(chapterID: chapter.contentID)
                     
                     // If launched from search with a specific section, scroll there
                     if let targetIndex = initialSectionIndex,
@@ -185,7 +177,7 @@ struct ChapterView: View {
                         }
                     } else {
                         // Check if user has previously read this chapter (>5% and <95%)
-                        if progress.isStarted && !progress.isCompleted && progress.scrollOffset > 100 {
+                        if let progress, progress.isStarted && !progress.isCompleted && progress.scrollOffset > 100 {
                             savedScrollOffset = progress.scrollOffset
                             // Show banner after a brief delay to avoid animation conflicts
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -203,10 +195,7 @@ struct ChapterView: View {
                 }
                 .onDisappear {
                     // End reading session when leaving the chapter
-                    if let progress = ReadingProgress.fetchProgress(for: chapter.id, in: modelContext) {
-                        progress.endReadingSession()
-                        try? modelContext.save()
-                    }
+                    progressLibrary.end(chapterID: chapter.contentID)
                 }
             }
         }
@@ -255,23 +244,17 @@ struct ChapterView: View {
             return
         }
         
-        let progress = ReadingProgress.getOrCreate(for: chapter.id, in: modelContext)
+        let progress = progressLibrary.progress(for: chapter.contentID)
         
         // Only update if we have meaningful scroll data (>10px) or if progress already exists
         // This prevents overwriting saved progress with 0 on initial load
-        if scrollOffset > 10 || progress.scrollOffset > 0 {
-            progress.updateProgress(
-                scrollOffset: scrollOffset,
-                contentHeight: contentHeight,
-                viewportHeight: viewportHeight
-            )
-            
-            try? modelContext.save()
+        if scrollOffset > 10 || (progress?.scrollOffset ?? 0) > 0 {
+            progressLibrary.update(chapterID: chapter.contentID, scrollOffset: scrollOffset, contentHeight: contentHeight, viewportHeight: viewportHeight)
         }
     }
     
     private func restoreScrollPosition(proxy: ScrollViewProxy) {
-        guard let progress = ReadingProgress.fetchProgress(for: chapter.id, in: modelContext),
+        guard let progress = progressLibrary.progress(for: chapter.contentID),
               progress.scrollOffset > 0,
               progress.contentHeight > 0 else {
             return
@@ -313,10 +296,7 @@ struct ChapterView: View {
 
     private func switchChapter(to newChapter: HandbookChapter, proxy: ScrollViewProxy) {
         // End session for current chapter
-        if let progress = ReadingProgress.fetchProgress(for: chapter.id, in: modelContext) {
-            progress.endReadingSession()
-            try? modelContext.save()
-        }
+        progressLibrary.end(chapterID: chapter.contentID)
 
         // Reset state for new chapter
         selectedSectionIndex = 0
@@ -335,12 +315,10 @@ struct ChapterView: View {
         }
 
         // Start session for new chapter
-        let progress = ReadingProgress.getOrCreate(for: newChapter.id, in: modelContext)
-        progress.startReadingSession()
-        try? modelContext.save()
+        let progress = progressLibrary.start(chapterID: newChapter.contentID)
 
         // Check for continue reading
-        if progress.isStarted && !progress.isCompleted && progress.scrollOffset > 100 {
+        if let progress, progress.isStarted && !progress.isCompleted && progress.scrollOffset > 100 {
             savedScrollOffset = progress.scrollOffset
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation {
@@ -580,9 +558,11 @@ struct ChapterHeaderView: View {
 }
 
 #Preview {
+    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
     NavigationStack {
-        ChapterView(chapter: try! BundleHandbookRepository().chapters()[0])
+        ChapterView(chapter: try! BundleHandbookRepository().document().chapters[0])
     }
-    .modelContainer(for: [ReadingProgress.self, ExamAttempt.self, Highlight.self])
     .environment(HandbookCatalog(repository: BundleHandbookRepository()))
+    .environment(services.progress)
+    .environment(services.highlights)
 }

@@ -1,6 +1,21 @@
 import Foundation
 import SwiftData
 
+struct ExamAttemptSnapshot: Identifiable, Equatable {
+    let id: UUID
+    let attemptDate: Date
+    let score: Int
+    let totalQuestions: Int
+    let passed: Bool
+    let elapsedSeconds: Int
+    let didTimeOut: Bool
+    let testID: String?
+
+    var percentage: Double { totalQuestions > 0 ? Double(score) / Double(totalQuestions) * 100 : 0 }
+    var formattedElapsed: String { String(format: "%d:%02d", elapsedSeconds / 60, elapsedSeconds % 60) }
+    var formattedAttemptedDate: String { RelativeDateTimeFormatter().localizedString(for: attemptDate, relativeTo: Date()) }
+}
+
 /// SwiftData model to persist exam attempt history
 @Model
 final class ExamAttempt {
@@ -77,10 +92,14 @@ final class ExamAttempt {
             testID: exam.testID
         )
     }
+
+    var snapshot: ExamAttemptSnapshot {
+        ExamAttemptSnapshot(id: id, attemptDate: attemptDate, score: score, totalQuestions: totalQuestions, passed: passed, elapsedSeconds: elapsedSeconds, didTimeOut: didTimeOut, testID: testID)
+    }
 }
 
 /// Extension to calculate performance statistics
-extension Array where Element == ExamAttempt {
+extension Array where Element == ExamAttemptSnapshot {
     var averageScore: Double {
         guard !isEmpty else { return 0 }
         let total = reduce(0) { $0 + $1.score }
@@ -103,7 +122,7 @@ extension Array where Element == ExamAttempt {
         map { $0.score }.max() ?? 0
     }
     
-    var recentAttempts: [ExamAttempt] {
+    var recentAttempts: [ExamAttemptSnapshot] {
         sorted { $0.attemptDate > $1.attemptDate }
     }
 }

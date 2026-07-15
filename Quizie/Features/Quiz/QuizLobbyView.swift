@@ -1,9 +1,9 @@
 import SwiftUI
-import SwiftData
 
 struct QuizLobbyView: View {
     @EnvironmentObject var engine: QuizEngine
-    @Query(sort: \ExamAttempt.attemptDate, order: .reverse) private var attempts: [ExamAttempt]
+    @Environment(AttemptHistory.self) private var attemptHistory
+    private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
 
 	var body: some View {
 		content
@@ -227,7 +227,7 @@ struct RuleItem: View {
 
 // MARK: - Performance Summary
 struct PerformanceSummary: View {
-    let attempts: [ExamAttempt]
+    let attempts: [ExamAttemptSnapshot]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -345,7 +345,7 @@ struct PerformanceStat: View {
 
 // MARK: - Recent Attempts List
 struct RecentAttemptsList: View {
-    let attempts: [ExamAttempt]
+    let attempts: [ExamAttemptSnapshot]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -365,7 +365,7 @@ struct RecentAttemptsList: View {
 }
 
 struct RecentAttemptRow: View {
-    let attempt: ExamAttempt
+    let attempt: ExamAttemptSnapshot
     
     var body: some View {
         HStack(spacing: 12) {
@@ -422,28 +422,25 @@ struct RecentAttemptRow: View {
 
 // MARK: - Preview
 #Preview("Quiz Lobby") {
+    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
     NavigationStack {
         QuizLobbyView()
             .environmentObject(QuizEngine(questionRepository: InMemoryQuestionRepository([])))
     }
-    .modelContainer(for: ExamAttempt.self, inMemory: true)
+    .environment(services.attempts)
 }
 
 #Preview("Quiz Lobby with History") {
-    let container = try! ModelContainer(for: ExamAttempt.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    
-    // Add sample attempts
-    let context = container.mainContext
     let attempts = [
-        ExamAttempt(attemptDate: Date().addingTimeInterval(-13*60*60*60), score: 20, totalQuestions: 24, passed: true, elapsedSeconds: 678000),
-        ExamAttempt(attemptDate: Date().addingTimeInterval(-172800), score: 19, totalQuestions: 24, passed: false, elapsedSeconds: 2100),
-        ExamAttempt(attemptDate: Date().addingTimeInterval(-259200), score: 22, totalQuestions: 24, passed: true, elapsedSeconds: 1650),
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-13*60*60*60), score: 20, totalQuestions: 24, passed: true, elapsedSeconds: 678000, didTimeOut: false, testID: nil),
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-172800), score: 19, totalQuestions: 24, passed: false, elapsedSeconds: 2100, didTimeOut: false, testID: nil),
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-259200), score: 22, totalQuestions: 24, passed: true, elapsedSeconds: 1650, didTimeOut: false, testID: nil),
     ]
-    attempts.forEach { context.insert($0) }
+    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(attempts: attempts), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
     
-    return NavigationStack {
+    NavigationStack {
         QuizLobbyView()
             .environmentObject(QuizEngine(questionRepository: InMemoryQuestionRepository([])))
     }
-    .modelContainer(container)
+    .environment(services.attempts)
 }

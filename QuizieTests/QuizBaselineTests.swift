@@ -144,7 +144,7 @@ struct ProgressTests {
 
     @Test("Reading progress clamps scroll calculations")
     func readingProgressCalculation() {
-        let progress = ReadingProgress(chapterId: 1, lastReadDate: TestFixtures.startDate)
+        let progress = ReadingProgress(chapterID: "chapter_01", lastReadDate: TestFixtures.startDate)
 
         progress.updateProgress(
             scrollOffset: -50,
@@ -174,13 +174,12 @@ struct ProgressTests {
 
     @Test("Overall completion averages deterministic chapter progress")
     func overallCompletion() throws {
-        let container = try TestFixtures.modelContainer()
-        let context = container.mainContext
-        context.insert(ReadingProgress(chapterId: 1, progress: 0.25, lastReadDate: TestFixtures.startDate))
-        context.insert(ReadingProgress(chapterId: 2, progress: 0.75, lastReadDate: TestFixtures.laterDate))
-        try context.save()
-
-        #expect(ReadingProgress.overallCompletionPercentage(totalChapters: 4, in: context) == 0.25)
+        let store = InMemoryReadingProgressStore(records: [
+            ReadingProgressSnapshot(chapterID: "chapter_01", progress: 0.25, lastReadDate: TestFixtures.startDate),
+            ReadingProgressSnapshot(chapterID: "chapter_02", progress: 0.75, lastReadDate: TestFixtures.laterDate)
+        ])
+        let records = try store.fetchAll()
+        #expect(records.reduce(0) { $0 + $1.progress } / 4 == 0.25)
     }
 }
 
@@ -295,7 +294,7 @@ struct ContentRepositoryTests {
 
         let selected = try InMemoryQuestionRepository(questions)
             .questions(count: 2, seed: "fixture")
-        let chapters = try InMemoryHandbookRepository([chapter]).chapters()
+        let chapters = try InMemoryHandbookRepository([chapter]).document().chapters
 
         #expect(selected.count == 2)
         #expect(Set(selected.map(\.id)).isSubset(of: Set(questions.map(\.id))))
@@ -311,7 +310,7 @@ struct ContentRepositoryTests {
             try questions.questions(count: 1, seed: nil)
         }
         #expect(throws: ContentRepositoryError.resourceNotFound("missing-handbook-fixture.json")) {
-            try handbook.chapters()
+            try handbook.document()
         }
     }
 
@@ -342,11 +341,50 @@ struct ContentRepositoryTests {
     @Test("Production bundle repositories decode packaged content")
     func bundleRepositoriesLoadPackagedContent() throws {
         let questions = try BundleQuestionRepository().questions(count: 3, seed: "bundle-test")
-        let chapters = try BundleHandbookRepository().chapters()
+        let document = try BundleHandbookRepository().document()
+        let chapters = document.chapters
 
         #expect(questions.count == 3)
         #expect(!chapters.isEmpty)
         #expect(!chapters[0].sections.isEmpty)
+        #expect(document.contentVersion > 0)
+        #expect(document.validBlockIDs.count == Set(document.validBlockIDs).count)
+    }
+
+    @Test("Stable block IDs keep highlights attached after reordering")
+    func blockReorderingPreservesHighlightIdentity() throws {
+        let highlight = HighlightSnapshot(chapterID: "chapter_01", sectionID: "section_01", blockID: "block_a", textPreview: "A")
+        let store = InMemoryHighlightStore(records: [highlight])
+        let issues = PersistenceIssueCenter()
+        let library = HighlightLibrary(store: store, issues: issues)
+        let reordered = [ContentBlock(id: "block_b", content: .paragraph("B")), ContentBlock(id: "block_a", content: .paragraph("A"))]
+
+        #expect(library.highlights.first?.blockID == reordered[1].id)
+        #expect(library.highlights.first?.blockID != reordered[0].id)
+    }
+
+    @Test("Content migration rewrites renamed IDs and removes orphaned highlights")
+    func contentIdentityMigrationPolicy() throws {
+        let renamed = HighlightSnapshot(chapterID: "chapter_42", sectionID: "origins", blockID: "legacy_block", textPreview: "Magna", contentVersion: 1)
+        let removed = HighlightSnapshot(chapterID: "chapter_42", sectionID: "origins", blockID: "removed_block", textPreview: "Removed", contentVersion: 1)
+        let store = InMemoryHighlightStore(records: [renamed, removed])
+        let library = HighlightLibrary(store: store, issues: PersistenceIssueCenter())
+        let document = HandbookDocument(
+            contentVersion: 2,
+            identityMigrations: ContentIdentityMigrations(
+                renamedChapterIDs: [:],
+                renamedSectionIDs: [:],
+                renamedBlockIDs: ["legacy_block": "origins_block_001"],
+                removedBlockIDs: ["removed_block"]
+            ),
+            chapters: [TestFixtures.searchChapter]
+        )
+
+        library.reconcile(document: document)
+
+        #expect(library.highlights.count == 1)
+        #expect(library.highlights.first?.blockID == "origins_block_001")
+        #expect(library.highlights.first?.contentVersion == 2)
     }
 }
 
@@ -438,6 +476,7 @@ private enum TestFixtures {
 
     static let searchChapter = HandbookChapter(
         id: 42,
+        contentID: "chapter_42",
         number: "Chapter 42",
         title: "Test History",
         pillLabels: ["Origins"],
@@ -446,8 +485,8 @@ private enum TestFixtures {
                 id: "origins",
                 title: "Origins",
                 blocks: [
-                    .paragraph("The **Magna Carta** was agreed in 1215."),
-                    .paragraph("A second Magna Carta mention stays within the same section.")
+                    ContentBlock(id: "origins_block_001", content: .paragraph("The **Magna Carta** was agreed in 1215.")),
+                    ContentBlock(id: "origins_block_002", content: .paragraph("A second Magna Carta mention stays within the same section."))
                 ]
             )
         ]
@@ -472,6 +511,8 @@ private enum TestFixtures {
 @MainActor
 private final class RecordingAttemptStore: ExamAttemptStore {
     private(set) var saved: [CompletedExam] = []
+
+    func fetchAll() throws -> [ExamAttemptSnapshot] { [] }
 
     func save(_ exam: CompletedExam) throws {
         saved.append(exam)

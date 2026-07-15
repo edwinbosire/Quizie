@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 // MARK: - Block Frame Preference Key
 
@@ -28,10 +27,10 @@ struct BlockSelection: Equatable {
 // MARK: - Highlightable Block Wrapper
 
 struct HighlightableBlock<Content: View>: View {
-    let blockIndex: Int
-    let existingHighlight: Highlight?
-    let previousHighlight: Highlight?
-    let nextHighlight: Highlight?
+    let displayIndex: Int
+    let existingHighlight: HighlightSnapshot?
+    let previousHighlight: HighlightSnapshot?
+    let nextHighlight: HighlightSnapshot?
     let isSelected: Bool
     let isSelectionStart: Bool
     let isSelectionEnd: Bool

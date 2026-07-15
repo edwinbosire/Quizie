@@ -26,7 +26,7 @@ protocol QuestionRepository {
 }
 
 protocol HandbookRepository {
-    func chapters() throws -> [HandbookChapter]
+    func document() throws -> HandbookDocument
 }
 
 struct BundleQuestionRepository: QuestionRepository {
@@ -74,7 +74,7 @@ struct BundleHandbookRepository: HandbookRepository {
         self.resourceName = resourceName
     }
 
-    func chapters() throws -> [HandbookChapter] {
+    func document() throws -> HandbookDocument {
         let resource = "\(resourceName).json"
         guard let url = bundle.url(forResource: resourceName, withExtension: "json") else {
             throw ContentRepositoryError.resourceNotFound(resource)
@@ -87,17 +87,17 @@ struct BundleHandbookRepository: HandbookRepository {
             throw ContentRepositoryError.unreadableResource(name: resource, reason: error.localizedDescription)
         }
 
-        let chapters: [HandbookChapter]
+        let document: HandbookDocument
         do {
-            chapters = try HandbookDocumentDecoder.decode(data)
+            document = try HandbookDocumentDecoder.decode(data)
         } catch {
             throw ContentRepositoryError.invalidContent(name: resource, reason: error.localizedDescription)
         }
 
-        guard !chapters.isEmpty else {
+        guard !document.chapters.isEmpty else {
             throw ContentRepositoryError.emptyContent(resource)
         }
-        return chapters
+        return document
     }
 }
 
@@ -117,24 +117,27 @@ struct InMemoryQuestionRepository: QuestionRepository {
 }
 
 struct InMemoryHandbookRepository: HandbookRepository {
-    let allChapters: [HandbookChapter]
+    let handbook: HandbookDocument
 
     init(_ chapters: [HandbookChapter]) {
-        self.allChapters = chapters
+        self.handbook = HandbookDocument(contentVersion: 1, identityMigrations: ContentIdentityMigrations(renamedChapterIDs: [:], renamedSectionIDs: [:], renamedBlockIDs: [:], removedBlockIDs: []), chapters: chapters)
     }
 
-    func chapters() throws -> [HandbookChapter] {
-        guard !allChapters.isEmpty else {
+    func document() throws -> HandbookDocument {
+        guard !handbook.chapters.isEmpty else {
             throw ContentRepositoryError.emptyContent("in-memory handbook")
         }
-        return allChapters
+        return handbook
     }
 }
 
 @MainActor
 @Observable
 final class HandbookCatalog {
+    private(set) var document: HandbookDocument?
     private(set) var chapters: [HandbookChapter] = []
+    private(set) var contentVersion = 0
+    private(set) var identityMigrations = ContentIdentityMigrations(renamedChapterIDs: [:], renamedSectionIDs: [:], renamedBlockIDs: [:], removedBlockIDs: [])
     private(set) var error: ContentRepositoryError?
 
     private let repository: any HandbookRepository
@@ -146,13 +149,19 @@ final class HandbookCatalog {
 
     func reload() {
         do {
-            chapters = try repository.chapters()
+            let document = try repository.document()
+            self.document = document
+            chapters = document.chapters
+            contentVersion = document.contentVersion
+            identityMigrations = document.identityMigrations
             error = nil
         } catch let repositoryError as ContentRepositoryError {
             chapters = []
+            document = nil
             error = repositoryError
         } catch {
             chapters = []
+            document = nil
             self.error = .invalidContent(name: "handbook", reason: error.localizedDescription)
         }
     }

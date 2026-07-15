@@ -11,10 +11,12 @@ struct SystemQuizClock: QuizClock {
 
 @MainActor
 protocol ExamAttemptStore: AnyObject {
+    func fetchAll() throws -> [ExamAttemptSnapshot]
     func save(_ exam: CompletedExam) throws
 }
 
 final class NoOpExamAttemptStore: ExamAttemptStore {
+    func fetchAll() throws -> [ExamAttemptSnapshot] { [] }
     func save(_ exam: CompletedExam) throws {}
 }
 

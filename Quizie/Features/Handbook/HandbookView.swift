@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 struct HandbookView: View {
 	@Environment(HandbookCatalog.self) private var catalog
@@ -121,20 +120,22 @@ struct FlagStripes: View {
 // MARK: - Chapter List
 struct ChapterList: View {
 		let chapters: [HandbookChapter]
-	@Query private var allProgress: [ReadingProgress]
-	@Query private var allHighlights: [Highlight]
-	@Environment(\.modelContext) private var modelContext
+	@Environment(ReadingProgressLibrary.self) private var progressLibrary
+	@Environment(HighlightLibrary.self) private var highlightLibrary
+	private var allProgress: [ReadingProgressSnapshot] { progressLibrary.records }
+	private var allHighlights: [HighlightSnapshot] { highlightLibrary.highlights }
 
 	private var overallCompletion: Double {
-			ReadingProgress.overallCompletionPercentage(totalChapters: chapters.count, in: modelContext)
+			guard !chapters.isEmpty else { return 0 }
+			return allProgress.reduce(0) { $0 + $1.progress } / Double(chapters.count)
 	}
 
 	private var totalReadingTime: TimeInterval {
-		ReadingProgress.totalReadingTime(in: modelContext)
+		allProgress.reduce(0) { $0 + $1.totalReadingTime }
 	}
 
-	private var mostRecentProgress: ReadingProgress? {
-		ReadingProgress.mostRecentlyRead(in: modelContext)
+	private var mostRecentProgress: ReadingProgressSnapshot? {
+		allProgress.max { $0.lastReadDate < $1.lastReadDate }
 	}
 
 	var body: some View {
@@ -400,7 +401,9 @@ struct MyHighlightsCard: View {
 }
 
 #Preview {
+	let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
 	HandbookView()
-		.modelContainer(for: [ReadingProgress.self, ExamAttempt.self, Highlight.self])
 		.environment(HandbookCatalog(repository: BundleHandbookRepository()))
+		.environment(services.progress)
+		.environment(services.highlights)
 }

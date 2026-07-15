@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 // MARK: - Search Highlight Utility
 
@@ -393,8 +392,8 @@ struct DataTableView: View {
 struct SectionCard: View {
     let section: HandbookSection
     let theme: ChapterTheme
-    var chapterId: Int = 0
-    var highlights: [Highlight] = []
+    var chapterID: String = ""
+    var highlights: [HighlightSnapshot] = []
     @Environment(\.readingTheme) private var readingTheme
 
     private var rt: ReadingThemeStyle { readingTheme.style }
@@ -422,7 +421,7 @@ struct SectionCard: View {
                 ContentBlocksView(
                     blocks: section.blocks,
                     theme: theme,
-                    chapterId: chapterId,
+                    chapterID: chapterID,
                     sectionId: section.id,
                     highlights: highlights
                 )
@@ -445,12 +444,12 @@ struct SectionCard: View {
 struct ContentBlocksView: View {
     let blocks: [ContentBlock]
     let theme: ChapterTheme
-    var chapterId: Int = 0
+    var chapterID: String = ""
     var sectionId: String = ""
-    var highlights: [Highlight] = []
+    var highlights: [HighlightSnapshot] = []
     @Environment(\.readingTheme) private var readingTheme
     @Environment(\.searchHighlight) private var searchHighlight
-    @Environment(\.modelContext) private var modelContext
+    @Environment(HighlightLibrary.self) private var highlightLibrary
 
     @State private var selection: BlockSelection?
     @State private var blockFrames: [Int: CGRect] = [:]
@@ -461,12 +460,12 @@ struct ContentBlocksView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(blocks.enumerated()), id: \.offset) { idx, block in
-                let existing = highlights.first { $0.blockIndex == idx }
-                let prev = highlights.first { $0.blockIndex == idx - 1 }
-                let next = highlights.first { $0.blockIndex == idx + 1 }
+                let existing = highlights.first { $0.blockID == block.id }
+                let prev = idx > 0 ? highlights.first { $0.blockID == blocks[idx - 1].id } : nil
+                let next = idx + 1 < blocks.count ? highlights.first { $0.blockID == blocks[idx + 1].id } : nil
 
                 HighlightableBlock(
-                    blockIndex: idx,
+                    displayIndex: idx,
                     existingHighlight: selection?.contains(idx) == true ? nil : existing,
                     previousHighlight: prev,
                     nextHighlight: next,
@@ -503,7 +502,7 @@ struct ContentBlocksView: View {
 
     @ViewBuilder
     func blockView(_ block: ContentBlock, index: Int) -> some View {
-        switch block {
+        switch block.content {
         case .paragraph(let text):
             Text(highlightedText(text, font: HBFont.sans(16 + fs), color: rt.textSecondary))
                 .lineSpacing(8 + (fs * 0.5))
@@ -596,9 +595,8 @@ struct ContentBlocksView: View {
 
     @ViewBuilder
     private func selectionToolbar(for sel: BlockSelection) -> some View {
-        let existingInRange = highlights.filter {
-            $0.blockIndex >= sel.startIndex && $0.blockIndex <= sel.endIndex
-        }
+        let selectedIDs = Set(blocks[sel.startIndex...min(sel.endIndex, blocks.count - 1)].map(\.id))
+        let existingInRange = highlights.filter { selectedIDs.contains($0.blockID) }
         let hasExisting = !existingInRange.isEmpty
         let initialColor = existingInRange.first?.highlightColor ?? .yellow
 
@@ -630,47 +628,38 @@ struct ContentBlocksView: View {
     private func saveHighlights(color: HighlightColor, range: ClosedRange<Int>) {
         for idx in range {
             guard idx < blocks.count else { continue }
-            if let existing = highlights.first(where: { $0.blockIndex == idx }) {
-                existing.highlightColor = color
+            if var existing = highlights.first(where: { $0.blockID == blocks[idx].id }) {
+                existing.color = color
+                highlightLibrary.upsert(existing)
             } else {
                 let preview = String(blocks[idx].plainText.prefix(80))
-                let highlight = Highlight(
-                    chapterId: chapterId,
-                    sectionId: sectionId,
-                    blockIndex: idx,
+                let highlight = HighlightSnapshot(
+                    chapterID: chapterID,
+                    sectionID: sectionId,
+                    blockID: blocks[idx].id,
                     color: color,
                     textPreview: preview
                 )
-                modelContext.insert(highlight)
+                highlightLibrary.upsert(highlight)
             }
         }
-        try? modelContext.save()
     }
 
     private func deleteHighlights(range: ClosedRange<Int>) {
         for idx in range {
-            if let existing = highlights.first(where: { $0.blockIndex == idx }) {
-                modelContext.delete(existing)
+            if idx < blocks.count, let existing = highlights.first(where: { $0.blockID == blocks[idx].id }) {
+                highlightLibrary.delete(id: existing.id)
             }
         }
-        try? modelContext.save()
     }
 }
 
 // MARK: - Home Chapter Card
 struct HomeChapterCard: View {
     let chapter: HandbookChapter
-    @Query private var allProgress: [ReadingProgress]
+    @Environment(ReadingProgressLibrary.self) private var progressLibrary
 
-    init(chapter: HandbookChapter) {
-        self.chapter = chapter
-        
-        // Filter the query to only get progress for this specific chapter
-        let chapterId = chapter.id
-        _allProgress = Query(
-            filter: #Predicate<ReadingProgress> { $0.chapterId == chapterId }
-        )
-    }
+    init(chapter: HandbookChapter) { self.chapter = chapter }
 
     private var theme: ChapterTheme {
         ChapterTheme.forChapter(chapter.id)
@@ -681,9 +670,7 @@ struct HomeChapterCard: View {
         Color(hex: "#6E2C00"), Color(hex: "#145A32"), Color(hex: "#512E5F")
     ]
     
-    private var readingProgress: ReadingProgress? {
-        allProgress.first
-    }
+    private var readingProgress: ReadingProgressSnapshot? { progressLibrary.progress(for: chapter.contentID) }
 
 	var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -765,7 +752,7 @@ struct HomeChapterCard: View {
 
 // MARK: - Progress Badge
 struct ProgressBadge: View {
-    let progress: ReadingProgress
+    let progress: ReadingProgressSnapshot
     
     var body: some View {
         if progress.isCompleted {
@@ -859,10 +846,9 @@ struct FlowLayout: Layout {
 // MARK: - Previews
 
 private struct HomeChapterCardPreview: View {
-    @Environment(\.modelContext) private var modelContext
-
     private let chapter = HandbookChapter(
         id: 0,
+        contentID: "chapter_01",
         number: "Chapter 1",
         title: "The values and principles of the UK",
         pillLabels: ["British Values", "Responsibilities", "Rights"],
@@ -872,18 +858,12 @@ private struct HomeChapterCardPreview: View {
     var body: some View {
         HomeChapterCard(chapter: chapter)
             .padding()
-            .onAppear {
-                let progress = ReadingProgress(
-                    chapterId: 0,
-                    progress: 0.65,
-                    totalReadingTime: 480
-                )
-                modelContext.insert(progress)
-            }
     }
 }
 
 #Preview("HomeChapterCard") {
+    let progress = ReadingProgressSnapshot(chapterID: "chapter_01", progress: 0.65, totalReadingTime: 480)
+    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(records: [progress]), highlightStore: InMemoryHighlightStore())
     HomeChapterCardPreview()
-        .modelContainer(for: ReadingProgress.self, inMemory: true)
+        .environment(services.progress)
 }

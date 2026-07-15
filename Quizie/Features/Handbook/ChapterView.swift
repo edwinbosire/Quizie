@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct ChapterView: View {
+	@Environment(HandbookCatalog.self) private var catalog
     @State var chapter: HandbookChapter
     var initialSectionIndex: Int? = nil
     @State private var selectedSectionIndex: Int = 0
@@ -492,13 +493,14 @@ struct ChapterNavBar: View {
 
 // MARK: - Chapter Picker Sheet
 struct ChapterPickerSheet: View {
+	@Environment(HandbookCatalog.self) private var catalog
     let currentChapter: HandbookChapter
     let onChapterSelected: (HandbookChapter) -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            List(HandbookData.chapters) { chapter in
+            List(catalog.chapters) { chapter in
                 Button {
                     if chapter.id != currentChapter.id {
                         onChapterSelected(chapter)
@@ -579,7 +581,8 @@ struct ChapterHeaderView: View {
 
 #Preview {
     NavigationStack {
-        ChapterView(chapter: HandbookData.chapters[0])
+        ChapterView(chapter: try! BundleHandbookRepository().chapters()[0])
     }
     .modelContainer(for: [ReadingProgress.self, ExamAttempt.self, Highlight.self])
+    .environment(HandbookCatalog(repository: BundleHandbookRepository()))
 }

@@ -2,13 +2,14 @@ import SwiftUI
 import SwiftData
 
 struct HighlightsView: View {
+	@Environment(HandbookCatalog.self) private var catalog
     @Query(sort: [SortDescriptor(\Highlight.chapterId), SortDescriptor(\Highlight.createdDate, order: .reverse)])
     private var highlights: [Highlight]
 
     /// Highlights grouped by chapter ID, preserving chapter order
     private var groupedHighlights: [(chapter: HandbookChapter, highlights: [Highlight])] {
         let grouped = Dictionary(grouping: highlights) { $0.chapterId }
-        return HandbookData.chapters.compactMap { chapter in
+        return catalog.chapters.compactMap { chapter in
             guard let items = grouped[chapter.id], !items.isEmpty else { return nil }
             return (chapter: chapter, highlights: items)
         }
@@ -194,4 +195,5 @@ struct HighlightRow: View {
         HighlightsView()
     }
     .modelContainer(for: [Highlight.self])
+    .environment(HandbookCatalog(repository: BundleHandbookRepository()))
 }

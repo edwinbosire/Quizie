@@ -28,7 +28,7 @@ final class HandbookSearchEngine {
 
     private var searchTask: Task<Void, Never>?
 
-    func search(query: String) {
+    func search(query: String, chapters: [HandbookChapter]) {
         searchTask?.cancel()
 
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -45,7 +45,7 @@ final class HandbookSearchEngine {
             try? await Task.sleep(for: .milliseconds(150))
             guard !Task.isCancelled else { return }
 
-            let found = Self.performSearch(query: trimmed)
+            let found = Self.performSearch(query: trimmed, chapters: chapters)
             guard !Task.isCancelled else { return }
 
             results = found
@@ -55,7 +55,7 @@ final class HandbookSearchEngine {
 
     static func performSearch(
         query: String,
-        chapters: [HandbookChapter] = HandbookData.chapters
+        chapters: [HandbookChapter]
     ) -> [SearchResult] {
         let lowercasedQuery = query.lowercased()
         var results: [SearchResult] = []
@@ -180,6 +180,7 @@ private let curatedSuggestions: [SearchSuggestion] = [
 // MARK: - Search View
 
 struct SearchView: View {
+	@Environment(HandbookCatalog.self) private var catalog
     @State private var searchEngine = HandbookSearchEngine()
     @State private var searchText = ""
     @State private var navigationPath = NavigationPath()
@@ -187,7 +188,9 @@ struct SearchView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             Group {
-                if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 2 {
+                if let error = catalog.error {
+                    RepositoryErrorView(title: "Search Unavailable", error: error, retry: catalog.reload)
+                } else if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 2 {
                     emptyState
                 } else if searchEngine.isSearching {
                     ProgressView()
@@ -203,7 +206,7 @@ struct SearchView: View {
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, prompt: "Search the handbook...")
             .onChange(of: searchText) { _, newValue in
-                searchEngine.search(query: newValue)
+                searchEngine.search(query: newValue, chapters: catalog.chapters)
             }
             .navigationDestination(for: SearchNavDestination.self) { destination in
                 ChapterView(chapter: destination.chapter, initialSectionIndex: destination.sectionIndex)
@@ -247,7 +250,7 @@ struct SearchView: View {
                         ForEach(curatedSuggestions) { suggestion in
                             Button {
                                 searchText = suggestion.text
-                                searchEngine.search(query: suggestion.text)
+                                searchEngine.search(query: suggestion.text, chapters: catalog.chapters)
                             } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: suggestion.icon)
@@ -282,10 +285,10 @@ struct SearchView: View {
                         .padding(.horizontal, 4)
 
                     VStack(spacing: 8) {
-                        ForEach(HandbookData.chapters) { chapter in
+                        ForEach(catalog.chapters) { chapter in
                             Button {
                                 searchText = chapter.title
-                                searchEngine.search(query: chapter.title)
+                                searchEngine.search(query: chapter.title, chapters: catalog.chapters)
                             } label: {
                                 HStack(spacing: 12) {
                                     RoundedRectangle(cornerRadius: 2)
@@ -466,4 +469,5 @@ struct SearchResultRow: View {
 
 #Preview {
     SearchView()
+		.environment(HandbookCatalog(repository: BundleHandbookRepository()))
 }

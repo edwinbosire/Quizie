@@ -12,39 +12,49 @@ import SwiftData
 struct HandbookReaderQuizApp: App {
     var body: some Scene {
         WindowGroup {
-			RootTabView()
+            RootTabView(dependencies: .live())
         }
         .modelContainer(for: [ExamAttempt.self, ReadingProgress.self, Highlight.self])
     }
 }
 
 struct RootTabView: View {
-	@AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-	var body: some View {
-		if hasCompletedOnboarding {
-			TabView {
-				Tab("Home", systemImage: "square.grid.2x2") {
-					QuizRootView()
-				}
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    private let dependencies: AppDependencies
+    @State private var handbookCatalog: HandbookCatalog
 
-				Tab("Tests", systemImage: "sparkle.text.clipboard") {
-					TestsView()
-				}
+    init(dependencies: AppDependencies) {
+        self.dependencies = dependencies
+        _handbookCatalog = State(initialValue: HandbookCatalog(repository: dependencies.handbook))
+    }
 
-				Tab("Handbook", systemImage: "checklist") {
-					NavigationStack {
-						HandbookView()
-					}
-				}
+    var body: some View {
+        Group {
+            if hasCompletedOnboarding {
+                TabView {
+                    Tab("Home", systemImage: "square.grid.2x2") {
+                        QuizRootView(questionRepository: dependencies.questions)
+                    }
 
-				Tab("Search", systemImage: "magnifyingglass", role: .search) {
-					SearchView()
-				}
-			}
-			.tint(Color.hbAccent)
+                    Tab("Tests", systemImage: "sparkle.text.clipboard") {
+                        TestsView(questionRepository: dependencies.questions)
+                    }
 
-		} else {
-			OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
-		}
-	}
+                    Tab("Handbook", systemImage: "checklist") {
+                        NavigationStack {
+                            HandbookView()
+                        }
+                    }
+
+                    Tab("Search", systemImage: "magnifyingglass", role: .search) {
+                        SearchView()
+                    }
+                }
+                .tint(Color.hbAccent)
+            } else {
+                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+            }
+        }
+        .environment(handbookCatalog)
+    }
 }

@@ -67,20 +67,11 @@ private struct ContentItemJSON: Codable {
     let items: [String]?
 }
 
-// MARK: - Handbook Data (loaded from JSON)
+// MARK: - Handbook document decoding
 
-struct HandbookData {
-
-    static let chapters: [HandbookChapter] = loadChapters()
-
-    private static func loadChapters() -> [HandbookChapter] {
-        guard let url = Bundle.main.url(forResource: "handbook", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let handbook = try? JSONDecoder().decode(HandbookJSON.self, from: data) else {
-            assertionFailure("Failed to load handbook.json from bundle")
-            return []
-        }
-
+enum HandbookDocumentDecoder {
+    static func decode(_ data: Data, decoder: JSONDecoder = JSONDecoder()) throws -> [HandbookChapter] {
+        let handbook = try decoder.decode(HandbookJSON.self, from: data)
         return handbook.chapters.enumerated().map { index, chapterJSON in
             let sections = chapterJSON.sections.enumerated().map { sectionIndex, sectionJSON in
                 let blocks = buildBlocks(from: sectionJSON.content, facts: sectionJSON.facts)

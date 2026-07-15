@@ -4,6 +4,7 @@ import SwiftData
 struct TestsView: View {
     @Query(sort: \ExamAttempt.attemptDate, order: .reverse) private var attempts: [ExamAttempt]
     @State private var selectedTest: PracticeTest?
+    let questionRepository: any QuestionRepository
 
     var body: some View {
         content
@@ -11,6 +12,7 @@ struct TestsView: View {
             .ignoresSafeArea(edges: .top)
             .fullScreenCover(item: $selectedTest) { test in
                 QuizRootView(
+                    questionRepository: questionRepository,
                     initialTestID: test.id,
                     configuration: test.configuration
                 )
@@ -283,7 +285,7 @@ private struct TestRow: View {
 
 // MARK: - Previews
 #Preview("Tests - empty") {
-    TestsView()
+    TestsView(questionRepository: BundleQuestionRepository())
         .modelContainer(for: [ExamAttempt.self, ReadingProgress.self, Highlight.self], inMemory: true)
 }
 
@@ -300,6 +302,6 @@ private struct TestRow: View {
     ]
     samples.forEach { context.insert($0) }
 
-    return TestsView()
+    return TestsView(questionRepository: BundleQuestionRepository())
         .modelContainer(container)
 }

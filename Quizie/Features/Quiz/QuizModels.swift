@@ -1,5 +1,4 @@
 import Foundation
-import Observation
 
 // MARK: - Quiz Configuration
 
@@ -139,57 +138,21 @@ struct ExamSession: Identifiable {
     }
 }
 
-// MARK: - Question Bank
-@Observable
-class QuestionBank {
-    static let shared = QuestionBank()
-    private(set) var allQuestions: [QuizQuestion] = []
-
-    init(questions: [QuizQuestion]? = nil) {
-        if let questions {
-            allQuestions = questions
-        } else {
-            load()
-        }
+@MainActor
+enum QuestionDocumentDecoder {
+    static func decode(_ data: Data, decoder: JSONDecoder = JSONDecoder()) throws -> [QuizQuestion] {
+        try decoder.decode(RawQuestionsFile.self, from: data).data.map(QuizQuestion.init(from:))
     }
+}
 
-    private func load() {
-        guard let url = Bundle.main.url(forResource: "questions", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let raw = try? JSONDecoder().decode(RawQuestionsFile.self, from: data) else {
-            // Fallback: try loading from app bundle path used in development
-            loadFromPath()
-            return
-        }
-        allQuestions = raw.data.map { QuizQuestion(from: $0) }
-    }
-
-    private func loadFromPath() {
-        // Development fallback — look for the file next to the bundle
-        let paths = [
-            Bundle.main.bundlePath + "/questions.json",
-            FileManager.default.currentDirectoryPath + "/questions.json"
-        ]
-        for path in paths {
-            if let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
-               let raw = try? JSONDecoder().decode(RawQuestionsFile.self, from: data) {
-                allQuestions = raw.data.map { QuizQuestion(from: $0) }
-                return
-            }
-        }
-    }
-
-    /// Returns a new shuffled exam of `count` questions, balanced across categories.
-    /// If `seed` is provided, the same seed always produces the same questions in the same order.
-    func generateExam(count: Int = QuizConfiguration.practice.questionCount, seed: String? = nil) -> [QuizQuestion] {
-        guard !allQuestions.isEmpty else { return [] }
+enum QuestionSelector {
+    static func select(from questions: [QuizQuestion], count: Int, seed: String?) -> [QuizQuestion] {
+        guard !questions.isEmpty, count > 0 else { return [] }
         if let seed {
             var rng = SeededRandomNumberGenerator(seed: seed)
-            let shuffled = allQuestions.shuffled(using: &rng)
-            return Array(shuffled.prefix(count))
+            return Array(questions.shuffled(using: &rng).prefix(count))
         }
-        let shuffled = allQuestions.shuffled()
-        return Array(shuffled.prefix(count))
+        return Array(questions.shuffled().prefix(count))
     }
 }
 

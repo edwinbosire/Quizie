@@ -8,11 +8,15 @@ struct QuizRootView: View {
     @Environment(\.modelContext) private var modelContext
 
     init(
+        questionRepository: any QuestionRepository,
         initialTestID: String? = nil,
         configuration: QuizConfiguration = .practice
     ) {
         self.initialTestID = initialTestID
-        _engine = StateObject(wrappedValue: QuizEngine(configuration: configuration))
+        _engine = StateObject(wrappedValue: QuizEngine(
+            configuration: configuration,
+            questionRepository: questionRepository
+        ))
     }
 
     var body: some View {
@@ -53,36 +57,27 @@ struct QuizRootView: View {
             }
             .animation(.easeInOut(duration: 0.3), value: engine.phase.id)
         }
-        .alert("Time's Up!", isPresented: $engine.didTimeOut) {
-            Button("See Results") { engine.finishExam() }
+        .alert("Time's Up!", isPresented: Binding(
+            get: { engine.didTimeOut },
+            set: { if !$0 { engine.acknowledgeTimeout() } }
+        )) {
+            Button("See Results") { engine.acknowledgeTimeout() }
         } message: {
             Text("You've run out of time. Your answers so far have been recorded.")
         }
+        .alert("Questions Unavailable", isPresented: Binding(
+            get: { engine.contentError != nil },
+            set: { if !$0 { engine.dismissContentError() } }
+        )) {
+            Button("OK") { engine.dismissContentError() }
+        } message: {
+            Text(engine.contentError?.localizedDescription ?? "The question content could not be loaded.")
+        }
         .onAppear {
-            engine.modelContext = modelContext
+            engine.installAttemptStore(SwiftDataExamAttemptStore(context: modelContext))
             if let initialTestID, case .lobby = engine.phase {
                 engine.startExam(testID: initialTestID)
             }
-        }
-    }
-}
-
-// MARK: - Phase Equatable for animation
-extension QuizPhase: Equatable {
-    static func == (lhs: QuizPhase, rhs: QuizPhase) -> Bool {
-        switch (lhs, rhs) {
-        case (.lobby, .lobby): return true
-        case (.results, .results): return true
-        case (.question(let a), .question(let b)): return a == b
-        default: return false
-        }
-    }
-
-    var id: String {
-        switch self {
-        case .lobby:           return "lobby"
-        case .question(let i): return "q\(i)"
-        case .results:         return "results"
         }
     }
 }

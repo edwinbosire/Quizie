@@ -50,11 +50,11 @@ struct QuizScoringTests {
     }
 
     @Test("Seeded question sets are repeatable")
-    func seededQuestionSetIsDeterministic() {
-        let bank = QuestionBank(questions: TestFixtures.questions(count: 10))
+    func seededQuestionSetIsDeterministic() throws {
+        let repository = InMemoryQuestionRepository(TestFixtures.questions(count: 10))
 
-        let first = bank.generateExam(count: 5, seed: "practice-test-4").map(\.id)
-        let second = bank.generateExam(count: 5, seed: "practice-test-4").map(\.id)
+        let first = try repository.questions(count: 5, seed: "practice-test-4").map(\.id)
+        let second = try repository.questions(count: 5, seed: "practice-test-4").map(\.id)
 
         #expect(first == ["q-2", "q-7", "q-0", "q-3", "q-4"])
         #expect(second == first)
@@ -105,8 +105,8 @@ struct QuizConfigurationTests {
     func engineUsesSuppliedConfiguration() {
         let engine = QuizEngine(
             configuration: customConfiguration,
-            bank: QuestionBank(questions: TestFixtures.questions(count: 10)),
-            now: { TestFixtures.startDate }
+            questionRepository: InMemoryQuestionRepository(TestFixtures.questions(count: 10)),
+            clock: MutableQuizClock(now: TestFixtures.startDate)
         )
 
         #expect(engine.timeRemaining == 90)
@@ -128,17 +128,18 @@ struct QuizConfigurationTests {
 struct ProgressTests {
     @Test("Quiz progress is based on the current zero-based index")
     func quizProgressFraction() {
-        let engine = QuizEngine(bank: QuestionBank(questions: []), now: { TestFixtures.startDate })
-        engine.session = ExamSession(
-            questions: TestFixtures.questions(count: 4),
-            startedAt: TestFixtures.startDate
-        )
+        var state = QuizState(configuration: .custom(questionCount: 4, timeLimitSeconds: 90, passMarkCount: 3))
+        state.start(questions: TestFixtures.questions(count: 4), testID: nil, at: TestFixtures.startDate)
+        #expect(state.progressFraction == 0)
 
-        engine.phase = .question(index: 0)
-        #expect(engine.progressFraction == 0)
-
-        engine.phase = .question(index: 2)
-        #expect(engine.progressFraction == 0.5)
+        _ = state.toggleChoice(0)
+        _ = state.submitCurrentAnswer()
+        _ = state.advance(at: TestFixtures.startDate)
+        _ = state.toggleChoice(0)
+        _ = state.submitCurrentAnswer()
+        _ = state.advance(at: TestFixtures.startDate)
+        #expect(state.phase == .question(index: 2))
+        #expect(state.progressFraction == 0.5)
     }
 
     @Test("Reading progress clamps scroll calculations")
@@ -186,28 +187,166 @@ struct ProgressTests {
 @MainActor
 struct ExamCompletionRegressionTests {
     @Test("Completing the same exam twice persists one attempt")
-    func duplicateCompletionPersistsOnce() throws {
-        let container = try TestFixtures.modelContainer()
+    func duplicateCompletionPersistsOnce() {
+        let store = RecordingAttemptStore()
+        let clock = MutableQuizClock(now: TestFixtures.startDate)
+        let scheduler = ManualQuizScheduler()
         let engine = QuizEngine(
-            bank: QuestionBank(questions: []),
-            now: { TestFixtures.laterDate }
+            configuration: .custom(questionCount: 2, timeLimitSeconds: 90, passMarkCount: 1),
+            questionRepository: InMemoryQuestionRepository(TestFixtures.questions(count: 2)),
+            attemptStore: store,
+            clock: clock,
+            scheduler: scheduler
         )
-        engine.modelContext = container.mainContext
-        engine.session = ExamSession(
-            testID: "test-1",
-            questions: TestFixtures.questions(count: 2),
-            startedAt: TestFixtures.startDate
-        )
-        engine.phase = .question(index: 1)
+        engine.startExam(testID: "test-1")
+        clock.now = TestFixtures.laterDate
 
         engine.finishExam()
         engine.finishExam()
 
-        let attempts = try container.mainContext.fetch(FetchDescriptor<ExamAttempt>())
-        #expect(attempts.count == 1)
-        #expect(attempts.first?.attemptDate == TestFixtures.laterDate)
-        #expect(attempts.first?.elapsedSeconds == 300)
-        #expect(attempts.first?.testID == "test-1")
+        #expect(store.saved.count == 1)
+        #expect(store.saved.first?.attemptDate == TestFixtures.laterDate)
+        #expect(store.saved.first?.elapsedSeconds == 300)
+        #expect(store.saved.first?.testID == "test-1")
+    }
+
+    @Test("Timeout completes and persists exactly once")
+    func timeoutPersistsOnce() {
+        let store = RecordingAttemptStore()
+        let clock = MutableQuizClock(now: TestFixtures.startDate)
+        let scheduler = ManualQuizScheduler()
+        let engine = QuizEngine(
+            configuration: .custom(questionCount: 1, timeLimitSeconds: 1, passMarkCount: 1),
+            questionRepository: InMemoryQuestionRepository(TestFixtures.questions(count: 1)),
+            attemptStore: store,
+            clock: clock,
+            scheduler: scheduler
+        )
+
+        engine.startExam(testID: "timeout")
+        clock.now = TestFixtures.laterDate
+        scheduler.fireRepeating()
+        engine.finishExam()
+
+        #expect(engine.phase == .results)
+        #expect(engine.didTimeOut)
+        #expect(store.saved.count == 1)
+        #expect(store.saved.first?.didTimeOut == true)
+    }
+
+    @Test("Delayed submission and advancement are controlled by the scheduler")
+    func delayedTransitionsAreControllable() {
+        let store = RecordingAttemptStore()
+        let scheduler = ManualQuizScheduler()
+        let engine = QuizEngine(
+            configuration: .custom(questionCount: 1, timeLimitSeconds: 90, passMarkCount: 1),
+            questionRepository: InMemoryQuestionRepository(TestFixtures.questions(count: 1)),
+            attemptStore: store,
+            clock: MutableQuizClock(now: TestFixtures.startDate),
+            scheduler: scheduler
+        )
+
+        engine.startExam()
+        engine.toggleChoice(0, isMultiSelect: false)
+        #expect(!engine.hasSubmittedAnswer)
+
+        scheduler.runNextDelayed()
+        #expect(engine.hasSubmittedAnswer)
+        #expect(engine.phase == .question(index: 0))
+
+        scheduler.runNextDelayed()
+        #expect(engine.phase == .results)
+        #expect(store.saved.count == 1)
+    }
+}
+
+@MainActor
+struct QuizStateMachineTests {
+    @Test("State transitions do not require UI, timers, or persistence")
+    func pureTransitions() {
+        var state = QuizState(configuration: .custom(questionCount: 2, timeLimitSeconds: 2, passMarkCount: 1))
+        let questions = TestFixtures.questions(count: 2)
+
+        state.start(questions: questions, testID: "pure", at: TestFixtures.startDate)
+        #expect(state.phase == .question(index: 0))
+        #expect(state.toggleChoice(0) == .submitAfter(0.3))
+        #expect(state.submitCurrentAnswer() == .advanceAfter(2))
+        #expect(state.advance(at: TestFixtures.startDate) == .none)
+        #expect(state.phase == .question(index: 1))
+
+        #expect(state.tick(at: TestFixtures.laterDate) == .none)
+        let completion = state.tick(at: TestFixtures.laterDate)
+        guard case .completed(let exam) = completion else {
+            Issue.record("Expected timeout completion")
+            return
+        }
+        #expect(exam.didTimeOut)
+        #expect(state.phase == .results)
+        #expect(state.finish(at: TestFixtures.laterDate, timedOut: true) == .none)
+    }
+}
+
+@MainActor
+struct ContentRepositoryTests {
+    @Test("In-memory repositories replace production content without feature changes")
+    func inMemoryRepositoriesSupplyContent() throws {
+        let questions = TestFixtures.questions(count: 3)
+        let chapter = TestFixtures.searchChapter
+
+        let selected = try InMemoryQuestionRepository(questions)
+            .questions(count: 2, seed: "fixture")
+        let chapters = try InMemoryHandbookRepository([chapter]).chapters()
+
+        #expect(selected.count == 2)
+        #expect(Set(selected.map(\.id)).isSubset(of: Set(questions.map(\.id))))
+        #expect(chapters.map(\.id) == [chapter.id])
+    }
+
+    @Test("Missing bundle resources produce explicit typed errors")
+    func missingBundleResourcesThrow() {
+        let questions = BundleQuestionRepository(resourceName: "missing-questions-fixture")
+        let handbook = BundleHandbookRepository(resourceName: "missing-handbook-fixture")
+
+        #expect(throws: ContentRepositoryError.resourceNotFound("missing-questions-fixture.json")) {
+            try questions.questions(count: 1, seed: nil)
+        }
+        #expect(throws: ContentRepositoryError.resourceNotFound("missing-handbook-fixture.json")) {
+            try handbook.chapters()
+        }
+    }
+
+    @Test("Question loading failures are surfaced by the quiz engine")
+    func quizEngineSurfacesRepositoryFailure() {
+        let engine = QuizEngine(
+            questionRepository: InMemoryQuestionRepository([]),
+            clock: MutableQuizClock(now: TestFixtures.startDate),
+            scheduler: ManualQuizScheduler()
+        )
+
+        engine.startExam()
+
+        #expect(engine.phase == .lobby)
+        #expect(engine.contentError == .emptyContent("in-memory questions"))
+    }
+
+    @Test("Handbook loading failures are retained for retryable UI state")
+    func handbookCatalogSurfacesRepositoryFailure() {
+        let catalog = HandbookCatalog(repository: InMemoryHandbookRepository([]))
+
+        #expect(catalog.chapters.isEmpty)
+        #expect(catalog.error == .emptyContent("in-memory handbook"))
+        catalog.reload()
+        #expect(catalog.error == .emptyContent("in-memory handbook"))
+    }
+
+    @Test("Production bundle repositories decode packaged content")
+    func bundleRepositoriesLoadPackagedContent() throws {
+        let questions = try BundleQuestionRepository().questions(count: 3, seed: "bundle-test")
+        let chapters = try BundleHandbookRepository().chapters()
+
+        #expect(questions.count == 3)
+        #expect(!chapters.isEmpty)
+        #expect(!chapters[0].sections.isEmpty)
     }
 }
 
@@ -328,4 +467,62 @@ private enum TestFixtures {
       }]
     }
     """#
+}
+
+@MainActor
+private final class RecordingAttemptStore: ExamAttemptStore {
+    private(set) var saved: [CompletedExam] = []
+
+    func save(_ exam: CompletedExam) throws {
+        saved.append(exam)
+    }
+}
+
+private final class MutableQuizClock: QuizClock {
+    var now: Date
+
+    init(now: Date) {
+        self.now = now
+    }
+}
+
+@MainActor
+private final class ManualQuizScheduler: QuizScheduler {
+    private final class ScheduledAction {
+        var isCancelled = false
+        let action: @MainActor () -> Void
+
+        init(action: @escaping @MainActor () -> Void) {
+            self.action = action
+        }
+    }
+
+    private var delayed: [ScheduledAction] = []
+    private var repeating: [ScheduledAction] = []
+
+    func schedule(after delay: TimeInterval, action: @escaping @MainActor () -> Void) -> QuizCancellation {
+        let scheduled = ScheduledAction(action: action)
+        delayed.append(scheduled)
+        return QuizCancellation { scheduled.isCancelled = true }
+    }
+
+    func scheduleRepeating(every interval: TimeInterval, action: @escaping @MainActor () -> Void) -> QuizCancellation {
+        let scheduled = ScheduledAction(action: action)
+        repeating.append(scheduled)
+        return QuizCancellation { scheduled.isCancelled = true }
+    }
+
+    func runNextDelayed() {
+        while !delayed.isEmpty {
+            let scheduled = delayed.removeFirst()
+            if !scheduled.isCancelled {
+                scheduled.action()
+                return
+            }
+        }
+    }
+
+    func fireRepeating() {
+        repeating.filter { !$0.isCancelled }.forEach { $0.action() }
+    }
 }

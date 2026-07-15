@@ -1,228 +1,177 @@
-import SwiftUI
 import Combine
-import SwiftData
+import Foundation
 
-// MARK: - Quiz Phase
-enum QuizPhase {
-    case lobby
-    case question(index: Int)
-    case results
-}
-
-// MARK: - Quiz Engine
+/// Observable adapter between the pure `QuizState` and UI/infrastructure concerns.
 @MainActor
-class QuizEngine: ObservableObject {
+final class QuizEngine: ObservableObject {
+    @Published private(set) var state: QuizState
+    @Published private(set) var persistenceError: Error?
+    @Published private(set) var contentError: ContentRepositoryError?
 
-    @Published var phase: QuizPhase = .lobby
-    @Published var session: ExamSession?
-    @Published var selectedIndices: Set<Int> = []
-    @Published var timeRemaining: Int
-    @Published var didTimeOut = false
-    @Published var showAnswerFeedback = false   // brief flash after submitting
-    @Published var hasSubmittedAnswer = false
-    @Published var isCurrentAnswerCorrect = false
+    private let questionRepository: any QuestionRepository
+    private let clock: any QuizClock
+    private let scheduler: any QuizScheduler
+    private var attemptStore: any ExamAttemptStore
+    private var timer: QuizCancellation?
+    private var pendingSubmission: QuizCancellation?
+    private var pendingAdvance: QuizCancellation?
 
-    private var timer: AnyCancellable?
-    private var autoAdvanceTask: Task<Void, Never>?
-    private let bank: QuestionBank
-    private let now: () -> Date
     let configuration: QuizConfiguration
-    
-    // SwiftData context for saving exam attempts
-    var modelContext: ModelContext?
 
     init(
         configuration: QuizConfiguration = .practice,
-        bank: QuestionBank? = nil,
-        now: @escaping () -> Date = Date.init
+        questionRepository: any QuestionRepository,
+        attemptStore: (any ExamAttemptStore)? = nil,
+        clock: (any QuizClock)? = nil,
+        scheduler: (any QuizScheduler)? = nil
     ) {
         self.configuration = configuration
-        self.timeRemaining = configuration.timeLimitSeconds
-        self.bank = bank ?? .shared
-        self.now = now
+        self.state = QuizState(configuration: configuration)
+        self.questionRepository = questionRepository
+        self.attemptStore = attemptStore ?? NoOpExamAttemptStore()
+        self.clock = clock ?? SystemQuizClock()
+        self.scheduler = scheduler ?? SystemQuizScheduler()
     }
 
-    // MARK: Start
+    var phase: QuizPhase { state.phase }
+    var session: ExamSession? { state.session }
+    var selectedIndices: Set<Int> { state.selectedIndices }
+    var timeRemaining: Int { state.timeRemaining }
+    var didTimeOut: Bool { state.didTimeOut }
+    var hasSubmittedAnswer: Bool { state.hasSubmittedAnswer }
+    var isCurrentAnswerCorrect: Bool { state.isCurrentAnswerCorrect }
+    var currentIndex: Int { state.currentIndex }
+    var currentQuestion: QuizQuestion? { state.currentQuestion }
+    var totalQuestions: Int { state.totalQuestions }
+    var progressFraction: Double { state.progressFraction }
+    var canSubmit: Bool { state.canSubmit }
+
+    var formattedTime: String {
+        String(format: "%d:%02d", timeRemaining / 60, timeRemaining % 60)
+    }
+
+    var isTimeWarning: Bool { timeRemaining <= 5 * 60 }
+
+    func installAttemptStore(_ store: any ExamAttemptStore) {
+        attemptStore = store
+    }
+
     func startExam(testID: String? = nil) {
-        let questions = bank.generateExam(count: configuration.questionCount, seed: testID)
-        session = ExamSession(
-            testID: testID,
-            configuration: configuration,
-            questions: questions,
-            startedAt: now()
-        )
-        selectedIndices = []
-        timeRemaining = configuration.timeLimitSeconds
-        didTimeOut = false
-        showAnswerFeedback = false
-        hasSubmittedAnswer = false
-        isCurrentAnswerCorrect = false
-        autoAdvanceTask?.cancel()
-        phase = .question(index: 0)
-        startTimer()
-    }
+        cancelScheduledWork()
+        let questions: [QuizQuestion]
+        do {
+            questions = try questionRepository.questions(count: configuration.questionCount, seed: testID)
+            contentError = nil
+        } catch let repositoryError as ContentRepositoryError {
+            contentError = repositoryError
+            return
+        } catch {
+            contentError = .invalidContent(name: "questions", reason: error.localizedDescription)
+            return
+        }
+        state.start(questions: questions, testID: testID, at: clock.now)
+        persistenceError = nil
 
-    // MARK: Timer
-    private func startTimer() {
-        timer?.cancel()
-        timer = Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                guard let self else { return }
-                Task { @MainActor in
-                    if self.timeRemaining > 0 {
-                        self.timeRemaining -= 1
-                    } else {
-                        self.didTimeOut = true
-                        self.finishExam()
-                    }
-                }
-            }
+        guard case .question = state.phase else { return }
+        timer = scheduler.scheduleRepeating(every: 1) { [weak self] in
+            self?.handleTick()
+        }
     }
 
     func stopTimer() {
         timer?.cancel()
+        timer = nil
     }
 
-    // MARK: Navigation
-    var currentIndex: Int {
-        if case .question(let idx) = phase { return idx }
-        return 0
-    }
-
-    var currentQuestion: QuizQuestion? {
-        session?.questions[safe: currentIndex]
-    }
-
-    var totalQuestions: Int { session?.questions.count ?? 0 }
-
-    var progressFraction: Double {
-        guard totalQuestions > 0 else { return 0 }
-        return Double(currentIndex) / Double(totalQuestions)
-    }
-
-    var formattedTime: String {
-        let m = timeRemaining / 60
-        let s = timeRemaining % 60
-        return String(format: "%d:%02d", m, s)
-    }
-
-    var isTimeWarning: Bool { timeRemaining <= 5 * 60 }   // last 5 mins
-
-    // MARK: Answer selection
     func toggleChoice(_ index: Int, isMultiSelect: Bool) {
-        // Don't allow changes after submission
-        guard !hasSubmittedAnswer else { return }
-        
-        if isMultiSelect {
-            if selectedIndices.contains(index) {
-                selectedIndices.remove(index)
-            } else {
-                selectedIndices.insert(index)
-            }
-            
-            // Auto-submit when correct number of choices are selected
-            if let q = currentQuestion, selectedIndices.count == q.correctIndices.count {
-                // Small delay for better UX - let user see their final selection
-                Task { @MainActor in
-                    try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
-                    submitAndAdvance()
-                }
-            }
-        } else {
-            selectedIndices = [index]
-            
-            // Auto-submit immediately for single choice
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
-                submitAndAdvance()
-            }
-        }
+        pendingSubmission?.cancel()
+        handle(state.toggleChoice(index))
     }
 
-    var canSubmit: Bool {
-        guard let q = currentQuestion else { return false }
-        if q.isMultiSelect {
-            return selectedIndices.count == q.correctIndices.count
-        }
-        return !selectedIndices.isEmpty
-    }
-
-    // MARK: Submit answer & advance
     func submitAndAdvance() {
-        guard var s = session, let q = currentQuestion else { return }
-        
-        // Check if answer is correct
-        let isCorrect = selectedIndices == q.correctIndices
-        isCurrentAnswerCorrect = isCorrect
-        hasSubmittedAnswer = true
-        
-        // Submit the answer
-        s.submit(answer: selectedIndices, for: q)
-        session = s
+        pendingSubmission?.cancel()
+        pendingSubmission = nil
+        handle(state.submitCurrentAnswer())
+    }
 
-        // If correct, auto-advance after 2 seconds
-        if isCorrect {
-            autoAdvanceTask?.cancel()
-            autoAdvanceTask = Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-                guard !Task.isCancelled else { return }
-                self.advanceToNext()
+    func manualAdvance() {
+        pendingAdvance?.cancel()
+        pendingAdvance = nil
+        handle(state.advance(at: clock.now))
+    }
+
+    func finishExam() {
+        handle(state.finish(at: clock.now, timedOut: false))
+    }
+
+    func acknowledgeTimeout() {
+        state.acknowledgeTimeout()
+    }
+
+    func dismissContentError() {
+        contentError = nil
+    }
+
+    func returnToLobby() {
+        cancelScheduledWork()
+        state.returnToLobby()
+        persistenceError = nil
+    }
+
+    private func handleTick() {
+        handle(state.tick(at: clock.now))
+    }
+
+    private func handle(_ transition: QuizTransition) {
+        switch transition {
+        case .none:
+            break
+
+        case .submitAfter(let delay):
+            pendingSubmission = scheduler.schedule(after: delay) { [weak self] in
+                self?.submitAndAdvance()
+            }
+
+        case .advanceAfter(let delay):
+            pendingAdvance?.cancel()
+            pendingAdvance = scheduler.schedule(after: delay) { [weak self] in
+                self?.manualAdvance()
+            }
+
+        case .completed(let exam):
+            cancelScheduledWork()
+            do {
+                try attemptStore.save(exam)
+            } catch {
+                persistenceError = error
             }
         }
-        // If incorrect, wait for user to manually tap next
-    }
-    
-    private func advanceToNext() {
-        let nextIndex = currentIndex + 1
-        selectedIndices = []
-        hasSubmittedAnswer = false
-        isCurrentAnswerCorrect = false
-        autoAdvanceTask?.cancel()
-
-        if nextIndex >= totalQuestions {
-            finishExam()
-        } else {
-            phase = .question(index: nextIndex)
-        }
-    }
-    
-    // Manual advance (for incorrect answers)
-    func manualAdvance() {
-        advanceToNext()
     }
 
-    // MARK: Finish
-    func finishExam() {
-        // Timer expiry, navigation, and repeated UI actions can converge here.
-        // Persist a completed session exactly once.
-        if case .results = phase { return }
-
-        stopTimer()
-        var s = session
-        s?.finishedAt = now()
-        session = s
-        
-        // Save the exam attempt to SwiftData
-        if let session = s, let context = modelContext {
-            let attempt = ExamAttempt(from: session, didTimeOut: didTimeOut)
-            context.insert(attempt)
-            try? context.save()
-        }
-        
-        phase = .results
+    private func cancelScheduledWork() {
+        timer?.cancel()
+        pendingSubmission?.cancel()
+        pendingAdvance?.cancel()
+        timer = nil
+        pendingSubmission = nil
+        pendingAdvance = nil
     }
 
-    // MARK: Restart
-    func returnToLobby() {
-        stopTimer()
-        autoAdvanceTask?.cancel()
-        phase = .lobby
-        session = nil
+    func setPreviewState(
+        session: ExamSession,
+        phase: QuizPhase,
+        selectedIndices: Set<Int> = [],
+        timeRemaining: Int? = nil
+    ) {
+        state.setPreview(
+            session: session,
+            phase: phase,
+            selectedIndices: selectedIndices,
+            timeRemaining: timeRemaining
+        )
     }
 }
 
-// MARK: - Safe array subscript
 extension Array {
     subscript(safe index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil

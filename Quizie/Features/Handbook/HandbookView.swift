@@ -2,20 +2,39 @@ import SwiftUI
 import SwiftData
 
 struct HandbookView: View {
-	var body: some View {
-		ScrollView {
-			VStack(spacing: 0) {
-				// Hero Section (matches .hero in CSS)
-//				HeroHeader()
+	@Environment(HandbookCatalog.self) private var catalog
 
-				// Chapter List
-				ChapterList()
-					.staggered(0.2)
+	var body: some View {
+		Group {
+			if let error = catalog.error {
+				RepositoryErrorView(title: "Handbook Unavailable", error: error, retry: catalog.reload)
+			} else {
+				ScrollView {
+					ChapterList(chapters: catalog.chapters)
+						.staggered(0.2)
+				}
+				.background(Color.hbBackground)
+				.ignoresSafeArea(edges: .top)
+				.navigationBarHidden(true)
 			}
 		}
-		.background(Color.hbBackground)
-		.ignoresSafeArea(edges: .top)
-		.navigationBarHidden(true)
+	}
+}
+
+struct RepositoryErrorView: View {
+	let title: String
+	let error: ContentRepositoryError
+	let retry: () -> Void
+
+	var body: some View {
+		ContentUnavailableView {
+			Label(title, systemImage: "exclamationmark.triangle")
+		} description: {
+			Text(error.localizedDescription)
+		} actions: {
+			Button("Try Again", action: retry)
+				.buttonStyle(.borderedProminent)
+		}
 	}
 }
 
@@ -101,12 +120,13 @@ struct FlagStripes: View {
 
 // MARK: - Chapter List
 struct ChapterList: View {
+		let chapters: [HandbookChapter]
 	@Query private var allProgress: [ReadingProgress]
 	@Query private var allHighlights: [Highlight]
 	@Environment(\.modelContext) private var modelContext
 
 	private var overallCompletion: Double {
-		ReadingProgress.overallCompletionPercentage(totalChapters: HandbookData.chapters.count, in: modelContext)
+			ReadingProgress.overallCompletionPercentage(totalChapters: chapters.count, in: modelContext)
 	}
 
 	private var totalReadingTime: TimeInterval {
@@ -140,7 +160,7 @@ struct ChapterList: View {
 
 			// My Highlights card
 			if !allHighlights.isEmpty {
-				NavigationLink(destination: HighlightsView()) {
+					NavigationLink(destination: HighlightsView()) {
 					MyHighlightsCard(highlightCount: allHighlights.count)
 				}
 				.buttonStyle(.plain)
@@ -149,7 +169,7 @@ struct ChapterList: View {
 			}
 
 			VStack(spacing: 12) {
-				ForEach(HandbookData.chapters) { chapter in
+				ForEach(chapters) { chapter in
 					NavigationLink(destination: ChapterView(chapter: chapter)) {
 						HomeChapterCard(chapter: chapter)
 					}
@@ -382,4 +402,5 @@ struct MyHighlightsCard: View {
 #Preview {
 	HandbookView()
 		.modelContainer(for: [ReadingProgress.self, ExamAttempt.self, Highlight.self])
+		.environment(HandbookCatalog(repository: BundleHandbookRepository()))
 }

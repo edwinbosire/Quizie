@@ -424,7 +424,7 @@ struct RecentAttemptRow: View {
 #Preview("Quiz Lobby") {
     NavigationStack {
         QuizLobbyView()
-            .environmentObject(QuizEngine())
+            .environmentObject(QuizEngine(questionRepository: InMemoryQuestionRepository([])))
     }
     .modelContainer(for: ExamAttempt.self, inMemory: true)
 }
@@ -443,7 +443,7 @@ struct RecentAttemptRow: View {
     
     return NavigationStack {
         QuizLobbyView()
-            .environmentObject(QuizEngine())
+            .environmentObject(QuizEngine(questionRepository: InMemoryQuestionRepository([])))
     }
     .modelContainer(container)
 }

@@ -64,6 +64,19 @@ final class ExamAttempt {
             testID: session.testID
         )
     }
+
+    convenience init(from exam: CompletedExam) {
+        self.init(
+            id: exam.sessionID,
+            attemptDate: exam.attemptDate,
+            score: exam.score,
+            totalQuestions: exam.totalQuestions,
+            passed: exam.passed,
+            elapsedSeconds: exam.elapsedSeconds,
+            didTimeOut: exam.didTimeOut,
+            testID: exam.testID
+        )
+    }
 }
 
 /// Extension to calculate performance statistics

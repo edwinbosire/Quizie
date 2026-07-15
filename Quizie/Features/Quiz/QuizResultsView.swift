@@ -726,7 +726,7 @@ struct ConfettiPieceView: View {
 @MainActor
 class PreviewResultsEngine {
     static var passedEngine: QuizEngine {
-        let engine = QuizEngine()
+        let engine = QuizEngine(questionRepository: InMemoryQuestionRepository([]))
         let mockQuestions = createMockQuestions()
         
         var session = ExamSession(questions: mockQuestions)
@@ -743,13 +743,12 @@ class PreviewResultsEngine {
             session.submit(answer: wrongAnswer, for: question)
         }
         
-        engine.session = session
-        engine.phase = .results
+        engine.setPreviewState(session: session, phase: .results)
         return engine
     }
     
     static var failedEngine: QuizEngine {
-        let engine = QuizEngine()
+        let engine = QuizEngine(questionRepository: InMemoryQuestionRepository([]))
         let mockQuestions = createMockQuestions()
         
         var session = ExamSession(questions: mockQuestions)
@@ -766,8 +765,7 @@ class PreviewResultsEngine {
             session.submit(answer: wrongAnswer, for: question)
         }
         
-        engine.session = session
-        engine.phase = .results
+        engine.setPreviewState(session: session, phase: .results)
         return engine
     }
     

@@ -676,7 +676,7 @@ struct OptionRow: View {
 @MainActor
 class PreviewQuizEngine {
     static var sampleEngine: QuizEngine {
-        let engine = QuizEngine()
+        let engine = QuizEngine(questionRepository: InMemoryQuestionRepository([]))
         let mockQuestions = [
             QuizQuestion(
                 id: "q1",
@@ -725,14 +725,15 @@ class PreviewQuizEngine {
             )
         ]
         
-        engine.session = ExamSession(questions: mockQuestions)
-        engine.phase = .question(index: 0)
-        engine.timeRemaining = engine.configuration.timeLimitSeconds
+        engine.setPreviewState(
+            session: ExamSession(questions: mockQuestions),
+            phase: .question(index: 0)
+        )
         return engine
     }
     
     static var multiSelectEngine: QuizEngine {
-        let engine = QuizEngine()
+        let engine = QuizEngine(questionRepository: InMemoryQuestionRepository([]))
         let mockQuestions = [
             QuizQuestion(
                 id: "q1",
@@ -767,15 +768,17 @@ class PreviewQuizEngine {
             )
         ]
         
-        engine.session = ExamSession(questions: mockQuestions)
-        engine.phase = .question(index: 1)
-        engine.selectedIndices = [0, 1] // Pre-select some choices
-        engine.timeRemaining = 2400
+        engine.setPreviewState(
+            session: ExamSession(questions: mockQuestions),
+            phase: .question(index: 1),
+            selectedIndices: [0, 1],
+            timeRemaining: 2400
+        )
         return engine
     }
     
     static var timeWarningEngine: QuizEngine {
-        let engine = QuizEngine()
+        let engine = QuizEngine(questionRepository: InMemoryQuestionRepository([]))
         let mockQuestions = [
             QuizQuestion(
                 id: "q1",
@@ -794,9 +797,11 @@ class PreviewQuizEngine {
             )
         ]
         
-        engine.session = ExamSession(questions: mockQuestions)
-        engine.phase = .question(index: 0)
-        engine.timeRemaining = 240 // 4 minutes - triggers warning
+        engine.setPreviewState(
+            session: ExamSession(questions: mockQuestions),
+            phase: .question(index: 0),
+            timeRemaining: 240
+        )
         return engine
     }
 }

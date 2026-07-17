@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct HandbookView: View {
-	@Environment(HandbookCatalog.self) private var catalog
+	let dependencies: HandbookFeatureDependencies
+	private var catalog: HandbookCatalog { dependencies.catalog }
 
 	var body: some View {
 		Group {
@@ -17,6 +18,9 @@ struct HandbookView: View {
 				.navigationBarHidden(true)
 			}
 		}
+		.environment(dependencies.catalog)
+		.environment(dependencies.progress)
+		.environment(dependencies.highlights)
 	}
 }
 
@@ -401,9 +405,6 @@ struct MyHighlightsCard: View {
 }
 
 #Preview {
-	let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
-	HandbookView()
-		.environment(HandbookCatalog(repository: BundleHandbookRepository()))
-		.environment(services.progress)
-		.environment(services.highlights)
+	let dependencies = try! AppDependencies.preview()
+	HandbookView(dependencies: dependencies.handbook)
 }

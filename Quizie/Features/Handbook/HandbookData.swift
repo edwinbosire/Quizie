@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Content Models
 
-struct HandbookChapter: Identifiable {
+nonisolated struct HandbookChapter: Identifiable, Sendable, Equatable {
     let id: Int
     /// Stable identity authored in handbook.json. `id` remains display order.
     let contentID: String
@@ -12,18 +12,18 @@ struct HandbookChapter: Identifiable {
 	let sections: [HandbookSection]
 }
 
-struct HandbookSection: Identifiable {
+nonisolated struct HandbookSection: Identifiable, Sendable, Equatable {
     let id: String
     let title: String
     let blocks: [ContentBlock]
 }
 
-struct ContentBlock: Identifiable {
+nonisolated struct ContentBlock: Identifiable, Sendable, Equatable {
     let id: String
     let content: ContentBlockContent
 }
 
-enum ContentBlockContent {
+nonisolated enum ContentBlockContent: Sendable, Equatable {
     case paragraph(String)
     case subheading(String)
     case subheading2(String)          // h4 equivalent
@@ -33,7 +33,7 @@ enum ContentBlockContent {
     case dataTable(headers: [String], rows: [[String]])
 }
 
-struct BulletItem: Identifiable {
+nonisolated struct BulletItem: Identifiable, Sendable, Equatable {
     let id = UUID()
     let text: AttributedContent  // supports bold inline
     let subItems: [String]
@@ -44,13 +44,13 @@ struct BulletItem: Identifiable {
     }
 }
 
-struct AttributedContent {
+nonisolated struct AttributedContent: Sendable, Equatable {
     let raw: String
 }
 
 // MARK: - JSON Codable Types (private)
 
-private struct HandbookJSON: Codable {
+nonisolated private struct HandbookJSON: Codable {
     let contentVersion: Int
     let identityMigrations: ContentIdentityMigrations
     let chapters: [ChapterJSON]
@@ -62,7 +62,7 @@ private struct HandbookJSON: Codable {
     }
 }
 
-struct ContentIdentityMigrations: Codable, Equatable {
+nonisolated struct ContentIdentityMigrations: Codable, Equatable, Sendable {
     let renamedChapterIDs: [String: String]
     let renamedSectionIDs: [String: String]
     let renamedBlockIDs: [String: String]
@@ -76,20 +76,20 @@ struct ContentIdentityMigrations: Codable, Equatable {
     }
 }
 
-struct HandbookDocument {
+nonisolated struct HandbookDocument: Sendable {
     let contentVersion: Int
     let identityMigrations: ContentIdentityMigrations
     let chapters: [HandbookChapter]
     var validBlockIDs: Set<String> { Set(chapters.flatMap(\.sections).flatMap(\.blocks).map(\.id)) }
 }
 
-private struct ChapterJSON: Codable {
+nonisolated private struct ChapterJSON: Codable {
     let id: String
     let title: String
     let sections: [SectionJSON]
 }
 
-private struct SectionJSON: Codable {
+nonisolated private struct SectionJSON: Codable {
     let id: String
     let title: String
     let content: [ContentItemJSON]
@@ -102,7 +102,7 @@ private struct SectionJSON: Codable {
     }
 }
 
-private struct ContentItemJSON: Codable {
+nonisolated private struct ContentItemJSON: Codable {
     let id: String
     let type: String
     let text: String?
@@ -112,8 +112,8 @@ private struct ContentItemJSON: Codable {
 
 // MARK: - Handbook document decoding
 
-enum HandbookDocumentDecoder {
-    static func decode(_ data: Data, decoder: JSONDecoder = JSONDecoder()) throws -> HandbookDocument {
+nonisolated enum HandbookDocumentDecoder {
+    nonisolated static func decode(_ data: Data, decoder: JSONDecoder = JSONDecoder()) throws -> HandbookDocument {
         let handbook = try decoder.decode(HandbookJSON.self, from: data)
         let chapters = handbook.chapters.enumerated().map { index, chapterJSON in
             let sections = chapterJSON.sections.enumerated().map { sectionIndex, sectionJSON in
@@ -141,7 +141,7 @@ enum HandbookDocumentDecoder {
     }
 
     /// Parse "Chapter 1 : The values and principles of the UK" into ("Chapter 1", "The values and principles of the UK")
-    private static func parseChapterTitle(_ raw: String, fallbackIndex: Int) -> (number: String, title: String) {
+    nonisolated private static func parseChapterTitle(_ raw: String, fallbackIndex: Int) -> (number: String, title: String) {
         if let range = raw.range(of: #"\s*:\s*"#, options: .regularExpression) {
             let number = String(raw[raw.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
             let title = String(raw[range.upperBound...]).trimmingCharacters(in: .whitespaces)
@@ -157,7 +157,7 @@ enum HandbookDocumentDecoder {
     /// Convert the section's structured content + facts array into ContentBlock values.
     /// Consecutive paragraphs that begin with a "·"/"•" bullet marker are merged into a bulletList.
     /// The `facts` array (if non-empty) becomes a trailing `.checkUnderstand` block.
-    private static func buildBlocks(from items: [ContentItemJSON], facts: [String]?, factsID: String?) -> [ContentBlock] {
+    nonisolated private static func buildBlocks(from items: [ContentItemJSON], facts: [String]?, factsID: String?) -> [ContentBlock] {
         var blocks: [ContentBlock] = []
 
         for item in items {
@@ -207,12 +207,12 @@ enum HandbookDocumentDecoder {
         return blocks
     }
 
-    private static func isBulletPrefixed(_ text: String) -> Bool {
+    nonisolated private static func isBulletPrefixed(_ text: String) -> Bool {
         text.hasPrefix("·") || text.hasPrefix("•")
     }
 
     /// Strip a leading "·"/"•" marker plus any following whitespace (including non-breaking spaces).
-    private static func stripBulletPrefix(_ text: String) -> String {
+    nonisolated private static func stripBulletPrefix(_ text: String) -> String {
         var s = text
         while s.hasPrefix("·") || s.hasPrefix("•") {
             s = String(s.dropFirst())

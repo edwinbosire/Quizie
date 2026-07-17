@@ -1,10 +1,9 @@
 import SwiftUI
 
 struct TestsView: View {
-    @Environment(AttemptHistory.self) private var attemptHistory
-    private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
+    let dependencies: TestsFeatureDependencies
+    private var attempts: [ExamAttemptSnapshot] { dependencies.quiz.attempts.attempts }
     @State private var selectedTest: PracticeTest?
-    let questionRepository: any QuestionRepository
 
     var body: some View {
         content
@@ -12,7 +11,7 @@ struct TestsView: View {
             .ignoresSafeArea(edges: .top)
             .fullScreenCover(item: $selectedTest) { test in
                 QuizRootView(
-                    questionRepository: questionRepository,
+                    dependencies: dependencies.quiz,
                     initialTestID: test.id,
                     configuration: test.configuration
                 )
@@ -285,9 +284,8 @@ private struct TestRow: View {
 
 // MARK: - Previews
 #Preview("Tests - empty") {
-    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
-    TestsView(questionRepository: BundleQuestionRepository())
-        .environment(services.attempts)
+    let dependencies = try! AppDependencies.preview()
+    TestsView(dependencies: dependencies.tests)
 }
 
 #Preview("Tests - with attempts") {
@@ -296,8 +294,8 @@ private struct TestRow: View {
         ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-86400), score: 14, totalQuestions: 24, passed: false, elapsedSeconds: 2100, didTimeOut: false, testID: "test-3"),
         ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-172800), score: 19, totalQuestions: 24, passed: true, elapsedSeconds: 1800, didTimeOut: false, testID: "test-5"),
     ]
-    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(attempts: samples), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
-
-    TestsView(questionRepository: BundleQuestionRepository())
-        .environment(services.attempts)
+    let questions = try! BundleQuestionRepository().questions(count: 24, seed: "preview")
+    let chapters = try! BundleHandbookRepository().document().chapters
+    let dependencies = try! AppDependencies.preview(questions: questions, chapters: chapters, attempts: samples)
+    TestsView(dependencies: dependencies.tests)
 }

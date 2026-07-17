@@ -25,8 +25,8 @@ protocol QuestionRepository {
     func questions(count: Int, seed: String?) throws -> [QuizQuestion]
 }
 
-protocol HandbookRepository {
-    func document() throws -> HandbookDocument
+protocol HandbookRepository: Sendable {
+    nonisolated func document() throws -> HandbookDocument
 }
 
 struct BundleQuestionRepository: QuestionRepository {
@@ -74,7 +74,7 @@ struct BundleHandbookRepository: HandbookRepository {
         self.resourceName = resourceName
     }
 
-    func document() throws -> HandbookDocument {
+    nonisolated func document() throws -> HandbookDocument {
         let resource = "\(resourceName).json"
         guard let url = bundle.url(forResource: resourceName, withExtension: "json") else {
             throw ContentRepositoryError.resourceNotFound(resource)
@@ -123,7 +123,7 @@ struct InMemoryHandbookRepository: HandbookRepository {
         self.handbook = HandbookDocument(contentVersion: 1, identityMigrations: ContentIdentityMigrations(renamedChapterIDs: [:], renamedSectionIDs: [:], renamedBlockIDs: [:], removedBlockIDs: []), chapters: chapters)
     }
 
-    func document() throws -> HandbookDocument {
+    nonisolated func document() throws -> HandbookDocument {
         guard !handbook.chapters.isEmpty else {
             throw ContentRepositoryError.emptyContent("in-memory handbook")
         }
@@ -164,17 +164,5 @@ final class HandbookCatalog {
             document = nil
             self.error = .invalidContent(name: "handbook", reason: error.localizedDescription)
         }
-    }
-}
-
-struct AppDependencies {
-    let questions: any QuestionRepository
-    let handbook: any HandbookRepository
-
-    static func live(bundle: Bundle = .main) -> AppDependencies {
-        AppDependencies(
-            questions: BundleQuestionRepository(bundle: bundle),
-            handbook: BundleHandbookRepository(bundle: bundle)
-        )
     }
 }

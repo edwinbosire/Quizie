@@ -424,7 +424,7 @@ struct SearchTests {
     @Test("Search is case-insensitive and returns one result per section")
     func caseInsensitiveSectionSearch() throws {
         let chapter = TestFixtures.searchChapter
-        let results = HandbookSearchEngine.performSearch(query: "mAgNa CaRtA", chapters: [chapter])
+        let results = try HandbookSearchService.search(query: "mAgNa CaRtA", chapters: [chapter])
 
         #expect(results.count == 1)
         let result = try #require(results.first)
@@ -435,12 +435,95 @@ struct SearchTests {
     }
 
     @Test("Search returns no result for an absent term")
-    func absentSearchTerm() {
-        let results = HandbookSearchEngine.performSearch(
+    func absentSearchTerm() throws {
+        let results = try HandbookSearchService.search(
             query: "parliament",
             chapters: [TestFixtures.searchChapter]
         )
         #expect(results.isEmpty)
+    }
+
+    @Test("Search builds Unicode-safe snippets")
+    func unicodeSnippet() throws {
+        let text = String(repeating: "Earlier context with history. ", count: 4) + "The café welcomes every citizen."
+        let chapter = TestFixtures.chapter(blockID: "unicode_block", text: text)
+        let result = try #require(HandbookSearchService.search(query: "CAFE", chapters: [chapter], maximumSnippetLength: 70).first)
+
+        #expect(result.snippet.hasPrefix("..."))
+        #expect(result.matchRange.map { String(result.snippet[$0]) } == "café")
+    }
+
+    @Test("Search result identity is stable and content-based")
+    func stableResultIdentity() throws {
+        let chapter = TestFixtures.searchChapter
+        let first = try #require(HandbookSearchService.search(query: "magna carta", chapters: [chapter]).first)
+        let second = try #require(HandbookSearchService.search(query: "MAGNA CARTA", chapters: [chapter]).first)
+
+        #expect(first.id == "chapter_42/origins/origins_block_001")
+        #expect(first.id == second.id)
+        #expect(first.blockID == "origins_block_001")
+    }
+
+    @Test("Repository-backed search supports cancellation")
+    func cancellation() async {
+        let chapters = (0..<2_000).map { index in
+            TestFixtures.chapter(blockID: "block_\(index)", text: "Content without the requested phrase \(index)")
+        }
+        let service = HandbookSearchService(repository: InMemoryHandbookRepository(chapters))
+        let task = Task { try await service.search(query: "not present anywhere") }
+        task.cancel()
+
+        do {
+            _ = try await task.value
+            Issue.record("Expected the search task to be cancelled")
+        } catch is CancellationError {
+            // Expected.
+        } catch {
+            Issue.record("Expected CancellationError, received \(error)")
+        }
+    }
+
+    @Test("Repository loading and searching run away from the main actor")
+    func offMainActor() async throws {
+        let document = InMemoryHandbookRepository([TestFixtures.searchChapter]).handbook
+        let repository = ThreadCheckingHandbookRepository(document: document)
+        let service = HandbookSearchService(repository: repository)
+
+        _ = try await service.search(query: "Magna Carta")
+
+        #expect(repository.wasCalled)
+        #expect(!repository.wasCalledOnMainThread)
+    }
+}
+
+@MainActor
+struct AppCompositionTests {
+    @Test("Test composition injects feature-scoped repositories, stores, clock, and scheduler")
+    func testComposition() throws {
+        let clock = MutableQuizClock(now: TestFixtures.startDate)
+        let scheduler = ManualQuizScheduler()
+        let dependencies = try AppDependencies.test(
+            questions: TestFixtures.questions(count: 3),
+            chapters: [TestFixtures.searchChapter],
+            clock: clock,
+            scheduler: scheduler
+        )
+
+        #expect(dependencies.quiz.clock.now == TestFixtures.startDate)
+        #expect(dependencies.quiz.attempts === dependencies.tests.quiz.attempts)
+        #expect(dependencies.handbook.catalog.chapters.map(\.contentID) == ["chapter_42"])
+    }
+
+    @Test("Preview composition uses independently constructed in-memory state")
+    func previewComposition() throws {
+        let dependencies = try AppDependencies.preview(
+            questions: TestFixtures.questions(count: 2),
+            chapters: [TestFixtures.searchChapter],
+            progress: [ReadingProgressSnapshot(chapterID: "chapter_42", progress: 0.5)]
+        )
+
+        #expect(dependencies.handbook.progress.progress(for: "chapter_42")?.progress == 0.5)
+        #expect(dependencies.quiz.attempts.attempts.isEmpty)
     }
 }
 
@@ -492,6 +575,23 @@ private enum TestFixtures {
         ]
     )
 
+    static func chapter(blockID: String, text: String) -> HandbookChapter {
+        HandbookChapter(
+            id: 0,
+            contentID: "chapter_\(blockID)",
+            number: "Chapter",
+            title: "Search Fixture",
+            pillLabels: ["Fixture"],
+            sections: [
+                HandbookSection(
+                    id: "section_\(blockID)",
+                    title: "Fixture",
+                    blocks: [ContentBlock(id: blockID, content: .paragraph(text))]
+                )
+            ]
+        )
+    }
+
     static let validQuestionJSON = #"""
     {
       "data": [{
@@ -517,6 +617,26 @@ private final class RecordingAttemptStore: ExamAttemptStore {
     func save(_ exam: CompletedExam) throws {
         saved.append(exam)
     }
+}
+
+private final class ThreadCheckingHandbookRepository: HandbookRepository, @unchecked Sendable {
+    private let documentValue: HandbookDocument
+    private let lock = NSLock()
+    private var called = false
+    private var calledOnMainThread = false
+
+    init(document: HandbookDocument) { documentValue = document }
+
+    nonisolated func document() throws -> HandbookDocument {
+        lock.withLock {
+            called = true
+            calledOnMainThread = Thread.isMainThread
+        }
+        return documentValue
+    }
+
+    var wasCalled: Bool { lock.withLock { called } }
+    var wasCalledOnMainThread: Bool { lock.withLock { calledOnMainThread } }
 }
 
 private final class MutableQuizClock: QuizClock {

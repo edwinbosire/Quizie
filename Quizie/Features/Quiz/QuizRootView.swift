@@ -3,18 +3,22 @@ import SwiftUI
 /// Root view that coordinates all quiz phases via QuizEngine
 struct QuizRootView: View {
     let initialTestID: String?
+    private let dependencies: QuizFeatureDependencies
     @StateObject private var engine: QuizEngine
-    @Environment(AttemptHistory.self) private var attemptHistory
 
     init(
-        questionRepository: any QuestionRepository,
+        dependencies: QuizFeatureDependencies,
         initialTestID: String? = nil,
         configuration: QuizConfiguration = .practice
     ) {
+        self.dependencies = dependencies
         self.initialTestID = initialTestID
         _engine = StateObject(wrappedValue: QuizEngine(
             configuration: configuration,
-            questionRepository: questionRepository
+            questionRepository: dependencies.questions,
+            attemptStore: dependencies.attempts,
+            clock: dependencies.clock,
+            scheduler: dependencies.scheduler
         ))
     }
 
@@ -56,6 +60,7 @@ struct QuizRootView: View {
             }
             .animation(.easeInOut(duration: 0.3), value: engine.phase.id)
         }
+        .environment(dependencies.attempts)
         .alert("Time's Up!", isPresented: Binding(
             get: { engine.didTimeOut },
             set: { if !$0 { engine.acknowledgeTimeout() } }
@@ -73,7 +78,6 @@ struct QuizRootView: View {
             Text(engine.contentError?.localizedDescription ?? "The question content could not be loaded.")
         }
         .onAppear {
-            engine.installAttemptStore(attemptHistory)
             if let initialTestID, case .lobby = engine.phase {
                 engine.startExam(testID: initialTestID)
             }

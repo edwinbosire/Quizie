@@ -10,14 +10,11 @@ import SwiftData
 
 @main
 struct HandbookReaderQuizApp: App {
-    private let container: ModelContainer
-    private let persistence: PersistenceServices
+    private let dependencies: AppDependencies
 
     init() {
         do {
-            let container = try AppPersistence.makeContainer()
-            self.container = container
-            self.persistence = PersistenceServices(container: container)
+            dependencies = try .production()
         } catch {
             fatalError("Unable to initialize persistence: \(error.localizedDescription)")
         }
@@ -25,27 +22,18 @@ struct HandbookReaderQuizApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView(dependencies: .live(), persistence: persistence)
+            RootTabView(dependencies: dependencies)
         }
-        .modelContainer(container)
+        .modelContainer(dependencies.modelContainer)
     }
 }
 
 struct RootTabView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     private let dependencies: AppDependencies
-    private let persistence: PersistenceServices
-    @State private var handbookCatalog: HandbookCatalog
 
-    init(dependencies: AppDependencies, persistence: PersistenceServices) {
+    init(dependencies: AppDependencies) {
         self.dependencies = dependencies
-        self.persistence = persistence
-        let catalog = HandbookCatalog(repository: dependencies.handbook)
-        if let document = catalog.document {
-            persistence.progress.reconcile(document: document)
-            persistence.highlights.reconcile(document: document)
-        }
-        _handbookCatalog = State(initialValue: catalog)
     }
 
     var body: some View {
@@ -53,21 +41,21 @@ struct RootTabView: View {
             if hasCompletedOnboarding {
                 TabView {
                     Tab("Home", systemImage: "square.grid.2x2") {
-                        QuizRootView(questionRepository: dependencies.questions)
+                        QuizRootView(dependencies: dependencies.quiz)
                     }
 
                     Tab("Tests", systemImage: "sparkle.text.clipboard") {
-                        TestsView(questionRepository: dependencies.questions)
+                        TestsView(dependencies: dependencies.tests)
                     }
 
                     Tab("Handbook", systemImage: "checklist") {
                         NavigationStack {
-                            HandbookView()
+                            HandbookView(dependencies: dependencies.handbook)
                         }
                     }
 
                     Tab("Search", systemImage: "magnifyingglass", role: .search) {
-                        SearchView()
+                        SearchView(dependencies: dependencies.search)
                     }
                 }
                 .tint(Color.hbAccent)
@@ -75,16 +63,11 @@ struct RootTabView: View {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
             }
         }
-        .environment(handbookCatalog)
-        .environment(persistence.attempts)
-        .environment(persistence.progress)
-        .environment(persistence.highlights)
-        .environment(persistence.issues)
         .alert(item: Binding(
-            get: { persistence.issues.issue },
-            set: { if $0 == nil { persistence.issues.dismiss() } }
+            get: { dependencies.persistenceIssues.issue },
+            set: { if $0 == nil { dependencies.persistenceIssues.dismiss() } }
         )) { issue in
-            Alert(title: Text("Unable to Save Data"), message: Text(issue.message), dismissButton: .default(Text("OK"), action: persistence.issues.dismiss))
+            Alert(title: Text("Unable to Save Data"), message: Text(issue.message), dismissButton: .default(Text("OK"), action: dependencies.persistenceIssues.dismiss))
         }
     }
 }

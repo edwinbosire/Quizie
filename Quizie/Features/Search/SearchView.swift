@@ -7,152 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Search Result Model
-
-struct SearchResult: Identifiable {
-    let id = UUID()
-    let chapter: HandbookChapter
-    let section: HandbookSection
-    let sectionIndex: Int
-    let matchedText: String      // The full text of the block that matched
-    let snippet: String           // A trimmed snippet around the match
-    let matchRange: Range<String.Index>? // Range of the query within the snippet
-}
-
-// MARK: - Search Engine
-
-@Observable
-final class HandbookSearchEngine {
-    var results: [SearchResult] = []
-    var isSearching = false
-
-    private var searchTask: Task<Void, Never>?
-
-    func search(query: String, chapters: [HandbookChapter]) {
-        searchTask?.cancel()
-
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count >= 2 else {
-            results = []
-            isSearching = false
-            return
-        }
-
-        isSearching = true
-
-        searchTask = Task { @MainActor in
-            // Small delay to debounce rapid typing
-            try? await Task.sleep(for: .milliseconds(150))
-            guard !Task.isCancelled else { return }
-
-            let found = Self.performSearch(query: trimmed, chapters: chapters)
-            guard !Task.isCancelled else { return }
-
-            results = found
-            isSearching = false
-        }
-    }
-
-    static func performSearch(
-        query: String,
-        chapters: [HandbookChapter]
-    ) -> [SearchResult] {
-        let lowercasedQuery = query.lowercased()
-        var results: [SearchResult] = []
-
-        for chapter in chapters {
-            for (sectionIndex, section) in chapter.sections.enumerated() {
-                for block in section.blocks {
-                    let plainText = block.plainText
-                    guard !plainText.isEmpty else { continue }
-
-                    let lowercasedText = plainText.lowercased()
-                    guard let matchRange = lowercasedText.range(of: lowercasedQuery) else { continue }
-
-                    // Build a snippet around the match
-                    let snippet = Self.buildSnippet(
-                        from: plainText,
-                        matchRange: matchRange,
-                        maxLength: 160
-                    )
-
-                    results.append(SearchResult(
-                        chapter: chapter,
-                        section: section,
-                        sectionIndex: sectionIndex,
-                        matchedText: plainText,
-                        snippet: snippet.text,
-                        matchRange: snippet.highlightRange
-                    ))
-
-                    // Limit to one result per section to avoid flooding
-                    break
-                }
-            }
-        }
-        return results
-    }
-
-    private static func buildSnippet(
-        from text: String,
-        matchRange: Range<String.Index>,
-        maxLength: Int
-    ) -> (text: String, highlightRange: Range<String.Index>?) {
-        let matchStart = text.distance(from: text.startIndex, to: matchRange.lowerBound)
-        let matchEnd = text.distance(from: text.startIndex, to: matchRange.upperBound)
-
-        // Center the snippet around the match
-        let contextBefore = 40
-        let snippetStart = max(0, matchStart - contextBefore)
-        let snippetEnd = min(text.count, snippetStart + maxLength)
-
-        let startIdx = text.index(text.startIndex, offsetBy: snippetStart)
-        let endIdx = text.index(text.startIndex, offsetBy: min(snippetEnd, text.count))
-
-        var snippet = String(text[startIdx..<endIdx])
-
-        // Add ellipsis if trimmed
-        let prefix = snippetStart > 0 ? "..." : ""
-        let suffix = snippetEnd < text.count ? "..." : ""
-        snippet = prefix + snippet.trimmingCharacters(in: .whitespacesAndNewlines) + suffix
-
-        // Calculate highlight range within the snippet
-        let offsetInSnippet = matchStart - snippetStart + prefix.count
-        let queryLength = matchEnd - matchStart
-
-        let highlightStart = snippet.index(snippet.startIndex, offsetBy: max(0, min(offsetInSnippet, snippet.count)))
-        let highlightEnd = snippet.index(highlightStart, offsetBy: min(queryLength, snippet.distance(from: highlightStart, to: snippet.endIndex)))
-
-        return (snippet, highlightStart..<highlightEnd)
-    }
-}
-
-// MARK: - ContentBlock Plain Text Extraction
-
-extension ContentBlock {
-    var plainText: String {
-        switch content {
-        case .paragraph(let text):
-            return text.strippingMarkdownBold
-        case .subheading(let text), .subheading2(let text), .blockquote(let text):
-            return text
-        case .bulletList(let items):
-            return items.map { $0.text.raw.strippingMarkdownBold }.joined(separator: " ")
-        case .checkUnderstand(let items):
-            return items.joined(separator: " ")
-        case .dataTable(let headers, let rows):
-            return (headers + rows.flatMap { $0 }).joined(separator: " ")
-        }
-    }
-}
-
-private extension String {
-    /// Strip **bold** markers for plain text search
-    var strippingMarkdownBold: String {
-        replacingOccurrences(of: "**", with: "")
-    }
-}
-
 // MARK: - Search Suggestions
 
 struct SearchSuggestion: Identifiable {
@@ -180,22 +34,31 @@ private let curatedSuggestions: [SearchSuggestion] = [
 // MARK: - Search View
 
 struct SearchView: View {
-	@Environment(HandbookCatalog.self) private var catalog
-    @State private var searchEngine = HandbookSearchEngine()
+    private let dependencies: SearchFeatureDependencies
+    private var catalog: HandbookCatalog { dependencies.catalog }
+    @State private var searchModel: HandbookSearchModel
     @State private var searchText = ""
     @State private var navigationPath = NavigationPath()
+
+    init(dependencies: SearchFeatureDependencies) {
+        self.dependencies = dependencies
+        _searchModel = State(initialValue: HandbookSearchModel(service: dependencies.service))
+    }
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             Group {
-                if let error = catalog.error {
-                    RepositoryErrorView(title: "Search Unavailable", error: error, retry: catalog.reload)
+                if let error = searchModel.error ?? catalog.error {
+                    RepositoryErrorView(title: "Search Unavailable", error: error) {
+                        catalog.reload()
+                        searchModel.search(query: searchText)
+                    }
                 } else if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 2 {
                     emptyState
-                } else if searchEngine.isSearching {
+                } else if searchModel.isSearching {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if searchEngine.results.isEmpty {
+                } else if searchModel.results.isEmpty {
                     noResults
                 } else {
                     resultsList
@@ -206,13 +69,17 @@ struct SearchView: View {
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, prompt: "Search the handbook...")
             .onChange(of: searchText) { _, newValue in
-                searchEngine.search(query: newValue, chapters: catalog.chapters)
+                searchModel.search(query: newValue)
             }
             .navigationDestination(for: SearchNavDestination.self) { destination in
                 ChapterView(chapter: destination.chapter, initialSectionIndex: destination.sectionIndex)
                     .environment(\.searchHighlight, destination.searchTerm)
             }
         }
+        .environment(dependencies.catalog)
+        .environment(dependencies.progress)
+        .environment(dependencies.highlights)
+        .onDisappear { searchModel.cancel() }
     }
 
     // MARK: - Empty State
@@ -250,7 +117,6 @@ struct SearchView: View {
                         ForEach(curatedSuggestions) { suggestion in
                             Button {
                                 searchText = suggestion.text
-                                searchEngine.search(query: suggestion.text, chapters: catalog.chapters)
                             } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: suggestion.icon)
@@ -288,7 +154,6 @@ struct SearchView: View {
                         ForEach(catalog.chapters) { chapter in
                             Button {
                                 searchText = chapter.title
-                                searchEngine.search(query: chapter.title, chapters: catalog.chapters)
                             } label: {
                                 HStack(spacing: 12) {
                                     RoundedRectangle(cornerRadius: 2)
@@ -362,7 +227,7 @@ struct SearchView: View {
             LazyVStack(spacing: 0) {
                 // Results count header
                 HStack {
-                    Text("\(searchEngine.results.count) result\(searchEngine.results.count == 1 ? "" : "s")")
+                    Text("\(searchModel.results.count) result\(searchModel.results.count == 1 ? "" : "s")")
                         .font(HBFont.sans(13, weight: .medium))
                         .foregroundColor(.hbTextMuted)
                     Spacer()
@@ -371,7 +236,7 @@ struct SearchView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 12)
 
-                ForEach(searchEngine.results) { result in
+                ForEach(searchModel.results) { result in
                     NavigationLink(value: SearchNavDestination(chapter: result.chapter, sectionIndex: result.sectionIndex, searchTerm: searchText)) {
                         SearchResultRow(result: result, query: searchText)
                     }
@@ -404,7 +269,7 @@ struct SearchNavDestination: Hashable {
 // MARK: - Search Result Row
 
 struct SearchResultRow: View {
-    let result: SearchResult
+    let result: HandbookSearchResult
     let query: String
 
     var body: some View {
@@ -468,6 +333,6 @@ struct SearchResultRow: View {
 }
 
 #Preview {
-    SearchView()
-		.environment(HandbookCatalog(repository: BundleHandbookRepository()))
+    let dependencies = try! AppDependencies.preview()
+    SearchView(dependencies: dependencies.search)
 }

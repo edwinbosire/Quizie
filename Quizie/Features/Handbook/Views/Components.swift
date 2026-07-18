@@ -40,7 +40,7 @@ struct SectionTabPill: View {
     let title: String
     let isActive: Bool
     let theme: ChapterTheme
-    @Environment(\.readingTheme) private var readingTheme
+    let readingTheme: ReadingTheme
 
     private var rt: ReadingThemeStyle { readingTheme.style }
 
@@ -65,6 +65,7 @@ struct SectionTabBar: View {
     let sections: [HandbookSection]
     @Binding var selectedIndex: Int
     let theme: ChapterTheme
+    let readingTheme: ReadingTheme
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -73,7 +74,8 @@ struct SectionTabBar: View {
                     SectionTabPill(
                         title: section.title,
                         isActive: selectedIndex == idx,
-                        theme: theme
+                        theme: theme,
+                        readingTheme: readingTheme
                     )
                     .onTapGesture { selectedIndex = idx }
                 }

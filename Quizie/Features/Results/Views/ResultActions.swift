@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ActionButtons: View {
-    @EnvironmentObject var engine: QuizEngine
+    @ObservedObject var engine: QuizEngine
     @Binding var showReview: Bool
 
     var body: some View {

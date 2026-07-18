@@ -48,13 +48,14 @@ struct SearchView: View {
                 searchModel.search(query: newValue)
             }
             .navigationDestination(for: SearchNavDestination.self) { destination in
-                ChapterView(chapter: destination.chapter, initialSectionIndex: destination.sectionIndex)
-                    .environment(\.searchHighlight, destination.searchTerm)
+                ChapterView(
+                    chapter: destination.chapter,
+                    dependencies: dependencies.reader,
+                    initialSectionIndex: destination.sectionIndex,
+                    searchHighlight: destination.searchTerm
+                )
             }
         }
-        .environment(dependencies.catalog)
-        .environment(dependencies.progress)
-        .environment(dependencies.highlights)
         .onDisappear { searchModel.cancel() }
     }
 

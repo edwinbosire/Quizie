@@ -194,35 +194,15 @@ enum ReadingThemeStyle: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Reading Theme Environment
+// MARK: - Reader Presentation
 struct ReadingTheme {
     var style: ReadingThemeStyle = .classic
     var fontSizeAdjustment: CGFloat = 0  // -2 to +4 offset applied to body text sizes
 }
 
-struct ReadingThemeKey: EnvironmentKey {
-    static let defaultValue = ReadingTheme()
-}
-
-extension EnvironmentValues {
-    var readingTheme: ReadingTheme {
-        get { self[ReadingThemeKey.self] }
-        set { self[ReadingThemeKey.self] = newValue }
-    }
-}
-
-// MARK: - Search Highlight Environment
-
-struct SearchHighlightKey: EnvironmentKey {
-    static let defaultValue: String? = nil
-}
-
-extension EnvironmentValues {
-    /// The search term to highlight in chapter content. Nil when not navigated from search.
-    var searchHighlight: String? {
-        get { self[SearchHighlightKey.self] }
-        set { self[SearchHighlightKey.self] = newValue }
-    }
+struct ReaderPresentation {
+    let readingTheme: ReadingTheme
+    let searchHighlight: String?
 }
 
 // MARK: - Chapter Theme

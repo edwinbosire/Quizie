@@ -109,15 +109,13 @@ struct ConfettiPieceView: View {
 // MARK: - Previews
 #Preview("Quiz Results - Passed") {
     NavigationStack {
-        QuizResultsView()
-            .environmentObject(PreviewResultsEngine.passedEngine)
+        QuizResultsView(engine: PreviewResultsEngine.passedEngine)
     }
 }
 
 #Preview("Quiz Results - Failed") {
     NavigationStack {
-        QuizResultsView()
-            .environmentObject(PreviewResultsEngine.failedEngine)
+        QuizResultsView(engine: PreviewResultsEngine.failedEngine)
     }
 }
 

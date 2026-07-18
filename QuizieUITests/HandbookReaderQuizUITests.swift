@@ -32,7 +32,7 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
-    func testHandbookTabProvidesFeatureEnvironment() throws {
+    func testHandbookTabReceivesExplicitDependencies() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]
         app.launch()

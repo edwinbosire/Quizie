@@ -27,16 +27,14 @@ struct QuizRootView: View {
             Group {
                 switch engine.phase {
                 case .lobby:
-                    QuizLobbyView()
-                        .environmentObject(engine)
+                    QuizLobbyView(engine: engine, attemptHistory: dependencies.attempts)
                         .transition(.asymmetric(
                             insertion: .move(edge: .leading),
                             removal: .move(edge: .leading)
                         ))
 
                 case .question(let idx):
-                    QuizQuestionView(questionIndex: idx)
-                        .environmentObject(engine)
+                    QuizQuestionView(engine: engine, questionIndex: idx)
                         .id(idx)   // force view refresh on index change
                         .navigationBarHidden(true)
                         .navigationBarBackButtonHidden(true)
@@ -49,8 +47,7 @@ struct QuizRootView: View {
                         ))
 
                 case .results:
-                    QuizResultsView()
-                        .environmentObject(engine)
+                    QuizResultsView(engine: engine)
                         .toolbar(.hidden, for: .tabBar)
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing).combined(with: .opacity),
@@ -60,7 +57,6 @@ struct QuizRootView: View {
             }
             .animation(.easeInOut(duration: 0.3), value: engine.phase.id)
         }
-        .environment(dependencies.attempts)
         .alert("Time's Up!", isPresented: Binding(
             get: { engine.didTimeOut },
             set: { if !$0 { engine.acknowledgeTimeout() } }

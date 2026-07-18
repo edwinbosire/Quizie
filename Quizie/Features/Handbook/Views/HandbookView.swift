@@ -10,7 +10,7 @@ struct HandbookView: View {
 				RepositoryErrorView(title: "Handbook Unavailable", error: error, retry: catalog.reload)
 			} else {
 				ScrollView {
-					ChapterList(chapters: catalog.chapters)
+					ChapterList(chapters: catalog.chapters, dependencies: dependencies.reader)
 						.staggered(0.2)
 				}
 				.background(Color.hbBackground)
@@ -18,9 +18,6 @@ struct HandbookView: View {
 				.navigationBarHidden(true)
 			}
 		}
-		.environment(dependencies.catalog)
-		.environment(dependencies.progress)
-		.environment(dependencies.highlights)
 	}
 }
 

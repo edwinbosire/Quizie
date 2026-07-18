@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ChapterPickerSheet: View {
-	@Environment(HandbookCatalog.self) private var catalog
+    let catalog: HandbookCatalog
     let currentChapter: HandbookChapter
     let onChapterSelected: (HandbookChapter) -> Void
     @Environment(\.dismiss) private var dismiss

@@ -4,13 +4,15 @@ struct InlineText: View {
     let raw: String
     let fontSize: CGFloat
     let color: Color?
-    @Environment(\.readingTheme) private var readingTheme
-    @Environment(\.searchHighlight) private var searchHighlight
+    let presentation: ReaderPresentation
+    private var readingTheme: ReadingTheme { presentation.readingTheme }
+    private var searchHighlight: String? { presentation.searchHighlight }
 
-    init(_ raw: String, fontSize: CGFloat = 16, color: Color? = nil) {
+    init(_ raw: String, fontSize: CGFloat = 16, color: Color? = nil, presentation: ReaderPresentation) {
         self.raw = raw
         self.fontSize = fontSize
         self.color = color
+        self.presentation = presentation
     }
 
     private var resolvedColor: Color {
@@ -48,7 +50,8 @@ struct BulletListRow: View {
     let item: BulletItem
     let accentColor: Color
     let isLast: Bool
-    @Environment(\.readingTheme) private var readingTheme
+    let presentation: ReaderPresentation
+    private var readingTheme: ReadingTheme { presentation.readingTheme }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -59,7 +62,7 @@ struct BulletListRow: View {
                     .frame(width: 22, alignment: .leading)
                     .padding(.top, 1)
 
-                InlineText(item.text.raw, fontSize: 15.5)
+                InlineText(item.text.raw, fontSize: 15.5, presentation: presentation)
 					.frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 6)
             }
@@ -78,11 +81,17 @@ struct BulletListRow: View {
 struct BulletListBlock: View {
     let items: [BulletItem]
     let accentColor: Color
+    let presentation: ReaderPresentation
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(items.enumerated()), id: \.offset) { idx, item in
-                BulletListRow(item: item, accentColor: accentColor, isLast: idx == items.count - 1)
+                BulletListRow(
+                    item: item,
+                    accentColor: accentColor,
+                    isLast: idx == items.count - 1,
+                    presentation: presentation
+                )
             }
         }
         .padding(.bottom, 4)
@@ -93,8 +102,9 @@ struct BulletListBlock: View {
 struct CheckUnderstandBox: View {
     let items: [String]
     let theme: ChapterTheme
-    @Environment(\.readingTheme) private var readingTheme
-    @Environment(\.searchHighlight) private var searchHighlight
+    let presentation: ReaderPresentation
+    private var readingTheme: ReadingTheme { presentation.readingTheme }
+    private var searchHighlight: String? { presentation.searchHighlight }
 
     private var fs: CGFloat { readingTheme.fontSizeAdjustment }
 
@@ -153,8 +163,9 @@ struct CheckUnderstandBox: View {
 struct BlockquoteView: View {
     let text: String
     let accentColor: Color
-    @Environment(\.readingTheme) private var readingTheme
-    @Environment(\.searchHighlight) private var searchHighlight
+    let presentation: ReaderPresentation
+    private var readingTheme: ReadingTheme { presentation.readingTheme }
+    private var searchHighlight: String? { presentation.searchHighlight }
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
@@ -187,8 +198,9 @@ struct BlockquoteView: View {
 struct SectionSubheading: View {
     let text: String
     let isFirst: Bool
-    @Environment(\.readingTheme) private var readingTheme
-    @Environment(\.searchHighlight) private var searchHighlight
+    let presentation: ReaderPresentation
+    private var readingTheme: ReadingTheme { presentation.readingTheme }
+    private var searchHighlight: String? { presentation.searchHighlight }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -216,8 +228,9 @@ struct SectionSubheading: View {
 // MARK: - Section Subheading2 (h4)
 struct SectionSubheading2: View {
     let text: String
-    @Environment(\.readingTheme) private var readingTheme
-    @Environment(\.searchHighlight) private var searchHighlight
+    let presentation: ReaderPresentation
+    private var readingTheme: ReadingTheme { presentation.readingTheme }
+    private var searchHighlight: String? { presentation.searchHighlight }
 
     var body: some View {
         Text(highlightedText)
@@ -239,8 +252,9 @@ struct SectionSubheading2: View {
 struct DataTableView: View {
     let headers: [String]
     let rows: [[String]]
-    @Environment(\.readingTheme) private var readingTheme
-    @Environment(\.searchHighlight) private var searchHighlight
+    let presentation: ReaderPresentation
+    private var readingTheme: ReadingTheme { presentation.readingTheme }
+    private var searchHighlight: String? { presentation.searchHighlight }
 
     private var rt: ReadingThemeStyle { readingTheme.style }
     private var fs: CGFloat { readingTheme.fontSizeAdjustment }

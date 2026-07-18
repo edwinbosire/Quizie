@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftData
 
 @main
 struct HandbookReaderQuizApp: App {
@@ -24,6 +23,5 @@ struct HandbookReaderQuizApp: App {
         WindowGroup {
             RootTabView(dependencies: dependencies)
         }
-        .modelContainer(dependencies.modelContainer)
     }
 }

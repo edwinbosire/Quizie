@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct QuizResultsView: View {
-    @EnvironmentObject var engine: QuizEngine
+    @ObservedObject var engine: QuizEngine
     @State private var showReview = false
     @State private var showConfetti = false
 
@@ -22,7 +22,7 @@ struct QuizResultsView: View {
 								.padding(.top, 24)
 
 							// Action buttons
-							ActionButtons(showReview: $showReview)
+							ActionButtons(engine: engine, showReview: $showReview)
 								.padding(.horizontal, 16)
 								.padding(.top, 20)
 

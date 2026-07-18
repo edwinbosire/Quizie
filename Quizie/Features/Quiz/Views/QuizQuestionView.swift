@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct QuizQuestionView: View {
-    @EnvironmentObject var engine: QuizEngine
+    @ObservedObject var engine: QuizEngine
     let questionIndex: Int
 
     @State private var animateSubmitButton = false
@@ -32,13 +32,13 @@ struct QuizQuestionView: View {
     var body: some View {
 		VStack(spacing: 0) {
 			// Top bar: timer + progress + options
-			QuizTopBar(onOptionsPressed: { showOptionsSheet = true })
+			QuizTopBar(engine: engine, onOptionsPressed: { showOptionsSheet = true })
 
 			// Progress track
 			QuizProgressBar(current: questionIndex + 1, total: engine.totalQuestions)
 
 			if let question {
-				QuestionView(question: question, questionIndex: questionIndex)
+				QuestionView(engine: engine, question: question, questionIndex: questionIndex)
 			}
 		}
         .sheet(isPresented: $showOptionsSheet) {
@@ -97,6 +97,7 @@ struct QuizQuestionView: View {
 }
 
 private struct QuestionView: View {
+	@ObservedObject var engine: QuizEngine
 	let question: QuizQuestion
 	let questionIndex: Int
 	var body: some View {
@@ -110,13 +111,13 @@ private struct QuestionView: View {
 					.staggered(0.1)
 
 				// Choice options
-				ChoicesView(question: question)
+				ChoicesView(engine: engine, question: question)
 					.padding(.horizontal, 16)
 					.padding(.top, 16)
 					.staggered(0.2)
 
 				// Submit button
-				SubmitButton(question: question)
+				SubmitButton(engine: engine, question: question)
 					.padding(.horizontal, 16)
 					.padding(.top, 20)
 					.padding(.bottom, 40)

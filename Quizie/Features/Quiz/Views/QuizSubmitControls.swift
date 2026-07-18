@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SubmitButton: View {
-    @EnvironmentObject var engine: QuizEngine
+    @ObservedObject var engine: QuizEngine
     let question: QuizQuestion
 
     var isLast: Bool { engine.currentIndex == engine.totalQuestions - 1 }
@@ -214,19 +214,16 @@ struct OptionRow: View {
 // MARK: - Preview
 #Preview("Quiz Question View") {
 	NavigationStack {
-		QuizQuestionView(questionIndex: 0)
-			.environmentObject(PreviewQuizEngine.sampleEngine)
+		QuizQuestionView(engine: PreviewQuizEngine.sampleEngine, questionIndex: 0)
 	}
 }
 
 #Preview("Quiz Question - Multi-Select") {
-    QuizQuestionView(questionIndex: 1)
-        .environmentObject(PreviewQuizEngine.multiSelectEngine)
+    QuizQuestionView(engine: PreviewQuizEngine.multiSelectEngine, questionIndex: 1)
 }
 
 #Preview("Quiz Question - Time Warning") {
-    QuizQuestionView(questionIndex: 0)
-        .environmentObject(PreviewQuizEngine.timeWarningEngine)
+    QuizQuestionView(engine: PreviewQuizEngine.timeWarningEngine, questionIndex: 0)
 }
 
 // MARK: - Preview Helper

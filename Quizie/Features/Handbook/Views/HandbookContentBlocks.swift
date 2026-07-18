@@ -5,7 +5,10 @@ struct SectionCard: View {
     let theme: ChapterTheme
     var chapterID: String = ""
     var highlights: [HighlightSnapshot] = []
-    @Environment(\.readingTheme) private var readingTheme
+    let highlightLibrary: HighlightLibrary
+    let presentation: ReaderPresentation
+
+    private var readingTheme: ReadingTheme { presentation.readingTheme }
 
     private var rt: ReadingThemeStyle { readingTheme.style }
     private var fs: CGFloat { readingTheme.fontSizeAdjustment }
@@ -34,7 +37,9 @@ struct SectionCard: View {
                     theme: theme,
                     chapterID: chapterID,
                     sectionId: section.id,
-                    highlights: highlights
+                    highlights: highlights,
+                    highlightLibrary: highlightLibrary,
+                    presentation: presentation
                 )
             }
             .padding(.horizontal, 20)
@@ -58,9 +63,11 @@ struct ContentBlocksView: View {
     var chapterID: String = ""
     var sectionId: String = ""
     var highlights: [HighlightSnapshot] = []
-    @Environment(\.readingTheme) private var readingTheme
-    @Environment(\.searchHighlight) private var searchHighlight
-    @Environment(HighlightLibrary.self) private var highlightLibrary
+    let highlightLibrary: HighlightLibrary
+    let presentation: ReaderPresentation
+
+    private var readingTheme: ReadingTheme { presentation.readingTheme }
+    private var searchHighlight: String? { presentation.searchHighlight }
 
     @State private var selection: BlockSelection?
     @State private var blockFrames: [Int: CGRect] = [:]
@@ -121,24 +128,24 @@ struct ContentBlocksView: View {
                 .padding(.bottom, 14)
 
         case .subheading(let text):
-            SectionSubheading(text: text, isFirst: index == 0)
+            SectionSubheading(text: text, isFirst: index == 0, presentation: presentation)
 
         case .subheading2(let text):
-            SectionSubheading2(text: text)
+            SectionSubheading2(text: text, presentation: presentation)
 
         case .bulletList(let items):
-            BulletListBlock(items: items, accentColor: theme.accent)
+            BulletListBlock(items: items, accentColor: theme.accent, presentation: presentation)
                 .padding(.bottom, 8)
 
         case .checkUnderstand(let items):
-            CheckUnderstandBox(items: items, theme: theme)
+            CheckUnderstandBox(items: items, theme: theme, presentation: presentation)
                 .padding(.bottom, 4)
 
         case .blockquote(let text):
-            BlockquoteView(text: text, accentColor: theme.accent)
+            BlockquoteView(text: text, accentColor: theme.accent, presentation: presentation)
 
         case .dataTable(let headers, let rows):
-            DataTableView(headers: headers, rows: rows)
+            DataTableView(headers: headers, rows: rows, presentation: presentation)
 
         }
     }

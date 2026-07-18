@@ -3,7 +3,7 @@ import SwiftUI
 struct ChapterHeaderView: View {
     let chapter: HandbookChapter
     let theme: ChapterTheme
-    @Environment(\.readingTheme) private var readingTheme
+    let readingTheme: ReadingTheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -30,10 +30,15 @@ struct ChapterHeaderView: View {
 
 #Preview {
     let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
+    let dependencies = HandbookReaderDependencies(
+        catalog: HandbookCatalog(repository: BundleHandbookRepository()),
+        progress: services.progress,
+        highlights: services.highlights
+    )
     NavigationStack {
-        ChapterView(chapter: try! BundleHandbookRepository().document().chapters[0])
+        ChapterView(
+            chapter: try! BundleHandbookRepository().document().chapters[0],
+            dependencies: dependencies
+        )
     }
-    .environment(HandbookCatalog(repository: BundleHandbookRepository()))
-    .environment(services.progress)
-    .environment(services.highlights)
 }

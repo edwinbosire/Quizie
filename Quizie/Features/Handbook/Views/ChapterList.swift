@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct ChapterList: View {
-		let chapters: [HandbookChapter]
-	@Environment(ReadingProgressLibrary.self) private var progressLibrary
-	@Environment(HighlightLibrary.self) private var highlightLibrary
+	let chapters: [HandbookChapter]
+	let dependencies: HandbookReaderDependencies
+	private var progressLibrary: ReadingProgressLibrary { dependencies.progress }
+	private var highlightLibrary: HighlightLibrary { dependencies.highlights }
 	private var allProgress: [ReadingProgressSnapshot] { progressLibrary.records }
 	private var allHighlights: [HighlightSnapshot] { highlightLibrary.highlights }
 
@@ -43,7 +44,7 @@ struct ChapterList: View {
 
 			// My Highlights card
 			if !allHighlights.isEmpty {
-					NavigationLink(destination: HighlightsView()) {
+					NavigationLink(destination: HighlightsView(dependencies: dependencies)) {
 					MyHighlightsCard(highlightCount: allHighlights.count)
 				}
 				.buttonStyle(.plain)
@@ -53,8 +54,8 @@ struct ChapterList: View {
 
 			VStack(spacing: 12) {
 				ForEach(chapters) { chapter in
-					NavigationLink(destination: ChapterView(chapter: chapter)) {
-						HomeChapterCard(chapter: chapter)
+					NavigationLink(destination: ChapterView(chapter: chapter, dependencies: dependencies)) {
+						HomeChapterCard(chapter: chapter, progressLibrary: progressLibrary)
 					}
 					.buttonStyle(.plain)
 					.staggered(0.4 + (0.1 * Double(chapter.id)))

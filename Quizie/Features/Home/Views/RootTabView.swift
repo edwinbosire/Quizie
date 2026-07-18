@@ -24,16 +24,10 @@ struct RootTabView: View {
                         NavigationStack {
                             HandbookView(dependencies: dependencies.handbook)
                         }
-                        .environment(dependencies.handbook.catalog)
-                        .environment(dependencies.handbook.progress)
-                        .environment(dependencies.handbook.highlights)
                     }
 
                     Tab("Search", systemImage: "magnifyingglass", role: .search) {
                         SearchView(dependencies: dependencies.search)
-                            .environment(dependencies.search.catalog)
-                            .environment(dependencies.search.progress)
-                            .environment(dependencies.search.highlights)
                     }
                 }
                 .tint(Color.hbAccent)

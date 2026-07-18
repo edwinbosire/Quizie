@@ -64,7 +64,7 @@ struct QuestionCard: View {
 
 // MARK: - Choice Options
 struct ChoicesView: View {
-    @EnvironmentObject var engine: QuizEngine
+    @ObservedObject var engine: QuizEngine
     let question: QuizQuestion
 
     var body: some View {

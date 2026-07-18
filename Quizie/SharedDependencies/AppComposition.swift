@@ -15,18 +15,43 @@ struct TestsFeatureDependencies {
 }
 
 @MainActor
-struct HandbookFeatureDependencies {
+struct HandbookReaderDependencies {
     let catalog: HandbookCatalog
     let progress: ReadingProgressLibrary
     let highlights: HighlightLibrary
 }
 
 @MainActor
+struct HandbookFeatureDependencies {
+    let reader: HandbookReaderDependencies
+
+    var catalog: HandbookCatalog { reader.catalog }
+    var progress: ReadingProgressLibrary { reader.progress }
+    var highlights: HighlightLibrary { reader.highlights }
+
+    init(catalog: HandbookCatalog, progress: ReadingProgressLibrary, highlights: HighlightLibrary) {
+        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights)
+    }
+}
+
+@MainActor
 struct SearchFeatureDependencies {
     let service: any HandbookSearchServing
-    let catalog: HandbookCatalog
-    let progress: ReadingProgressLibrary
-    let highlights: HighlightLibrary
+    let reader: HandbookReaderDependencies
+
+    var catalog: HandbookCatalog { reader.catalog }
+    var progress: ReadingProgressLibrary { reader.progress }
+    var highlights: HighlightLibrary { reader.highlights }
+
+    init(
+        service: any HandbookSearchServing,
+        catalog: HandbookCatalog,
+        progress: ReadingProgressLibrary,
+        highlights: HighlightLibrary
+    ) {
+        self.service = service
+        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights)
+    }
 }
 
 /// The only production composition root. It constructs concrete infrastructure

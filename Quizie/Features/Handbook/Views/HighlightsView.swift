@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct HighlightsView: View {
-	@Environment(HandbookCatalog.self) private var catalog
-    @Environment(HighlightLibrary.self) private var library
+    let dependencies: HandbookReaderDependencies
+    private var catalog: HandbookCatalog { dependencies.catalog }
+    private var library: HighlightLibrary { dependencies.highlights }
     private var highlights: [HighlightSnapshot] { library.highlights }
 
     /// Highlights grouped by chapter ID, preserving chapter order
@@ -25,7 +26,11 @@ struct HighlightsView: View {
         .navigationTitle("My Highlights")
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(for: HighlightNavDestination.self) { destination in
-            ChapterView(chapter: destination.chapter, initialSectionIndex: destination.sectionIndex)
+            ChapterView(
+                chapter: destination.chapter,
+                dependencies: dependencies,
+                initialSectionIndex: destination.sectionIndex
+            )
         }
     }
 
@@ -191,9 +196,12 @@ struct HighlightRow: View {
 
 #Preview {
     let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
+    let dependencies = HandbookReaderDependencies(
+        catalog: HandbookCatalog(repository: BundleHandbookRepository()),
+        progress: services.progress,
+        highlights: services.highlights
+    )
     NavigationStack {
-        HighlightsView()
+        HighlightsView(dependencies: dependencies)
     }
-    .environment(HandbookCatalog(repository: BundleHandbookRepository()))
-    .environment(services.highlights)
 }

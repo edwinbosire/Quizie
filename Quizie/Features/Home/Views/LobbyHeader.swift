@@ -45,7 +45,7 @@ struct LobbyHero: View {
 
 // MARK: - Exam Info Bar (Compact)
 struct ExamInfoBar: View {
-    @EnvironmentObject private var engine: QuizEngine
+    @ObservedObject var engine: QuizEngine
 
     var body: some View {
         HStack(spacing: 0) {

@@ -80,10 +80,11 @@ struct RecentAttemptRow: View {
 #Preview("Quiz Lobby") {
     let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
     NavigationStack {
-        QuizLobbyView()
-            .environmentObject(QuizEngine(questionRepository: InMemoryQuestionRepository([])))
+        QuizLobbyView(
+            engine: QuizEngine(questionRepository: InMemoryQuestionRepository([])),
+            attemptHistory: services.attempts
+        )
     }
-    .environment(services.attempts)
 }
 
 #Preview("Quiz Lobby with History") {
@@ -95,8 +96,9 @@ struct RecentAttemptRow: View {
     let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(attempts: attempts), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
     
     NavigationStack {
-        QuizLobbyView()
-            .environmentObject(QuizEngine(questionRepository: InMemoryQuestionRepository([])))
+        QuizLobbyView(
+            engine: QuizEngine(questionRepository: InMemoryQuestionRepository([])),
+            attemptHistory: services.attempts
+        )
     }
-    .environment(services.attempts)
 }

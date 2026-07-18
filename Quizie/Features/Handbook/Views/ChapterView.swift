@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct ChapterView: View {
-	@Environment(HandbookCatalog.self) private var catalog
+    let dependencies: HandbookReaderDependencies
     @State var chapter: HandbookChapter
     var initialSectionIndex: Int? = nil
+    let searchHighlight: String?
     @State private var selectedSectionIndex: Int = 0
     @State private var scrollPosition: String? = nil
     @State private var scrollOffset: CGFloat = 0
@@ -19,14 +20,22 @@ struct ChapterView: View {
     @AppStorage("readingThemeStyle") private var themeStyleRaw: String = ReadingThemeStyle.classic.rawValue
     @AppStorage("readingFontSizeAdjustment") private var fontSizeAdjustment: Double = 0
     @Environment(\.dismiss) private var dismiss
-    @Environment(ReadingProgressLibrary.self) private var progressLibrary
-    @Environment(HighlightLibrary.self) private var highlightLibrary
+    private var catalog: HandbookCatalog { dependencies.catalog }
+    private var progressLibrary: ReadingProgressLibrary { dependencies.progress }
+    private var highlightLibrary: HighlightLibrary { dependencies.highlights }
 
     private var highlights: [HighlightSnapshot] { highlightLibrary.forChapter(chapter.contentID) }
 
-    init(chapter: HandbookChapter, initialSectionIndex: Int? = nil) {
+    init(
+        chapter: HandbookChapter,
+        dependencies: HandbookReaderDependencies,
+        initialSectionIndex: Int? = nil,
+        searchHighlight: String? = nil
+    ) {
         self._chapter = State(initialValue: chapter)
+        self.dependencies = dependencies
         self.initialSectionIndex = initialSectionIndex
+        self.searchHighlight = searchHighlight
     }
 
     private var readingThemeStyle: ReadingThemeStyle {
@@ -35,6 +44,10 @@ struct ChapterView: View {
 
     private var readingTheme: ReadingTheme {
         ReadingTheme(style: readingThemeStyle, fontSizeAdjustment: CGFloat(fontSizeAdjustment))
+    }
+
+    private var presentation: ReaderPresentation {
+        ReaderPresentation(readingTheme: readingTheme, searchHighlight: searchHighlight)
     }
 
     var theme: ChapterTheme {
@@ -54,7 +67,7 @@ struct ChapterView: View {
                             Color.clear.frame(height: 1).id("scrollAnchor")
                             
                             // Chapter Header (matches .chapter-header)
-                            ChapterHeaderView(chapter: chapter, theme: theme)
+                            ChapterHeaderView(chapter: chapter, theme: theme, readingTheme: readingTheme)
 
                             // Sticky Tab Bar placeholder (real sticky done via safeAreaInset)
                             Color.clear.frame(height: 0).id("top")
@@ -66,7 +79,9 @@ struct ChapterView: View {
                                     section: section,
                                     theme: theme,
                                     chapterID: chapter.contentID,
-                                    highlights: highlights.filter { $0.sectionID == section.id }
+                                    highlights: highlights.filter { $0.sectionID == section.id },
+                                    highlightLibrary: highlightLibrary,
+                                    presentation: presentation
                                 )
                                     .id(section.id)
                                     .padding(.horizontal, 16)
@@ -118,14 +133,16 @@ struct ChapterView: View {
                         ChapterNavBar(
                             currentChapter: chapter,
                             dismiss: dismiss,
-                            showChapterPicker: $showChapterPicker
+                            showChapterPicker: $showChapterPicker,
+                            readingTheme: readingTheme
                         )
 
                         // Scrollable section tabs
                         SectionTabBar(
                             sections: chapter.sections,
                             selectedIndex: $selectedSectionIndex,
-                            theme: theme
+                            theme: theme,
+                            readingTheme: readingTheme
                         )
                         .onChange(of: selectedSectionIndex) { _, newIdx in
                             withAnimation(.easeInOut(duration: 0.35)) {
@@ -154,7 +171,8 @@ struct ChapterView: View {
                                 withAnimation {
                                     showContinueReading = false
                                 }
-                            }
+                            },
+                            readingTheme: readingTheme
                         )
                         .padding(.top, 12)
                         .padding(.horizontal, 16)
@@ -199,7 +217,6 @@ struct ChapterView: View {
                 }
             }
         }
-        .environment(\.readingTheme, readingTheme)
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .tabBar)
         .overlay(alignment: .bottomTrailing) {
@@ -221,6 +238,7 @@ struct ChapterView: View {
         }
         .sheet(isPresented: $showChapterPicker) {
             ChapterPickerSheet(
+                catalog: catalog,
                 currentChapter: chapter,
                 onChapterSelected: { newChapter in
                     showChapterPicker = false

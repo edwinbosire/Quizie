@@ -4,7 +4,7 @@ struct ContinueReadingBanner: View {
     let progress: Double
     let onContinue: () -> Void
     let onDismiss: () -> Void
-    @Environment(\.readingTheme) private var readingTheme
+    let readingTheme: ReadingTheme
 
     private var rt: ReadingThemeStyle { readingTheme.style }
 
@@ -96,7 +96,7 @@ struct ChapterNavBar: View {
     let currentChapter: HandbookChapter
     let dismiss: DismissAction
     @Binding var showChapterPicker: Bool
-    @Environment(\.readingTheme) private var readingTheme
+    let readingTheme: ReadingTheme
 
     private var rt: ReadingThemeStyle { readingTheme.style }
 

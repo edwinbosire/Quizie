@@ -2,9 +2,12 @@ import SwiftUI
 
 struct HomeChapterCard: View {
     let chapter: HandbookChapter
-    @Environment(ReadingProgressLibrary.self) private var progressLibrary
+    let progressLibrary: ReadingProgressLibrary
 
-    init(chapter: HandbookChapter) { self.chapter = chapter }
+    init(chapter: HandbookChapter, progressLibrary: ReadingProgressLibrary) {
+        self.chapter = chapter
+        self.progressLibrary = progressLibrary
+    }
 
     private var theme: ChapterTheme {
         ChapterTheme.forChapter(chapter.id)
@@ -191,6 +194,7 @@ struct FlowLayout: Layout {
 // MARK: - Previews
 
 private struct HomeChapterCardPreview: View {
+    let progressLibrary: ReadingProgressLibrary
     private let chapter = HandbookChapter(
         id: 0,
         contentID: "chapter_01",
@@ -201,7 +205,7 @@ private struct HomeChapterCardPreview: View {
     )
 
     var body: some View {
-        HomeChapterCard(chapter: chapter)
+        HomeChapterCard(chapter: chapter, progressLibrary: progressLibrary)
             .padding()
     }
 }
@@ -209,6 +213,5 @@ private struct HomeChapterCardPreview: View {
 #Preview("HomeChapterCard") {
     let progress = ReadingProgressSnapshot(chapterID: "chapter_01", progress: 0.65, totalReadingTime: 480)
     let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(records: [progress]), highlightStore: InMemoryHighlightStore())
-    HomeChapterCardPreview()
-        .environment(services.progress)
+    HomeChapterCardPreview(progressLibrary: services.progress)
 }

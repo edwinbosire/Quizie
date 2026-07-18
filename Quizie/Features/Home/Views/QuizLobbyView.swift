@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct QuizLobbyView: View {
-    @EnvironmentObject var engine: QuizEngine
-    @Environment(AttemptHistory.self) private var attemptHistory
+    @ObservedObject var engine: QuizEngine
+    let attemptHistory: AttemptHistory
     private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
 
 	var body: some View {
@@ -26,7 +26,7 @@ struct QuizLobbyView: View {
 
 				// Info cards (only show for first-time users)
 				if attempts.isEmpty {
-					ExamInfoBar()
+					ExamInfoBar(engine: engine)
 						.padding(.horizontal, 16)
 						.padding(.top, 24)
 						.transition(.asymmetric(
@@ -43,7 +43,7 @@ struct QuizLobbyView: View {
 				}
 
 				// Rules card
-				RulesCard()
+				RulesCard(engine: engine)
 					.padding(.horizontal, 16)
 					.padding(.top, 20)
 			}

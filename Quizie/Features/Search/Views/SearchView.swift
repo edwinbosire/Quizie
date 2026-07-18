@@ -14,7 +14,6 @@ struct SearchView: View {
     private var catalog: HandbookCatalog { dependencies.catalog }
     @State private var searchModel: HandbookSearchModel
     @State private var searchText = ""
-    @State private var navigationPath = NavigationPath()
 
     init(dependencies: SearchFeatureDependencies) {
         self.dependencies = dependencies
@@ -22,39 +21,37 @@ struct SearchView: View {
     }
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            Group {
-                if let error = searchModel.error ?? catalog.error {
-                    RepositoryErrorView(title: "Search Unavailable", error: error) {
-                        catalog.reload()
-                        searchModel.search(query: searchText)
-                    }
-                } else if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 2 {
-                    emptyState
-                } else if searchModel.isSearching {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if searchModel.results.isEmpty {
-                    noResults
-                } else {
-                    resultsList
+        Group {
+            if let error = searchModel.error ?? catalog.error {
+                RepositoryErrorView(title: "Search Unavailable", error: error) {
+                    catalog.reload()
+                    searchModel.search(query: searchText)
                 }
+            } else if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 2 {
+                emptyState
+            } else if searchModel.isSearching {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if searchModel.results.isEmpty {
+                noResults
+            } else {
+                resultsList
             }
-            .background(Color.hbBackground)
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, prompt: "Search the handbook...")
-            .onChange(of: searchText) { _, newValue in
-                searchModel.search(query: newValue)
-            }
-            .navigationDestination(for: SearchNavDestination.self) { destination in
-                ChapterView(
-                    chapter: destination.chapter,
-                    dependencies: dependencies.reader,
-                    initialSectionIndex: destination.sectionIndex,
-                    searchHighlight: destination.searchTerm
-                )
-            }
+        }
+        .background(Color.hbBackground)
+        .navigationTitle("Search")
+        .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, prompt: "Search the handbook...")
+        .onChange(of: searchText) { _, newValue in
+            searchModel.search(query: newValue)
+        }
+        .navigationDestination(for: SearchNavDestination.self) { destination in
+            ChapterView(
+                chapter: destination.chapter,
+                dependencies: dependencies.reader,
+                initialSectionIndex: destination.sectionIndex,
+                searchHighlight: destination.searchTerm
+            )
         }
         .onDisappear { searchModel.cancel() }
     }

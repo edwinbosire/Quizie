@@ -111,8 +111,10 @@ struct ChapterNavBar: View {
                     Text("Contents")
                         .font(HBFont.sans(15, weight: .medium))
                 }
-                .foregroundColor(rt == .night ? .white : .hbAccent)
+                .foregroundStyle(rt == .night ? .white : Color.hbAccent)
             }
+            .buttonStyle(ReaderNavigationButtonStyle(theme: rt))
+            .accessibilityLabel("Back to handbook contents")
 
             Spacer()
 
@@ -129,9 +131,29 @@ struct ChapterNavBar: View {
                         .foregroundColor(rt.textMuted)
                 }
             }
+            .buttonStyle(ReaderNavigationButtonStyle(theme: rt))
+            .accessibilityLabel("Choose chapter")
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
+    }
+}
+
+private struct ReaderNavigationButtonStyle: ButtonStyle {
+    let theme: ReadingThemeStyle
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 13)
+            .frame(height: 42)
+            .background(theme.surface2.opacity(theme == .night ? 0.82 : 1), in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(theme.border.opacity(0.9), lineWidth: 1)
+            }
+            .opacity(configuration.isPressed ? 0.72 : 1)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
 

@@ -4,15 +4,25 @@ import SwiftUI
 struct QuizRootView: View {
     let initialTestID: String?
     private let dependencies: QuizFeatureDependencies
+    private let handbookDependencies: HandbookFeatureDependencies?
+    private let searchDependencies: SearchFeatureDependencies?
+    private let onOpenSettings: () -> Void
     @State private var engine: QuizEngine
+    @State private var navigationPath: [HomeNavigationDestination] = []
 
     init(
         dependencies: QuizFeatureDependencies,
         initialTestID: String? = nil,
-        configuration: QuizConfiguration = .practice
+        configuration: QuizConfiguration = .practice,
+        handbookDependencies: HandbookFeatureDependencies? = nil,
+        searchDependencies: SearchFeatureDependencies? = nil,
+        onOpenSettings: @escaping () -> Void = {}
     ) {
         self.dependencies = dependencies
         self.initialTestID = initialTestID
+        self.handbookDependencies = handbookDependencies
+        self.searchDependencies = searchDependencies
+        self.onOpenSettings = onOpenSettings
         _engine = State(initialValue: QuizEngine(
             configuration: configuration,
             questionRepository: dependencies.questions,
@@ -23,11 +33,17 @@ struct QuizRootView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             Group {
                 switch engine.phase {
                 case .lobby:
-                    QuizLobbyView(engine: engine, attemptHistory: dependencies.attempts)
+                    QuizLobbyView(
+                        engine: engine,
+                        attemptHistory: dependencies.attempts,
+                        onOpenSearch: openSearch,
+                        onOpenHandbook: openHandbook,
+                        onOpenSettings: onOpenSettings
+                    )
                         .transition(.asymmetric(
                             insertion: .move(edge: .leading),
                             removal: .move(edge: .leading)
@@ -56,6 +72,21 @@ struct QuizRootView: View {
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: engine.phase.id)
+            .navigationDestination(for: HomeNavigationDestination.self) { destination in
+                switch destination {
+                case .search:
+                    if let searchDependencies {
+                        SearchView(dependencies: searchDependencies)
+                    }
+                case .handbook:
+                    if let handbookDependencies {
+                        HandbookView(
+                            dependencies: handbookDependencies,
+                            hidesNavigationBar: false
+                        )
+                    }
+                }
+            }
         }
         .alert("Time's Up!", isPresented: Binding(
             get: { engine.didTimeOut },
@@ -79,4 +110,19 @@ struct QuizRootView: View {
             }
         }
     }
+
+    private func openSearch() {
+        guard searchDependencies != nil else { return }
+        navigationPath.append(.search)
+    }
+
+    private func openHandbook() {
+        guard handbookDependencies != nil else { return }
+        navigationPath.append(.handbook)
+    }
+}
+
+private enum HomeNavigationDestination: Hashable {
+    case search
+    case handbook
 }

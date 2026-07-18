@@ -2,6 +2,10 @@ import SwiftUI
 
 struct HeroHeader: View {
 	@State private var animateBubbles: Bool = false
+	let onOpenSearch: () -> Void
+	let onOpenHandbook: () -> Void
+	let onOpenSettings: () -> Void
+
 	var body: some View {
 		ZStack(alignment: .topLeading) {
 			// Background
@@ -23,35 +27,61 @@ struct HeroHeader: View {
 				.scaleEffect(animateBubbles ? 1.0 : 0.05)
 
 			// Content
-			VStack(alignment: .leading, spacing: 10) {
-				Text("OFFICIAL STUDY GUIDE")
-					.font(HBFont.sans(11, weight: .semibold))
-					.kerning(2)
-					.foregroundColor(Color.hbTextMuted)
-					.staggered(0.1)
+			VStack(alignment: .leading, spacing: 28) {
+				HStack(spacing: 6) {
+					Text("Life in the UK")
+						.font(HBFont.sans(20, weight: .bold))
+						.foregroundColor(.white)
 
-				Text("Life in the\nUnited Kingdom")
-					.font(HBFont.lora(32))
-					.foregroundColor(.white)
-					.staggered(0.2)
+					Spacer(minLength: 12)
 
-				Text("Your complete guide to British values, history, culture and citizenship.")
-					.font(HBFont.sans(15))
-					.foregroundColor(Color.white.opacity(0.7))
-					.padding(.bottom, 20)
-					.staggered(0.4)
+					HeaderQuickAccessButton(
+						icon: "magnifyingglass",
+						label: "Search",
+						action: onOpenSearch
+					)
+					HeaderQuickAccessButton(
+						icon: "books.vertical.fill",
+						label: "Handbook",
+						action: onOpenHandbook
+					)
+					HeaderQuickAccessButton(
+						icon: "gearshape.fill",
+						label: "Settings",
+						action: onOpenSettings
+					)
+				}
 
-				// Union Jack stripe accent
-				FlagStripes()
-					.mask {
-						let diameter = animateBubbles ? 750.0 : 0.0
-						Circle()
-							.frame(width: diameter, height: diameter)
-							.animation(.easeOut(duration: 1), value: animateBubbles)
-					}
+				VStack(alignment: .leading, spacing: 10) {
+					Text("OFFICIAL STUDY GUIDE")
+						.font(HBFont.sans(11, weight: .semibold))
+						.kerning(2)
+						.foregroundColor(Color.hbTextMuted)
+						.staggered(0.1)
+
+					Text("Life in the\nUnited Kingdom")
+						.font(HBFont.lora(32))
+						.foregroundColor(.white)
+						.staggered(0.2)
+
+					Text("Your complete guide to British values, history, culture and citizenship.")
+						.font(HBFont.sans(15))
+						.foregroundColor(Color.white.opacity(0.7))
+						.padding(.bottom, 20)
+						.staggered(0.4)
+
+					// Union Jack stripe accent
+					FlagStripes()
+						.mask {
+							let diameter = animateBubbles ? 750.0 : 0.0
+							Circle()
+								.frame(width: diameter, height: diameter)
+								.animation(.easeOut(duration: 1), value: animateBubbles)
+						}
+				}
 			}
 			.padding(.horizontal)
-			.padding(.top, 56)
+			.padding(.top, 52)
 			.padding(.bottom, 36)
 		}
 		.frame(maxWidth: .infinity)
@@ -62,6 +92,28 @@ struct HeroHeader: View {
 		}
 	}
 
+}
+
+private struct HeaderQuickAccessButton: View {
+	let icon: String
+	let label: String
+	let action: () -> Void
+
+	var body: some View {
+		Button(action: action) {
+			Image(systemName: icon)
+				.font(.system(size: 17, weight: .semibold))
+				.foregroundStyle(.white)
+				.frame(width: 42, height: 42)
+				.background(Color.white.opacity(0.1), in: Circle())
+				.overlay {
+					Circle()
+						.stroke(Color.white.opacity(0.14), lineWidth: 1)
+				}
+		}
+		.buttonStyle(.plain)
+		.accessibilityLabel(label)
+	}
 }
 
 // MARK: - Flag Stripe Decoration

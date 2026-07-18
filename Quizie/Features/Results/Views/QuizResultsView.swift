@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct QuizResultsView: View {
-    @ObservedObject var engine: QuizEngine
+    let engine: QuizEngine
     @State private var showReview = false
     @State private var showConfetti = false
 

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct QuizQuestionView: View {
-    @ObservedObject var engine: QuizEngine
+    let engine: QuizEngine
     let questionIndex: Int
 
     @State private var animateSubmitButton = false
@@ -97,7 +97,7 @@ struct QuizQuestionView: View {
 }
 
 private struct QuestionView: View {
-	@ObservedObject var engine: QuizEngine
+	let engine: QuizEngine
 	let question: QuizQuestion
 	let questionIndex: Int
 	var body: some View {

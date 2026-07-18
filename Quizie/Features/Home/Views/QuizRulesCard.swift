@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RulesCard: View {
-    @ObservedObject var engine: QuizEngine
+    let engine: QuizEngine
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {

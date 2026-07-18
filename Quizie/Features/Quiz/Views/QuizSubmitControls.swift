@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SubmitButton: View {
-    @ObservedObject var engine: QuizEngine
+    let engine: QuizEngine
     let question: QuizQuestion
 
     var isLast: Bool { engine.currentIndex == engine.totalQuestions - 1 }

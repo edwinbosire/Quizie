@@ -4,7 +4,7 @@ import SwiftUI
 struct QuizRootView: View {
     let initialTestID: String?
     private let dependencies: QuizFeatureDependencies
-    @StateObject private var engine: QuizEngine
+    @State private var engine: QuizEngine
 
     init(
         dependencies: QuizFeatureDependencies,
@@ -13,7 +13,7 @@ struct QuizRootView: View {
     ) {
         self.dependencies = dependencies
         self.initialTestID = initialTestID
-        _engine = StateObject(wrappedValue: QuizEngine(
+        _engine = State(initialValue: QuizEngine(
             configuration: configuration,
             questionRepository: dependencies.questions,
             attemptStore: dependencies.attempts,

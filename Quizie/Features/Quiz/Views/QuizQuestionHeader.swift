@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct QuizTopBar: View {
-    @ObservedObject var engine: QuizEngine
+    let engine: QuizEngine
     let onOptionsPressed: () -> Void
     
     @State private var optionsButtonPressed = false

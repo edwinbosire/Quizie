@@ -1,20 +1,21 @@
-import Combine
 import Foundation
+import Observation
 
 /// Observable adapter between the pure `QuizState` and UI/infrastructure concerns.
 @MainActor
-final class QuizEngine: ObservableObject {
-    @Published private(set) var state: QuizState
-    @Published private(set) var persistenceError: Error?
-    @Published private(set) var contentError: ContentRepositoryError?
+@Observable
+final class QuizEngine {
+    private(set) var state: QuizState
+    private(set) var persistenceError: Error?
+    private(set) var contentError: ContentRepositoryError?
 
     private let questionRepository: any QuestionRepository
     private let clock: any QuizClock
     private let scheduler: any QuizScheduler
-    private var attemptStore: any ExamAttemptStore
-    private var timer: QuizCancellation?
-    private var pendingSubmission: QuizCancellation?
-    private var pendingAdvance: QuizCancellation?
+    @ObservationIgnored private var attemptStore: any ExamAttemptStore
+    @ObservationIgnored private var timer: QuizCancellation?
+    @ObservationIgnored private var pendingSubmission: QuizCancellation?
+    @ObservationIgnored private var pendingAdvance: QuizCancellation?
 
     let configuration: QuizConfiguration
 

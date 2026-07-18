@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct QuizLobbyView: View {
-    @ObservedObject var engine: QuizEngine
+    let engine: QuizEngine
     let attemptHistory: AttemptHistory
     private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
 

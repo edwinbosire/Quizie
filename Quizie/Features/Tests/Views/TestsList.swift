@@ -1,0 +1,140 @@
+import SwiftUI
+
+struct TestsList: View {
+    let tests: [PracticeTest]
+    let attempts: [ExamAttemptSnapshot]
+    let onSelect: (PracticeTest) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("ALL TESTS")
+                .font(HBFont.sans(11, weight: .semibold))
+                .kerning(1.5)
+                .foregroundColor(.hbTextMuted)
+                .padding(.horizontal, 2)
+
+            VStack(spacing: 8) {
+                ForEach(tests) { test in
+                    Button {
+                        onSelect(test)
+                    } label: {
+                        TestRow(test: test, stats: attempts.stats(for: test.id))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Test Row
+private struct TestRow: View {
+    let test: PracticeTest
+    let stats: PracticeTestStats?
+
+    private var isAttempted: Bool { stats != nil }
+    private var passed: Bool { stats?.passed ?? false }
+
+    private var statusBg: Color {
+        guard let stats else { return Color.hbAccentLight }
+        return stats.passed ? Color(hex: "#D5F5E3") : Color(hex: "#FADBD8")
+    }
+
+    private var statusFg: Color {
+        guard let stats else { return Color.hbAccent }
+        return stats.passed ? Color(hex: "#145A32") : Color(hex: "#922B21")
+    }
+
+    private var borderColor: Color {
+        guard let stats else { return Color.hbBorder }
+        return stats.passed ? Color(hex: "#A9DFBF") : Color(hex: "#F1948A")
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Number / status indicator
+            Circle()
+                .fill(statusBg)
+                .frame(width: 42, height: 42)
+                .overlay {
+                    if let stats {
+                        Image(systemName: stats.passed ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(statusFg)
+                    } else {
+                        Text("\(test.number)")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundColor(statusFg)
+                    }
+                }
+
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(test.title)
+                        .font(HBFont.sans(15, weight: .semibold))
+                        .foregroundColor(.hbTextPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    HStack(spacing: 6) {
+                        if let stats {
+                            Text(stats.passed ? "Passed" : "Not Passed")
+                                .font(HBFont.sans(12, weight: .semibold))
+                                .foregroundColor(statusFg)
+
+                            Text("•")
+                                .foregroundColor(.hbTextMuted)
+
+                            Text("\(stats.attempts) attempt\(stats.attempts == 1 ? "" : "s")")
+                                .font(HBFont.sans(12))
+                                .foregroundColor(.hbTextMuted)
+                        } else {
+                            Text(test.subtitle)
+                                .font(HBFont.sans(12))
+                                .foregroundColor(.hbTextMuted)
+                        }
+                    }
+                }
+
+                if let stats {
+                    HStack(alignment: .firstTextBaseline, spacing: 0.0) {
+                        Text("\(stats.bestScore)")
+                            .font(.system(size: 24, weight: .medium, design: .rounded))
+                            .foregroundColor(.hbTextPrimary)
+                        Text("/\(stats.totalQuestions)")
+                            .font(.system(size: 15, design: .rounded))
+                            .foregroundColor(.hbTextSecondary)
+                    }
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.hbTextMuted.opacity(0.6))
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.hbSurface)
+        .cornerRadius(HBRadius.md)
+        .overlay(
+            RoundedRectangle(cornerRadius: HBRadius.md)
+                .stroke(borderColor, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Previews
+#Preview("Tests - empty") {
+    let dependencies = try! AppDependencies.preview()
+    TestsView(dependencies: dependencies.tests)
+}
+
+#Preview("Tests - with attempts") {
+    let samples: [ExamAttemptSnapshot] = [
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-3600), score: 21, totalQuestions: 24, passed: true, elapsedSeconds: 1500, didTimeOut: false, testID: "test-1"),
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-86400), score: 14, totalQuestions: 24, passed: false, elapsedSeconds: 2100, didTimeOut: false, testID: "test-3"),
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-172800), score: 19, totalQuestions: 24, passed: true, elapsedSeconds: 1800, didTimeOut: false, testID: "test-5"),
+    ]
+    let questions = try! BundleQuestionRepository().questions(count: 24, seed: "preview")
+    let chapters = try! BundleHandbookRepository().document().chapters
+    let dependencies = try! AppDependencies.preview(questions: questions, chapters: chapters, attempts: samples)
+    TestsView(dependencies: dependencies.tests)
+}

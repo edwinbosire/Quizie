@@ -1,0 +1,232 @@
+import SwiftUI
+
+struct QuestionCard: View {
+    let question: QuizQuestion
+    let questionIndex: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+			HStack {
+				// Multi-select hint
+				if question.isMultiSelect {
+					HStack(spacing: 6) {
+						Image(systemName: "checkmark.square.fill")
+							.font(.system(size: 12))
+							.foregroundColor(Color(hex: "#512E5F"))
+						Text("SELECT \(question.correctIndices.count) ANSWERS")
+							.font(HBFont.sans(11, weight: .semibold))
+							.kerning(1.2)
+							.foregroundColor(Color(hex: "#512E5F"))
+					}
+					.padding(.horizontal, 10)
+					.padding(.vertical, 5)
+					.background(Color(hex: "#EAD9F5"))
+					.cornerRadius(20)
+				}
+
+				Spacer()
+				VStack(alignment: .trailing, spacing: 2) {
+					Text("\(questionIndex + 1) / 24")
+						.font(HBFont.sans(11, weight: .semibold))
+						.kerning(1.2)
+						.foregroundColor(.hbTextMuted)
+						.padding(.horizontal, 10)
+						.padding(.vertical, 5)
+						.background(Color.hbBackground, in: Capsule())
+				}
+
+			}
+
+            Text(question.question)
+                .font(HBFont.lora(20))
+                .foregroundColor(.hbTextPrimary)
+                .lineSpacing(6)
+
+            // Year hint
+//            if !question.year.isEmpty {
+//                HStack(spacing: 5) {
+//                    Image(systemName: "calendar")
+//                        .font(.system(size: 11))
+//                    Text("Hint: \(question.year)")
+//                        .font(HBFont.sans(13))
+//                }
+//                .foregroundColor(.hbTextMuted)
+//            }
+        }
+        .padding(20)
+		.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .background(Color.hbSurface)
+        .cornerRadius(HBRadius.md)
+        .overlay(RoundedRectangle(cornerRadius: HBRadius.md).stroke(Color.hbBorder, lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 2)
+    }
+}
+
+// MARK: - Choice Options
+struct ChoicesView: View {
+    @EnvironmentObject var engine: QuizEngine
+    let question: QuizQuestion
+
+    var body: some View {
+        VStack(spacing: 10) {
+            ForEach(Array(question.choices.enumerated()), id: \.offset) { idx, choice in
+                ChoiceButton(
+                    label: choiceLabel(idx),
+                    text: choice,
+                    isSelected: engine.selectedIndices.contains(idx),
+                    isMultiSelect: question.isMultiSelect,
+                    isCorrect: engine.hasSubmittedAnswer ? question.correctIndices.contains(idx) : nil,
+                    hasSubmitted: engine.hasSubmittedAnswer
+                )
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.12)) {
+                        engine.toggleChoice(idx, isMultiSelect: question.isMultiSelect)
+                    }
+                }
+                .sensoryFeedback(.selection, trigger: engine.selectedIndices.contains(idx))
+				.staggered(0.2 + (0.1 * Double(idx)))
+            }
+        }
+    }
+
+    func choiceLabel(_ idx: Int) -> String {
+        ["A", "B", "C", "D", "E"][safe: idx] ?? "\(idx + 1)"
+    }
+}
+
+
+// MARK: - Choice Button
+struct ChoiceButton: View {
+    let label: String
+    let text: String
+    let isSelected: Bool
+    let isMultiSelect: Bool
+    let isCorrect: Bool?  // nil before submission, true/false after
+    let hasSubmitted: Bool
+    
+    @State private var shakeOffset: CGFloat = 0
+    
+    // Visual state after submission
+    var feedbackColor: Color? {
+        guard hasSubmitted, let isCorrect = isCorrect else { return nil }
+        return isCorrect ? Color(hex: "#27AE60") : nil  // Show green for correct answers
+    }
+    
+    var feedbackBackgroundColor: Color? {
+        guard hasSubmitted, let isCorrect = isCorrect else { return nil }
+        return isCorrect ? Color(hex: "#D5F4E6") : nil  // Light green background
+    }
+    
+    var shouldShowAsWrong: Bool {
+        hasSubmitted && isSelected && isCorrect == false
+    }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            // Label circle or checkbox
+            ZStack {
+                if isMultiSelect {
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(feedbackColor ?? (isSelected ? Color.hbAccent : Color.hbSurface2))
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(feedbackColor ?? (isSelected ? Color.hbAccent : Color.hbBorder), lineWidth: 1.5)
+                        )
+                    if isSelected || (hasSubmitted && isCorrect == true) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                } else {
+                    Circle()
+                        .fill(feedbackColor ?? (isSelected ? Color.hbAccent : Color.hbSurface2))
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Circle().stroke(feedbackColor ?? (isSelected ? Color.hbAccent : Color.hbBorder), lineWidth: 1.5)
+                        )
+                    if hasSubmitted && isCorrect == true {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                    } else {
+                        Text(label)
+                            .font(HBFont.sans(13, weight: .semibold))
+                            .foregroundColor(feedbackColor != nil ? .white : (isSelected ? .white : .hbTextMuted))
+                    }
+                }
+            }
+
+            Text(text)
+                .font(HBFont.sans(15.5))
+                .foregroundColor(feedbackColor ?? (isSelected ? Color.hbTextPrimary : Color.hbTextSecondary))
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // Show X icon for wrong selections
+            if shouldShowAsWrong {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(Color(hex: "#E74C3C"))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(feedbackBackgroundColor ?? (isSelected ? Color.hbAccentLight : Color.hbSurface))
+        .cornerRadius(HBRadius.sm)
+        .overlay(
+            RoundedRectangle(cornerRadius: HBRadius.sm)
+                .stroke(
+                    shouldShowAsWrong ? Color(hex: "#E74C3C") : (feedbackColor ?? (isSelected ? Color.hbAccent : Color.hbBorder)),
+                    lineWidth: (isSelected || feedbackColor != nil || shouldShowAsWrong) ? 1.5 : 1
+                )
+        )
+        .shadow(color: Color.black.opacity(isSelected ? 0.06 : 0.03), radius: 3, x: 0, y: 1)
+        .scaleEffect(isSelected ? 1.0 : 1.0)
+        .offset(x: shakeOffset)
+        .animation(.easeInOut(duration: 0.12), value: isSelected)
+        .animation(.easeInOut(duration: 0.3), value: hasSubmitted)
+        .sensoryFeedback(.success, trigger: hasSubmitted && isCorrect == true && isSelected)
+        .sensoryFeedback(.error, trigger: shouldShowAsWrong)
+        .onChange(of: shouldShowAsWrong) { oldValue, newValue in
+            if newValue && !oldValue {
+                // Trigger shake animation when answer becomes wrong
+                triggerShake()
+            }
+        }
+    }
+    
+    private func triggerShake() {
+        let animation = Animation.spring(response: 0.2, dampingFraction: 0.3, blendDuration: 0)
+        
+        withAnimation(animation) {
+            shakeOffset = -10
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(animation) {
+                shakeOffset = 10
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(animation) {
+                shakeOffset = -8
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(animation) {
+                shakeOffset = 8
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            withAnimation(animation) {
+                shakeOffset = 0
+            }
+        }
+    }
+}
+
+// MARK: - Submit Button

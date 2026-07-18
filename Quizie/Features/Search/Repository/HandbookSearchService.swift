@@ -1,18 +1,5 @@
 import Foundation
 
-nonisolated struct HandbookSearchResult: Identifiable, Sendable, Equatable {
-    /// Stable across launches and query casing because it comes exclusively
-    /// from authored content identity.
-    let id: String
-    let chapter: HandbookChapter
-    let section: HandbookSection
-    let sectionIndex: Int
-    let blockID: String
-    let matchedText: String
-    let snippet: String
-    let matchRange: Range<String.Index>?
-}
-
 nonisolated protocol HandbookSearchServing: Sendable {
     nonisolated func search(query: String) async throws -> [HandbookSearchResult]
 }

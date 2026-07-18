@@ -7,30 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Search Suggestions
-
-struct SearchSuggestion: Identifiable {
-    let id = UUID()
-    let text: String
-    let icon: String
-    let category: String
-}
-
-private let curatedSuggestions: [SearchSuggestion] = [
-    SearchSuggestion(text: "Democracy", icon: "building.columns", category: "Values"),
-    SearchSuggestion(text: "Magna Carta", icon: "scroll", category: "History"),
-    SearchSuggestion(text: "Henry VIII", icon: "crown", category: "History"),
-    SearchSuggestion(text: "Parliament", icon: "building.columns", category: "Government"),
-    SearchSuggestion(text: "Shakespeare", icon: "theatermasks", category: "Culture"),
-    SearchSuggestion(text: "World War", icon: "globe.europe.africa", category: "History"),
-    SearchSuggestion(text: "Scotland", icon: "map", category: "Geography"),
-    SearchSuggestion(text: "Citizenship", icon: "person.text.rectangle", category: "Rights"),
-    SearchSuggestion(text: "Queen Elizabeth", icon: "crown", category: "History"),
-    SearchSuggestion(text: "Bronze Age", icon: "clock.arrow.circlepath", category: "History"),
-    SearchSuggestion(text: "Northern Ireland", icon: "map", category: "Geography"),
-    SearchSuggestion(text: "Bill of Rights", icon: "doc.text", category: "Government"),
-]
-
 // MARK: - Search View
 
 struct SearchView: View {

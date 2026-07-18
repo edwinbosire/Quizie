@@ -32,6 +32,17 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testHandbookTabProvidesFeatureEnvironment() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        app.buttons["Handbook"].tap()
+
+        XCTAssertTrue(app.staticTexts["CHAPTERS"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {

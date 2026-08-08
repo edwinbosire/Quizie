@@ -13,6 +13,7 @@ struct ChapterHeaderView: View {
                 .font(readingTheme.scaledFont(.system(.title2, design: .serif, weight: .semibold)))
                 .foregroundColor(readingTheme.style.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("reader.chapterHeader.title")
         }
         .padding(.horizontal, 24)
         .padding(.top, 32)

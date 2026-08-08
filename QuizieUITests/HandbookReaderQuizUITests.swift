@@ -112,6 +112,10 @@ final class HandbookReaderQuizUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Back to handbook contents"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Choose chapter"].exists)
         XCTAssertTrue(app.buttons["Reader settings"].exists)
+
+        let chapterTitle = app.staticTexts["reader.chapterHeader.title"]
+        XCTAssertTrue(chapterTitle.waitForExistence(timeout: 5))
+        XCTAssertTrue(chapterTitle.isHittable, "The chapter header should be visible below the reader controls")
     }
 
     @MainActor

@@ -88,6 +88,7 @@ struct SectionTabBar: View {
             .padding(.vertical, 16)
             .padding(.bottom, 0)
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 

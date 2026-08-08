@@ -28,9 +28,17 @@ struct RootTabView: View {
                         TestsView(dependencies: dependencies.tests)
                     }
 
+                    Tab("Flashcards", systemImage: "rectangle.stack.fill") {
+                        NavigationStack {
+                            FlashcardsView(dependencies: dependencies.quiz)
+                        }
+                    }
+
                     Tab("Handbook", systemImage: "checklist") {
                         NavigationStack {
                             HandbookView(dependencies: dependencies.handbook)
+                                .ignoresSafeArea(edges: .top)
+                                .toolbar(.hidden, for: .navigationBar)
                         }
                     }
 

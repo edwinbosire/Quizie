@@ -2,7 +2,6 @@ import SwiftUI
 
 struct HandbookView: View {
 	let dependencies: HandbookFeatureDependencies
-	var hidesNavigationBar = true
 	private var catalog: HandbookCatalog { dependencies.catalog }
 
 	var body: some View {
@@ -15,10 +14,6 @@ struct HandbookView: View {
 						.staggered(0.2)
 				}
 				.background(Color.hbBackground)
-				.ignoresSafeArea(edges: hidesNavigationBar ? .top : [])
-				.navigationTitle(hidesNavigationBar ? "" : "Handbook")
-				.navigationBarTitleDisplayMode(.inline)
-				.toolbar(hidesNavigationBar ? .hidden : .visible, for: .navigationBar)
 			}
 		}
 	}

@@ -74,12 +74,10 @@ struct ContinueReadingBanner: View {
 
 // MARK: - Reader Toolbar (Floating Action Button)
 struct ReaderToolbar: View {
-    @Binding var showReaderSettings: Bool
+    let onOpenSettings: () -> Void
 
     var body: some View {
-        Button {
-            showReaderSettings = true
-        } label: {
+        Button(action: onOpenSettings) {
             Image(systemName: "textformat.size")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
@@ -88,6 +86,7 @@ struct ReaderToolbar: View {
                 .clipShape(Circle())
                 .shadow(color: Color.hbAccent.opacity(0.4), radius: 8, x: 0, y: 4)
         }
+        .accessibilityLabel("Reader settings")
     }
 }
 
@@ -95,7 +94,7 @@ struct ReaderToolbar: View {
 struct ChapterNavBar: View {
     let currentChapter: HandbookChapter
     let dismiss: DismissAction
-    @Binding var showChapterPicker: Bool
+    let onChooseChapter: () -> Void
     let readingTheme: ReadingTheme
 
     private var rt: ReadingThemeStyle { readingTheme.style }
@@ -118,9 +117,7 @@ struct ChapterNavBar: View {
 
             Spacer()
 
-            Button {
-                showChapterPicker = true
-            } label: {
+            Button(action: onChooseChapter) {
                 HStack(spacing: 4) {
                     Text(currentChapter.number)
                         .font(HBFont.sans(14, weight: .semibold))

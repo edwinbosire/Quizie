@@ -49,21 +49,36 @@ extension Color {
 struct HBFont {
     /// Lora serif - used for headings
     static func lora(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-        .custom("Lora-SemiBold", size: size)
+        .custom("Lora-SemiBold", size: size, relativeTo: relativeStyle(for: size))
     }
     static func loraRegular(_ size: CGFloat) -> Font {
-        .custom("Lora-Regular", size: size)
+        .custom("Lora-Regular", size: size, relativeTo: relativeStyle(for: size))
     }
     static func loraItalic(_ size: CGFloat) -> Font {
-        .custom("Lora-Italic", size: size)
+        .custom("Lora-Italic", size: size, relativeTo: relativeStyle(for: size))
     }
 
     /// Source Sans 3 - used for body text
     static func sans(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
         switch weight {
-        case .semibold, .bold: return .custom("SourceSans3-SemiBold", size: size)
-        case .medium:          return .custom("SourceSans3-Medium", size: size)
-        default:               return .custom("SourceSans3-Regular", size: size)
+        case .semibold, .bold:
+            return .custom("SourceSans3-SemiBold", size: size, relativeTo: relativeStyle(for: size))
+        case .medium:
+            return .custom("SourceSans3-Medium", size: size, relativeTo: relativeStyle(for: size))
+        default:
+            return .custom("SourceSans3-Regular", size: size, relativeTo: relativeStyle(for: size))
+        }
+    }
+
+    private static func relativeStyle(for size: CGFloat) -> Font.TextStyle {
+        switch size {
+        case 30...: return .largeTitle
+        case 24..<30: return .title
+        case 20..<24: return .title2
+        case 17..<20: return .body
+        case 15..<17: return .subheadline
+        case 13..<15: return .footnote
+        default: return .caption2
         }
     }
 }

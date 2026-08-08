@@ -121,12 +121,16 @@ struct ProgressAnalyticsCard: View {
 				.stroke(Color.hbAccent.opacity(0.2), lineWidth: 1)
 		)
 		.clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
-		.onAppear {
-			withAnimation(.bouncy.delay(1)) {
-				animateProgress.toggle()
+		.task(id: overallCompletion) {
+			animateProgress = false
+			progress = 0.0001
+			do {
+				try await Task.sleep(for: .seconds(1))
+			} catch {
+				return
 			}
-			Task {
-				try? await Task.sleep(nanoseconds: 1_000_000_000)
+			withAnimation(.bouncy) {
+				animateProgress = true
 				progress = overallCompletion
 			}
 		}

@@ -177,11 +177,8 @@ struct ThemeOption: View {
 // MARK: - Preview
 
 #Preview {
-    Color.clear
-        .sheet(isPresented: .constant(true)) {
-            ReaderSettingsSheet(
-                themeStyle: .constant(.classic),
-                fontSizeAdjustment: .constant(0)
-            )
-        }
+    ReaderSettingsSheet(
+        themeStyle: .constant(.classic),
+        fontSizeAdjustment: .constant(0)
+    )
 }

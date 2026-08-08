@@ -62,6 +62,159 @@ struct QuizScoringTests {
 }
 
 @MainActor
+struct FlashcardSessionTests {
+    private let cards = [
+        Flashcard(id: "one", prompt: "First?", answer: "First answer", topic: "Chapter 1"),
+        Flashcard(id: "two", prompt: "Second?", answer: "Second answer", topic: "Chapter 2"),
+        Flashcard(id: "three", prompt: "Third?", answer: "Third answer", topic: "Chapter 3")
+    ]
+
+    @Test("Rating cards advances the deck and builds the completion summary")
+    func ratingAdvancesAndCompletesDeck() {
+        let session = FlashcardSession(cards: cards)
+
+        session.flip()
+        #expect(session.isShowingAnswer)
+
+        session.rate(.known)
+        #expect(session.currentCard?.id == "two")
+        #expect(!session.isShowingAnswer)
+        #expect(session.knownCount == 1)
+
+        session.rate(.learning)
+        session.rate(.known)
+
+        #expect(session.isComplete)
+        #expect(session.knownCount == 2)
+        #expect(session.learningCount == 1)
+        #expect(session.completionPercentage == 67)
+        #expect(session.progress == 1)
+    }
+
+    @Test("Learning review creates a focused deck and restart restores every card")
+    func reviewLearningAndRestart() {
+        let session = FlashcardSession(cards: cards)
+
+        session.rate(.known)
+        session.rate(.learning)
+        session.rate(.known)
+        session.reviewLearningCards()
+
+        #expect(session.cards.map(\.id) == ["two"])
+        #expect(session.currentCard?.id == "two")
+        #expect(session.ratings.isEmpty)
+        #expect(!session.isComplete)
+
+        session.rate(.known)
+        session.restart()
+
+        #expect(session.cards == cards)
+        #expect(session.currentIndex == 0)
+        #expect(session.ratings.isEmpty)
+        #expect(!session.isComplete)
+    }
+
+    @Test("Starred cards remain starred while navigating")
+    func starredCardsPersistWithinSession() {
+        let session = FlashcardSession(cards: cards)
+
+        session.toggleStar()
+        session.rate(.known)
+        session.goBack()
+
+        #expect(session.currentCard?.id == "one")
+        #expect(session.isCurrentCardStarred)
+    }
+}
+
+@MainActor
+struct MatchGameStateTests {
+    private let pairs = [
+        MatchPair(id: "one", term: "One", definition: "First"),
+        MatchPair(id: "two", term: "Two", definition: "Second")
+    ]
+
+    @Test("Correct matches complete the round and retain elapsed time")
+    func correctMatchesFinishRound() {
+        let start = Date(timeIntervalSince1970: 1_000)
+        var game = MatchGameState(pairs: pairs, shuffleCards: false)
+
+        game.start(at: start)
+        game.select(cardID: "one-term", at: start.addingTimeInterval(1))
+        game.select(cardID: "one-definition", at: start.addingTimeInterval(2))
+        game.select(cardID: "two-term", at: start.addingTimeInterval(3))
+        game.select(cardID: "two-definition", at: start.addingTimeInterval(4))
+
+        #expect(game.phase == .finished)
+        #expect(game.matchedCount == 2)
+        #expect(game.finalTime == 4)
+    }
+
+    @Test("Every wrong match adds a three-second penalty")
+    func wrongMatchAddsPenalty() {
+        let start = Date(timeIntervalSince1970: 1_000)
+        var game = MatchGameState(pairs: pairs, shuffleCards: false)
+
+        game.start(at: start)
+        game.select(cardID: "one-term", at: start)
+        game.select(cardID: "two-definition", at: start.addingTimeInterval(2))
+
+        #expect(game.mistakeCount == 1)
+        #expect(game.penaltyTime == 3)
+        #expect(game.elapsedTime(at: start.addingTimeInterval(2)) == 5)
+        #expect(game.incorrectCardIDs == ["one-term", "two-definition"])
+    }
+
+    @Test("A matched card cannot be selected again")
+    func matchedCardsAreIgnored() {
+        var game = MatchGameState(pairs: pairs, shuffleCards: false)
+        game.start()
+        game.select(cardID: "one-term")
+        game.select(cardID: "one-definition")
+        game.select(cardID: "one-term")
+
+        #expect(game.selectedCardID == nil)
+        #expect(game.matchedCount == 1)
+    }
+}
+
+@MainActor
+struct StudyStatisticsTests {
+    @Test("Flashcard statistics count new reviews and rating changes")
+    func flashcardStatisticsTrackReviews() throws {
+        let defaults = try #require(UserDefaults(suiteName: "StudyStatisticsTests.flashcards"))
+        defaults.removePersistentDomain(forName: "StudyStatisticsTests.flashcards")
+
+        StudyStatistics.recordFlashcardChanges(
+            from: [:],
+            to: ["one": .known, "two": .learning],
+            defaults: defaults
+        )
+        StudyStatistics.recordFlashcardChanges(
+            from: ["one": .known, "two": .learning],
+            to: ["one": .known, "two": .known],
+            defaults: defaults
+        )
+
+        #expect(defaults.integer(forKey: StudyStatistics.flashcardsReviewedKey) == 2)
+        #expect(defaults.integer(forKey: StudyStatistics.flashcardsKnownKey) == 2)
+    }
+
+    @Test("Match statistics retain the fastest time and count every round")
+    func matchStatisticsTrackBestTime() throws {
+        let defaults = try #require(UserDefaults(suiteName: "StudyStatisticsTests.match"))
+        defaults.removePersistentDomain(forName: "StudyStatisticsTests.match")
+
+        StudyStatistics.recordMatchRound(time: 24.8, defaults: defaults)
+        StudyStatistics.recordMatchRound(time: 28.1, defaults: defaults)
+        StudyStatistics.recordMatchRound(time: 19.4, defaults: defaults)
+
+        #expect(defaults.integer(forKey: StudyStatistics.matchRoundsKey) == 3)
+        #expect(defaults.double(forKey: StudyStatistics.matchBestTimeKey) == 19.4)
+    }
+}
+
+@MainActor
 struct QuizConfigurationTests {
     private let customConfiguration = QuizConfiguration.custom(
         questionCount: 4,

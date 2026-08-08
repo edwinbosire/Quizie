@@ -5,6 +5,8 @@ struct QuizLobbyView: View {
     let attemptHistory: AttemptHistory
     var onOpenSearch: () -> Void = {}
     var onOpenHandbook: () -> Void = {}
+    var onOpenFlashcards: () -> Void = {}
+    var onOpenMatchGame: () -> Void = {}
     var onOpenSettings: () -> Void = {}
     private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
 
@@ -41,6 +43,20 @@ struct QuizLobbyView: View {
 							removal: .opacity.combined(with: .scale(scale: 0.95))
 						))
 				}
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("QUICK STUDY")
+                        .font(HBFont.sans(11, weight: .semibold))
+                        .kerning(1.5)
+                        .foregroundStyle(Color.hbTextMuted)
+
+                    HStack(alignment: .top, spacing: 12) {
+                        FlashcardHomeCard(onOpen: onOpenFlashcards)
+                        MatchGameHomeCard(onOpen: onOpenMatchGame)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 20)
 
 				// Recent Attempts (show last 3 if available)
 				if !attempts.isEmpty {

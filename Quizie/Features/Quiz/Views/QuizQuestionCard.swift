@@ -70,19 +70,24 @@ struct ChoicesView: View {
     var body: some View {
         VStack(spacing: 10) {
             ForEach(Array(question.choices.enumerated()), id: \.offset) { idx, choice in
-                ChoiceButton(
-                    label: choiceLabel(idx),
-                    text: choice,
-                    isSelected: engine.selectedIndices.contains(idx),
-                    isMultiSelect: question.isMultiSelect,
-                    isCorrect: engine.hasSubmittedAnswer ? question.correctIndices.contains(idx) : nil,
-                    hasSubmitted: engine.hasSubmittedAnswer
-                )
-                .onTapGesture {
+                Button {
                     withAnimation(.easeInOut(duration: 0.12)) {
                         engine.toggleChoice(idx, isMultiSelect: question.isMultiSelect)
                     }
+                } label: {
+                    ChoiceButton(
+                        label: choiceLabel(idx),
+                        text: choice,
+                        isSelected: engine.selectedIndices.contains(idx),
+                        isMultiSelect: question.isMultiSelect,
+                        isCorrect: engine.hasSubmittedAnswer ? question.correctIndices.contains(idx) : nil,
+                        hasSubmitted: engine.hasSubmittedAnswer
+                    )
                 }
+                .buttonStyle(.plain)
+                .disabled(engine.hasSubmittedAnswer)
+                .accessibilityValue(engine.selectedIndices.contains(idx) ? "Selected" : "Not selected")
+                .accessibilityAddTraits(engine.selectedIndices.contains(idx) ? .isSelected : [])
                 .sensoryFeedback(.selection, trigger: engine.selectedIndices.contains(idx))
 				.staggered(0.2 + (0.1 * Double(idx)))
             }
@@ -103,8 +108,6 @@ struct ChoiceButton: View {
     let isMultiSelect: Bool
     let isCorrect: Bool?  // nil before submission, true/false after
     let hasSubmitted: Bool
-    
-    @State private var shakeOffset: CGFloat = 0
     
     // Visual state after submission
     var feedbackColor: Color? {
@@ -183,49 +186,18 @@ struct ChoiceButton: View {
         )
         .shadow(color: Color.black.opacity(isSelected ? 0.06 : 0.03), radius: 3, x: 0, y: 1)
         .scaleEffect(isSelected ? 1.0 : 1.0)
-        .offset(x: shakeOffset)
+        .phaseAnimator(
+            [CGFloat.zero, -10, 10, -8, 8, 0],
+            trigger: shouldShowAsWrong
+        ) { content, offset in
+            content.offset(x: offset)
+        } animation: { _ in
+            .spring(response: 0.2, dampingFraction: 0.3)
+        }
         .animation(.easeInOut(duration: 0.12), value: isSelected)
         .animation(.easeInOut(duration: 0.3), value: hasSubmitted)
         .sensoryFeedback(.success, trigger: hasSubmitted && isCorrect == true && isSelected)
         .sensoryFeedback(.error, trigger: shouldShowAsWrong)
-        .onChange(of: shouldShowAsWrong) { oldValue, newValue in
-            if newValue && !oldValue {
-                // Trigger shake animation when answer becomes wrong
-                triggerShake()
-            }
-        }
-    }
-    
-    private func triggerShake() {
-        let animation = Animation.spring(response: 0.2, dampingFraction: 0.3, blendDuration: 0)
-        
-        withAnimation(animation) {
-            shakeOffset = -10
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(animation) {
-                shakeOffset = 10
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            withAnimation(animation) {
-                shakeOffset = -8
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(animation) {
-                shakeOffset = 8
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            withAnimation(animation) {
-                shakeOffset = 0
-            }
-        }
     }
 }
 

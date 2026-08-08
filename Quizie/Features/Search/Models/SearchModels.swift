@@ -1,10 +1,11 @@
 import Foundation
 
 struct SearchSuggestion: Identifiable {
-    let id = UUID()
     let text: String
     let icon: String
     let category: String
+
+    var id: String { text }
 }
 
 let curatedSuggestions: [SearchSuggestion] = [

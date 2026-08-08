@@ -37,9 +37,70 @@ final class HandbookReaderQuizUITests: XCTestCase {
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]
         app.launch()
 
-        app.buttons["Handbook"].tap()
+        app.tabBars.buttons["Handbook"].tap()
 
         XCTAssertTrue(app.staticTexts["CHAPTERS"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testHandbookReaderHeaderExposesNavigationControls() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        app.tabBars.buttons["Handbook"].tap()
+
+        let firstChapter = app.staticTexts["The values and principles of the UK"].firstMatch
+        XCTAssertTrue(firstChapter.waitForExistence(timeout: 5))
+        firstChapter.tap()
+
+        XCTAssertTrue(app.buttons["Back to handbook contents"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Choose chapter"].exists)
+        XCTAssertTrue(app.buttons["Reader settings"].exists)
+    }
+
+    @MainActor
+    func testMatchingGameLaunchesFromHome() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let homeCard = app.buttons["matchGame.homeCard"]
+        var swipeCount = 0
+        while !homeCard.isHittable && swipeCount < 3 {
+            app.swipeUp()
+            swipeCount += 1
+        }
+
+        XCTAssertTrue(homeCard.waitForExistence(timeout: 5))
+        XCTAssertTrue(homeCard.isHittable)
+        homeCard.tap()
+
+        XCTAssertTrue(app.staticTexts["Ready to match?"].waitForExistence(timeout: 5))
+        app.buttons["matchGame.start"].tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["matchGame.timer"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["0 of 6 matched"].exists)
+    }
+
+    @MainActor
+    func testFlashcardStatisticsCardLaunchesFromHome() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let homeCard = app.buttons["flashcards.homeCard"]
+        var swipeCount = 0
+        while !homeCard.isHittable && swipeCount < 3 {
+            app.swipeUp()
+            swipeCount += 1
+        }
+
+        XCTAssertTrue(homeCard.waitForExistence(timeout: 5))
+        XCTAssertTrue(homeCard.isHittable)
+        homeCard.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["flashcards.study"].waitForExistence(timeout: 5))
     }
 
     @MainActor

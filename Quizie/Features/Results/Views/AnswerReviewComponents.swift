@@ -60,6 +60,7 @@ struct AnswerReviewRow: View {
                 .padding(14)
             }
             .buttonStyle(.plain)
+            .accessibilityValue(expanded ? "Expanded" : "Collapsed")
 
             // Expanded detail (wrong answers only auto-expand hint, but all are expandable)
             if expanded {
@@ -109,13 +110,8 @@ struct AnswerReviewRow: View {
         .cornerRadius(HBRadius.md)
         .overlay(
             RoundedRectangle(cornerRadius: HBRadius.md)
-                .stroke(isCorrect ? rowBorder : rowBorder, lineWidth: 1)
+                .stroke(rowBorder, lineWidth: 1)
         )
-		.onTapGesture {
-			withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-				expanded.toggle()
-			}
-		}
         .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
     }
 }

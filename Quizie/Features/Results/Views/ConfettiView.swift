@@ -18,10 +18,10 @@ struct ConfettiView: View {
     
     private func generateConfetti(screenWidth: CGFloat, screenHeight: CGFloat) {
         let confettiCount = 100
-        
-        for _ in 0..<confettiCount {
+
+        confettiPieces = (0..<confettiCount).map { _ in
             let delay = Double.random(in: 0...1.5)
-            let piece = ConfettiPiece(
+            return ConfettiPiece(
                 x: CGFloat.random(in: 0...screenWidth),
                 y: -20,
                 color: randomConfettiColor(),
@@ -32,7 +32,6 @@ struct ConfettiView: View {
                 swingAmount: CGFloat.random(in: 30...80),
                 swingSpeed: Double.random(in: 0.8...1.5)
             )
-            confettiPieces.append(piece)
         }
     }
     
@@ -96,11 +95,15 @@ struct ConfettiPieceView: View {
                     rotationAmount = 360
                 }
                 
-                // Fade out near bottom
-                DispatchQueue.main.asyncAfter(deadline: .now() + piece.delay + piece.duration * 0.7) {
-                    withAnimation(.easeOut(duration: piece.duration * 0.3)) {
-                        opacity = 0
-                    }
+            }
+            .task(id: piece.id) {
+                do {
+                    try await Task.sleep(for: .seconds(piece.delay + piece.duration * 0.7))
+                } catch {
+                    return
+                }
+                withAnimation(.easeOut(duration: piece.duration * 0.3)) {
+                    opacity = 0
                 }
             }
     }

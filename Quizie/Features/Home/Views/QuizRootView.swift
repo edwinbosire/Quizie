@@ -42,6 +42,8 @@ struct QuizRootView: View {
                         attemptHistory: dependencies.attempts,
                         onOpenSearch: openSearch,
                         onOpenHandbook: openHandbook,
+                        onOpenFlashcards: openFlashcards,
+                        onOpenMatchGame: openMatchGame,
                         onOpenSettings: onOpenSettings
                     )
                         .transition(.asymmetric(
@@ -52,7 +54,6 @@ struct QuizRootView: View {
                 case .question(let idx):
                     QuizQuestionView(engine: engine, questionIndex: idx)
                         .id(idx)   // force view refresh on index change
-                        .navigationBarHidden(true)
                         .navigationBarBackButtonHidden(true)
                         .toolbar(.hidden, for: .navigationBar)
                         .toolbar(.hidden, for: .tabBar)
@@ -80,11 +81,14 @@ struct QuizRootView: View {
                     }
                 case .handbook:
                     if let handbookDependencies {
-                        HandbookView(
-                            dependencies: handbookDependencies,
-                            hidesNavigationBar: false
-                        )
+                        HandbookView(dependencies: handbookDependencies)
+                            .navigationTitle("Handbook")
+                            .navigationBarTitleDisplayMode(.inline)
                     }
+                case .flashcards:
+                    FlashcardsView(dependencies: dependencies)
+                case .matchGame:
+                    MatchGameView()
                 }
             }
         }
@@ -120,9 +124,19 @@ struct QuizRootView: View {
         guard handbookDependencies != nil else { return }
         navigationPath.append(.handbook)
     }
+
+    private func openFlashcards() {
+        navigationPath.append(.flashcards)
+    }
+
+    private func openMatchGame() {
+        navigationPath.append(.matchGame)
+    }
 }
 
 private enum HomeNavigationDestination: Hashable {
     case search
     case handbook
+    case flashcards
+    case matchGame
 }

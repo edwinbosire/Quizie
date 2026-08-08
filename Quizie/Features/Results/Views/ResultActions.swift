@@ -90,7 +90,7 @@ struct AnswerReviewList: View {
             .padding(.bottom, 12)
 
             VStack(spacing: 10) {
-                ForEach(Array(session.questions.enumerated()), id: \.offset) { idx, question in
+                ForEach(Array(session.questions.enumerated()), id: \.element.id) { idx, question in
                     let answer = session.answers[question.id]
                     AnswerReviewRow(index: idx + 1, question: question, answer: answer)
 						.padding(.horizontal, 16)

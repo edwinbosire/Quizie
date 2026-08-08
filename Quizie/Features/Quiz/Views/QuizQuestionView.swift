@@ -4,10 +4,9 @@ struct QuizQuestionView: View {
     let engine: QuizEngine
     let questionIndex: Int
 
-    @State private var animateSubmitButton = false
     @State private var showOptionsSheet = false
-    @State private var showRestartAlert = false
-    @State private var showQuitAlert = false
+    @State private var pendingAlert: QuizQuestionAlert?
+    @State private var presentedAlert: QuizQuestionAlert?
     @AppStorage("bookmarkedQuestions") private var bookmarkedQuestionsData = Data()
     
     private var bookmarkedQuestions: Set<String> {
@@ -41,47 +40,40 @@ struct QuizQuestionView: View {
 				QuestionView(engine: engine, question: question, questionIndex: questionIndex)
 			}
 		}
-        .sheet(isPresented: $showOptionsSheet) {
+        .sheet(isPresented: $showOptionsSheet, onDismiss: presentPendingAlert) {
             QuizOptionsSheet(
                 question: question,
                 isBookmarked: isBookmarked,
-                onRestart: { showRestartAlert = true },
-                onQuit: { showQuitAlert = true },
+                onRestart: { pendingAlert = .restart },
+                onQuit: { pendingAlert = .quit },
                 onToggleBookmark: toggleBookmark
             )
             .presentationDetents([.height(280)])
             .presentationDragIndicator(.visible)
         }
-        .alert("Restart Quiz?", isPresented: $showRestartAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Restart", role: .destructive) {
-                engine.startExam()
-            }
-        } message: {
-            Text("Your current progress will be lost permanently. This will reset all answers and restart the timer.")
-        }
-        .alert("Quit Quiz?", isPresented: $showQuitAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Quit", role: .destructive) {
-                engine.returnToLobby()
-            }
-        } message: {
-            Text("Your current progress will be lost permanently. You can start a new quiz from the lobby.")
-        }
-        .onAppear {
-            // Delay submit button animation by 3 seconds
-            withAnimation(.bouncy.delay(1.05)) {
-                animateSubmitButton = true
+        .alert(item: $presentedAlert) { alert in
+            switch alert {
+            case .restart:
+                Alert(
+                    title: Text("Restart Quiz?"),
+                    message: Text("Your current progress will be lost permanently. This will reset all answers and restart the timer."),
+                    primaryButton: .cancel(),
+                    secondaryButton: .destructive(Text("Restart")) { engine.startExam() }
+                )
+            case .quit:
+                Alert(
+                    title: Text("Quit Quiz?"),
+                    message: Text("Your current progress will be lost permanently. You can start a new quiz from the lobby."),
+                    primaryButton: .cancel(),
+                    secondaryButton: .destructive(Text("Quit")) { engine.returnToLobby() }
+                )
             }
         }
-        .onChange(of: questionIndex) { _, _ in
-            animateSubmitButton = false
+    }
 
-            // Delay submit button animation by 3 seconds
-            withAnimation(.bouncy.delay(1.05)) {
-                animateSubmitButton = true
-            }
-        }
+    private func presentPendingAlert() {
+        presentedAlert = pendingAlert
+        pendingAlert = nil
     }
     
     private func toggleBookmark() {
@@ -94,6 +86,13 @@ struct QuizQuestionView: View {
         }
         updateBookmarks(bookmarks)
     }
+}
+
+private enum QuizQuestionAlert: String, Identifiable {
+    case restart
+    case quit
+
+    var id: String { rawValue }
 }
 
 private struct QuestionView: View {

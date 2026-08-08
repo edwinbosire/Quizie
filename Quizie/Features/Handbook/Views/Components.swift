@@ -69,15 +69,20 @@ struct SectionTabBar: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(Array(sections.enumerated()), id: \.offset) { idx, section in
-                    SectionTabPill(
-                        title: section.title,
-                        isActive: selectedIndex == idx,
-                        theme: theme,
-                        readingTheme: readingTheme
-                    )
-                    .onTapGesture { selectedIndex = idx }
+            LazyHStack(spacing: 8) {
+                ForEach(Array(sections.enumerated()), id: \.element.id) { idx, section in
+                    Button {
+                        selectedIndex = idx
+                    } label: {
+                        SectionTabPill(
+                            title: section.title,
+                            isActive: selectedIndex == idx,
+                            theme: theme,
+                            readingTheme: readingTheme
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(selectedIndex == idx ? .isSelected : [])
                 }
             }
             .padding(.horizontal, 16)

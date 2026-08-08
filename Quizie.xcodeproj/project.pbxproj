@@ -24,7 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		64C37B612F78206E009C85F1 /* Quizie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Quizie.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		64C37B612F78206E009C85F1 /* BritReady: Life in UK Test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BritReady: Life in UK Test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		64C37B6E2F782070009C85F1 /* QuizieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuizieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		64C37B782F782070009C85F1 /* QuizieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuizieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -98,7 +98,7 @@
 		64C37B622F78206E009C85F1 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				64C37B612F78206E009C85F1 /* Quizie.app */,
+				64C37B612F78206E009C85F1 /* BritReady: Life in UK Test.app */,
 				64C37B6E2F782070009C85F1 /* QuizieTests.xctest */,
 				64C37B782F782070009C85F1 /* QuizieUITests.xctest */,
 			);
@@ -127,7 +127,7 @@
 			packageProductDependencies = (
 			);
 			productName = HandbookReaderQuiz;
-			productReference = 64C37B612F78206E009C85F1 /* Quizie.app */;
+			productReference = 64C37B612F78206E009C85F1 /* BritReady: Life in UK Test.app */;
 			productType = "com.apple.product-type.application";
 		};
 		64C37B6D2F782070009C85F1 /* QuizieTests */ = {
@@ -428,7 +428,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = uk.co.edwinb.Quizie;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "BritReady: Life in UK Test";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -472,8 +472,8 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.edwinb.Quizie;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "uk.co.edwinb.QuizUp-Mock";
+				PRODUCT_NAME = "BritReady: Life in UK Test";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

@@ -128,10 +128,8 @@ struct QuizOptionsSheet: View {
                     title: "Restart Quiz",
                     iconColor: Color(hex: "#E67E22")
                 ) {
+                    onRestart()
                     dismiss()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        onRestart()
-                    }
                 }
                 
                 Divider()
@@ -142,10 +140,8 @@ struct QuizOptionsSheet: View {
                     title: "Quit Quiz",
                     iconColor: Color(hex: "#C0392B")
                 ) {
+                    onQuit()
                     dismiss()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        onQuit()
-                    }
                 }
                 
                 Divider()

@@ -2,21 +2,18 @@ import SwiftUI
 
 struct ChapterView: View {
     let dependencies: HandbookReaderDependencies
-    @State var chapter: HandbookChapter
+    @State private var chapter: HandbookChapter
     var initialSectionIndex: Int? = nil
     let searchHighlight: String?
+    private let initialChapterID: String
     @State private var selectedSectionIndex: Int = 0
-    @State private var scrollPosition: String? = nil
     @State private var scrollOffset: CGFloat = 0
     @State private var contentHeight: CGFloat = 0
     @State private var viewportHeight: CGFloat = 0
     @State private var showContinueReading: Bool = false
     @State private var savedScrollOffset: CGFloat = 0
-    @State private var hasRestoredScroll: Bool = false
     @State private var initialLoadComplete: Bool = false
-    @State private var showReaderSettings: Bool = false
-    @State private var showChapterPicker: Bool = false
-    @State private var scrollProxy: ScrollViewProxy?
+    @State private var presentedSheet: ChapterSheet?
     @AppStorage("readingThemeStyle") private var themeStyleRaw: String = ReadingThemeStyle.classic.rawValue
     @AppStorage("readingFontSizeAdjustment") private var fontSizeAdjustment: Double = 0
     @Environment(\.dismiss) private var dismiss
@@ -36,6 +33,7 @@ struct ChapterView: View {
         self.dependencies = dependencies
         self.initialSectionIndex = initialSectionIndex
         self.searchHighlight = searchHighlight
+        self.initialChapterID = chapter.contentID
     }
 
     private var readingThemeStyle: ReadingThemeStyle {
@@ -58,9 +56,6 @@ struct ChapterView: View {
         GeometryReader { geometry in
             ScrollViewReader { proxy in
                 ZStack(alignment: .top) {
-                    // Capture proxy for use outside ScrollViewReader
-                    Color.clear.frame(width: 0, height: 0)
-                        .onAppear { scrollProxy = proxy }
                     ScrollView {
                         VStack(spacing: 0) {
                             // Invisible anchor point for scroll restoration
@@ -74,7 +69,7 @@ struct ChapterView: View {
 
                         // Section content
                         VStack(spacing: 24) {
-                            ForEach(Array(chapter.sections.enumerated()), id: \.offset) { idx, section in
+                            ForEach(Array(chapter.sections.enumerated()), id: \.element.id) { idx, section in
                                 SectionCard(
                                     section: section,
                                     theme: theme,
@@ -133,7 +128,7 @@ struct ChapterView: View {
                         ChapterNavBar(
                             currentChapter: chapter,
                             dismiss: dismiss,
-                            showChapterPicker: $showChapterPicker,
+                            onChooseChapter: { presentedSheet = .chapterPicker },
                             readingTheme: readingTheme
                         )
 
@@ -179,37 +174,8 @@ struct ChapterView: View {
                         .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 }
-                .onAppear {
-                    // Initialize progress record
-                    let progress = progressLibrary.start(chapterID: chapter.contentID)
-                    
-                    // If launched from search with a specific section, scroll there
-                    if let targetIndex = initialSectionIndex,
-                       targetIndex < chapter.sections.count {
-                        selectedSectionIndex = targetIndex
-                        let targetSection = chapter.sections[targetIndex]
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            withAnimation(.easeInOut(duration: 0.4)) {
-                                proxy.scrollTo(targetSection.id, anchor: .top)
-                            }
-                        }
-                    } else {
-                        // Check if user has previously read this chapter (>5% and <95%)
-                        if let progress, progress.isStarted && !progress.isCompleted && progress.scrollOffset > 100 {
-                            savedScrollOffset = progress.scrollOffset
-                            // Show banner after a brief delay to avoid animation conflicts
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                withAnimation {
-                                    showContinueReading = true
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Mark initial load as complete after a delay to prevent overwriting progress
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        initialLoadComplete = true
-                    }
+                .task(id: chapter.contentID) {
+                    await prepareChapter(proxy: proxy)
                 }
                 .onDisappear {
                     // End reading session when leaving the chapter
@@ -217,39 +183,81 @@ struct ChapterView: View {
                 }
             }
         }
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .overlay(alignment: .bottomTrailing) {
-            ReaderToolbar(showReaderSettings: $showReaderSettings)
+            ReaderToolbar(onOpenSettings: { presentedSheet = .readerSettings })
                 .padding(.trailing, 20)
                 .padding(.bottom, 0)
         }
-        .sheet(isPresented: $showReaderSettings) {
-            ReaderSettingsSheet(
-                themeStyle: Binding(
-                    get: { readingThemeStyle },
-                    set: { themeStyleRaw = $0.rawValue }
-                ),
-                fontSizeAdjustment: Binding(
-                    get: { CGFloat(fontSizeAdjustment) },
-                    set: { fontSizeAdjustment = Double($0) }
+        .sheet(item: $presentedSheet) { sheet in
+            switch sheet {
+            case .readerSettings:
+                ReaderSettingsSheet(
+                    themeStyle: Binding(
+                        get: { readingThemeStyle },
+                        set: { themeStyleRaw = $0.rawValue }
+                    ),
+                    fontSizeAdjustment: Binding(
+                        get: { CGFloat(fontSizeAdjustment) },
+                        set: { fontSizeAdjustment = Double($0) }
+                    )
                 )
-            )
-        }
-        .sheet(isPresented: $showChapterPicker) {
-            ChapterPickerSheet(
-                catalog: catalog,
-                currentChapter: chapter,
-                onChapterSelected: { newChapter in
-                    showChapterPicker = false
-                    if let proxy = scrollProxy {
-                        switchChapter(to: newChapter, proxy: proxy)
+            case .chapterPicker:
+                ChapterPickerSheet(
+                    catalog: catalog,
+                    currentChapter: chapter,
+                    onChapterSelected: { newChapter in
+                        presentedSheet = nil
+                        switchChapter(to: newChapter)
                     }
-                }
-            )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
+                )
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+            }
         }
+    }
+
+    private func prepareChapter(proxy: ScrollViewProxy) async {
+        initialLoadComplete = false
+        let progress = progressLibrary.start(chapterID: chapter.contentID)
+
+        do {
+            try await Task.sleep(for: .milliseconds(50))
+        } catch {
+            return
+        }
+        proxy.scrollTo("scrollAnchor", anchor: .top)
+
+        do {
+            try await Task.sleep(for: .milliseconds(250))
+        } catch {
+            return
+        }
+
+        if chapter.contentID == initialChapterID,
+           let targetIndex = initialSectionIndex,
+           chapter.sections.indices.contains(targetIndex) {
+            selectedSectionIndex = targetIndex
+            withAnimation(.easeInOut(duration: 0.4)) {
+                proxy.scrollTo(chapter.sections[targetIndex].id, anchor: .top)
+            }
+        } else if let progress,
+                  progress.isStarted,
+                  !progress.isCompleted,
+                  progress.scrollOffset > 100 {
+            savedScrollOffset = progress.scrollOffset
+            withAnimation {
+                showContinueReading = true
+            }
+        }
+
+        do {
+            try await Task.sleep(for: .milliseconds(200))
+        } catch {
+            return
+        }
+        initialLoadComplete = true
     }
     
     private func updateReadingProgress() {
@@ -278,9 +286,6 @@ struct ChapterView: View {
             return
         }
         
-        // Mark that we've restored scroll so we don't reset progress
-        hasRestoredScroll = true
-        
         // Calculate which section to scroll to based on progress percentage
         let progressPercent = progress.progress
         
@@ -290,29 +295,16 @@ struct ChapterView: View {
         let estimatedSectionIndex = max(0, Int(progressPercent * Double(chapter.sections.count)) - 1)
         let targetIndex = min(max(estimatedSectionIndex, 0), chapter.sections.count - 1)
         
-        print("📍 Restoring scroll position:")
-        print("   Progress: \(Int(progressPercent * 100))%")
-        print("   Target section: \(targetIndex) of \(chapter.sections.count)")
-        
-        // Scroll to that section with animation
-        if targetIndex < chapter.sections.count {
+        if chapter.sections.indices.contains(targetIndex) {
             let targetSection = chapter.sections[targetIndex]
-            
-            // Use a slight delay to ensure layout is complete
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.easeInOut(duration: 0.6)) {
-                    proxy.scrollTo(targetSection.id, anchor: .top)
-                }
-                
-                // Update the selected section index to match
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                    selectedSectionIndex = targetIndex
-                }
+            withAnimation(.easeInOut(duration: 0.6)) {
+                proxy.scrollTo(targetSection.id, anchor: .top)
+                selectedSectionIndex = targetIndex
             }
         }
     }
 
-    private func switchChapter(to newChapter: HandbookChapter, proxy: ScrollViewProxy) {
+    private func switchChapter(to newChapter: HandbookChapter) {
         // End session for current chapter
         progressLibrary.end(chapterID: chapter.contentID)
 
@@ -321,34 +313,20 @@ struct ChapterView: View {
         scrollOffset = 0
         contentHeight = 0
         showContinueReading = false
-        hasRestoredScroll = false
+        savedScrollOffset = 0
         initialLoadComplete = false
 
-        // Switch chapter
+        // Changing the task ID cancels the old preparation work and starts the
+        // new chapter's lifecycle-bound setup.
         chapter = newChapter
-
-        // Scroll to top
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            proxy.scrollTo("scrollAnchor", anchor: .top)
-        }
-
-        // Start session for new chapter
-        let progress = progressLibrary.start(chapterID: newChapter.contentID)
-
-        // Check for continue reading
-        if let progress, progress.isStarted && !progress.isCompleted && progress.scrollOffset > 100 {
-            savedScrollOffset = progress.scrollOffset
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                withAnimation {
-                    showContinueReading = true
-                }
-            }
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            initialLoadComplete = true
-        }
     }
+}
+
+private enum ChapterSheet: String, Identifiable {
+    case readerSettings
+    case chapterPicker
+
+    var id: String { rawValue }
 }
 
 // MARK: - Continue Reading Banner

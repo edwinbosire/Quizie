@@ -77,7 +77,7 @@ struct ContentBlocksView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(blocks.enumerated()), id: \.offset) { idx, block in
+            ForEach(Array(blocks.enumerated()), id: \.element.id) { idx, block in
                 let existing = highlights.first { $0.blockID == block.id }
                 let prev = idx > 0 ? highlights.first { $0.blockID == blocks[idx - 1].id } : nil
                 let next = idx + 1 < blocks.count ? highlights.first { $0.blockID == blocks[idx + 1].id } : nil

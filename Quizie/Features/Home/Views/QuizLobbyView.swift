@@ -9,7 +9,7 @@ struct QuizLobbyView: View {
 
 	var body: some View {
 		content
-			.background(Color.hbAccent)
+//			.background(Color.hbAccent)
 	}
 
 	private var content: some View {

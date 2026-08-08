@@ -22,6 +22,7 @@ struct HandbookReaderQuizApp: App {
     var body: some Scene {
         WindowGroup {
             RootTabView(dependencies: dependencies)
+				.fontDesign(.rounded)
         }
     }
 }

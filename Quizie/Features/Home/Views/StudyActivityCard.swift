@@ -23,11 +23,6 @@ struct StudyActivityCard: View {
                         .clipShape(RoundedRectangle(cornerRadius: 10))
 
                     Spacer(minLength: 0)
-
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(accent)
-                        .padding(.top, 3)
                 }
 
                 Text(title)

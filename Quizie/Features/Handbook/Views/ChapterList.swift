@@ -24,8 +24,7 @@ struct ChapterList: View {
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
 			Text("CHAPTERS")
-				.font(HBFont.sans(11, weight: .semibold))
-				.kerning(1.5)
+				.font(.caption2.weight(.semibold))
 				.foregroundColor(.hbTextMuted)
 				.padding(.horizontal, 24)
 				.padding(.top, 24)

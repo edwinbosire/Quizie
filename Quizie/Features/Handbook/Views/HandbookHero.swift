@@ -27,18 +27,17 @@ struct HeroHeader: View {
 			VStack(alignment: .leading, spacing: 28) {
 				VStack(alignment: .leading, spacing: 10) {
 					Text("OFFICIAL STUDY GUIDE")
-						.font(HBFont.sans(11, weight: .semibold))
-						.kerning(2)
+						.font(.caption2.weight(.semibold))
 						.foregroundColor(Color.hbTextMuted)
 						.staggered(0.1)
 
 					Text("Life in the\nUnited Kingdom")
-						.font(HBFont.lora(32))
+						.font(.system(.title, design: .serif, weight: .semibold))
 						.foregroundColor(.white)
 						.staggered(0.2)
 
 					Text("Your complete guide to British values, history, culture and citizenship.")
-						.font(HBFont.sans(15))
+						.font(.subheadline)
 						.foregroundColor(Color.white.opacity(0.7))
 						.padding(.bottom, 20)
 						.staggered(0.4)

@@ -278,6 +278,60 @@ struct QuizConfigurationTests {
 }
 
 @MainActor
+struct ReaderTextSizeTests {
+    @Test("Reader presets use the documented scale factors")
+    func scaleFactors() {
+        #expect(ReaderTextSize.small.scaleFactor == 0.90)
+        #expect(ReaderTextSize.standard.scaleFactor == 1.00)
+        #expect(ReaderTextSize.large.scaleFactor == 1.15)
+    }
+
+    @Test("Reader text size defaults to standard")
+    func defaultValue() throws {
+        let defaults = try makeDefaults(named: "default")
+
+        #expect(ReaderTextSize.loadAndMigrate(defaults: defaults) == .standard)
+    }
+
+    @Test("Stored reader text size is restored and legacy state is cleaned up")
+    func storedValue() throws {
+        let defaults = try makeDefaults(named: "stored")
+        defaults.set(ReaderTextSize.large.rawValue, forKey: ReaderTextSize.storageKey)
+        defaults.set(-2.0, forKey: ReaderTextSize.legacyStorageKey)
+
+        #expect(ReaderTextSize.loadAndMigrate(defaults: defaults) == .large)
+        #expect(defaults.object(forKey: ReaderTextSize.legacyStorageKey) == nil)
+    }
+
+    @Test("Legacy reader adjustments migrate to the nearest preset")
+    func legacyMigration() throws {
+        let cases: [(adjustment: Double, expected: ReaderTextSize)] = [
+            (-2, .small),
+            (0, .standard),
+            (4, .large),
+        ]
+
+        for testCase in cases {
+            let defaults = try makeDefaults(named: "legacy-\(testCase.adjustment)")
+            defaults.set(testCase.adjustment, forKey: ReaderTextSize.legacyStorageKey)
+
+            let migratedValue = ReaderTextSize.loadAndMigrate(defaults: defaults)
+
+            #expect(migratedValue == testCase.expected)
+            #expect(defaults.string(forKey: ReaderTextSize.storageKey) == testCase.expected.rawValue)
+            #expect(defaults.object(forKey: ReaderTextSize.legacyStorageKey) == nil)
+        }
+    }
+
+    private func makeDefaults(named name: String) throws -> UserDefaults {
+        let suiteName = "ReaderTextSizeTests.\(name)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defaults.removePersistentDomain(forName: suiteName)
+        return defaults
+    }
+}
+
+@MainActor
 struct ProgressTests {
     @Test("Quiz progress is based on the current zero-based index")
     func quizProgressFraction() {

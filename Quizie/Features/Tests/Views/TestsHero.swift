@@ -19,20 +19,17 @@ struct TestsHero: View {
 
             VStack(alignment: .leading, spacing: 16) {
                 Text("MOCK TESTS")
-                    .font(HBFont.sans(11, weight: .semibold))
-                    .kerning(2)
+                    .font(.caption2.weight(.semibold))
                     .foregroundColor(Color.white.opacity(0.6))
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text("Choose Your\nPractice Test")
-                    .font(HBFont.lora(30))
+                    .font(.system(.title, design: .serif, weight: .semibold))
                     .foregroundColor(.white)
-                    .lineSpacing(4)
 
                 Text("Take any of the official-style practice tests below to gauge how ready you are.")
-                    .font(HBFont.sans(15))
+                    .font(.subheadline)
                     .foregroundColor(Color.white.opacity(0.7))
-                    .lineSpacing(5)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 24)

@@ -41,18 +41,17 @@ struct HighlightsView: View {
             Spacer()
 
             Image(systemName: "highlighter")
-                .font(.system(size: 48))
+                .font(.largeTitle)
                 .foregroundColor(.hbTextMuted.opacity(0.4))
 
             Text("No Highlights Yet")
-                .font(HBFont.sans(18, weight: .semibold))
+                .font(.headline.weight(.semibold))
                 .foregroundColor(.hbTextPrimary)
 
             Text("Long-press any paragraph while reading\nto save a highlight.")
-                .font(HBFont.sans(14))
+                .font(.footnote)
                 .foregroundColor(.hbTextMuted)
                 .multilineTextAlignment(.center)
-                .lineSpacing(4)
 
             Spacer()
         }
@@ -85,19 +84,17 @@ struct HighlightsView: View {
                 .frame(width: 4, height: 20)
 
             Text(chapter.number.uppercased())
-                .font(HBFont.sans(11, weight: .semibold))
-                .kerning(1)
+                .font(.caption2.weight(.semibold))
                 .foregroundColor(.hbTextMuted)
 
             Text(chapter.title)
-                .font(HBFont.sans(13, weight: .medium))
+                .font(.footnote.weight(.medium))
                 .foregroundColor(.hbTextPrimary)
-                .lineLimit(1)
 
             Spacer()
 
             Text("\(highlights.count)")
-                .font(HBFont.sans(12, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundColor(.hbTextMuted)
         }
         .padding(.horizontal, 20)
@@ -160,28 +157,26 @@ struct HighlightRow: View {
                 VStack(alignment: .leading, spacing: 6) {
                     // Section title
                     Text(sectionTitle)
-                        .font(HBFont.sans(13, weight: .semibold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundColor(.hbTextPrimary)
-                        .lineLimit(1)
 
                     // Text preview
                     Text(highlight.textPreview)
-                        .font(HBFont.sans(13))
+                        .font(.footnote)
                         .foregroundColor(.hbTextSecondary)
-                        .lineSpacing(4)
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
 
                     // Date
                     Text(relativeDate)
-                        .font(HBFont.sans(11))
+                        .font(.caption2)
                         .foregroundColor(.hbTextMuted)
                 }
 
                 Spacer(minLength: 0)
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.caption.weight(.medium))
                     .foregroundColor(.hbTextMuted.opacity(0.5))
                     .padding(.top, 4)
             }

@@ -89,21 +89,18 @@ struct OnboardingPageView: View {
                 // Text content
                 VStack(alignment: .leading, spacing: 0) {
                     Text(page.tagline)
-                        .font(HBFont.sans(11, weight: .semibold))
-                        .kerning(2)
+                        .font(.caption2.weight(.semibold))
                         .foregroundColor(page.accentColor.opacity(0.7))
                         .padding(.bottom, 12)
 
                     Text(page.title)
-                        .font(HBFont.lora(32))
+                        .font(.system(.title, design: .serif, weight: .semibold))
                         .foregroundColor(.hbTextPrimary)
-                        .lineSpacing(4)
                         .padding(.bottom, 14)
 
                     Text(page.description)
-                        .font(HBFont.sans(16))
+                        .font(.callout)
                         .foregroundColor(.hbTextSecondary)
-                        .lineSpacing(6)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.bottom, 20)
 
@@ -111,7 +108,7 @@ struct OnboardingPageView: View {
                     FlowLayout(spacing: 8) {
                         ForEach(page.decorativeItems, id: \.self) { item in
                             Text(item)
-                                .font(HBFont.sans(13, weight: .medium))
+                                .font(.footnote.weight(.medium))
                                 .foregroundColor(page.accentColor)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 6)
@@ -162,7 +159,7 @@ struct OnboardingHero: View {
                         .frame(width: 100, height: 100)
 
                     Image(systemName: page.icon)
-                        .font(.system(size: 44, weight: .medium))
+                        .font(.largeTitle.weight(.medium))
                         .foregroundColor(.white)
                 }
 
@@ -211,11 +208,11 @@ struct OnboardingControls: View {
             } label: {
                 HStack(spacing: 10) {
                     Text(isLastPage ? "Get Started" : "Continue")
-                        .font(HBFont.sans(17, weight: .semibold))
+                        .font(.headline.weight(.semibold))
 
                     if !isLastPage {
                         Image(systemName: "arrow.right")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.footnote.weight(.semibold))
                     }
                 }
                 .foregroundColor(.white)
@@ -232,7 +229,7 @@ struct OnboardingControls: View {
                     onFinish()
                 } label: {
                     Text("Skip")
-                        .font(HBFont.sans(15, weight: .medium))
+                        .font(.subheadline.weight(.medium))
                         .foregroundColor(.hbTextMuted)
                 }
             }

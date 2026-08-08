@@ -24,21 +24,19 @@ struct ChapterPickerSheet: View {
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(chapter.number.uppercased())
-                                .font(HBFont.sans(11, weight: .semibold))
-                                .kerning(1)
+                                .font(.caption2.weight(.semibold))
                                 .foregroundColor(.hbTextMuted)
 
                             Text(chapter.title)
-                                .font(HBFont.sans(15, weight: .medium))
+                                .font(.subheadline.weight(.medium))
                                 .foregroundColor(.hbTextPrimary)
-                                .lineLimit(2)
                         }
 
                         Spacer()
 
                         if chapter.id == currentChapter.id {
                             Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 20))
+                                .font(.title3)
                                 .foregroundColor(.hbAccent)
                         }
                     }
@@ -51,7 +49,7 @@ struct ChapterPickerSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
-                        .font(HBFont.sans(15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                 }
             }
         }

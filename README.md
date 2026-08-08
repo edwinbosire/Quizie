@@ -86,7 +86,7 @@ Quizie/
 ## Design & Content
 
 - Uses a consistent visual language defined in `Handbook/DesignSystem.swift`.
-- Includes bundled custom fonts configured in `Info.plist` (`UIAppFonts`).
+- Uses native SwiftUI text styles and system font designs for Dynamic Type support.
 - Handbook content is parsed from lightweight HTML-like content blocks in JSON.
 
 ## Requirements

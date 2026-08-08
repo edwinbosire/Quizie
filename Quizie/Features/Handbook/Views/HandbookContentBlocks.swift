@@ -11,14 +11,12 @@ struct SectionCard: View {
     private var readingTheme: ReadingTheme { presentation.readingTheme }
 
     private var rt: ReadingThemeStyle { readingTheme.style }
-    private var fs: CGFloat { readingTheme.fontSizeAdjustment }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Title bar
             VStack(alignment: .leading, spacing: 0) {
                 Text(section.title)
-                    .font(HBFont.lora(20 + fs))
+                    .font(readingTheme.scaledFont(.system(.title3, design: .serif, weight: .semibold)))
                     .foregroundColor(rt.textPrimary)
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
@@ -73,8 +71,6 @@ struct ContentBlocksView: View {
     @State private var blockFrames: [Int: CGRect] = [:]
 
     private var rt: ReadingThemeStyle { readingTheme.style }
-    private var fs: CGFloat { readingTheme.fontSizeAdjustment }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(blocks.enumerated()), id: \.element.id) { idx, block in
@@ -122,8 +118,7 @@ struct ContentBlocksView: View {
     func blockView(_ block: ContentBlock, index: Int) -> some View {
         switch block.content {
         case .paragraph(let text):
-            Text(highlightedText(text, font: HBFont.sans(16 + fs), color: rt.textSecondary))
-                .lineSpacing(8 + (fs * 0.5))
+            Text(highlightedText(text, font: readingTheme.scaledFont(.body), color: rt.textSecondary))
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, 14)
 

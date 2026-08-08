@@ -64,26 +64,24 @@ struct SearchView: View {
                 // Header
                 VStack(spacing: 12) {
                     Image(systemName: "text.magnifyingglass")
-                        .font(.system(size: 44, weight: .light))
+                        .font(.largeTitle.weight(.light))
                         .foregroundColor(.hbTextMuted.opacity(0.5))
 
                     Text("Search the Handbook")
-                        .font(HBFont.lora(20))
+                        .font(.system(.title3, design: .serif, weight: .semibold))
                         .foregroundColor(.hbTextPrimary)
 
                     Text("Find topics, facts, and key information\nacross all chapters.")
-                        .font(HBFont.sans(15))
+                        .font(.subheadline)
                         .foregroundColor(.hbTextMuted)
                         .multilineTextAlignment(.center)
-                        .lineSpacing(4)
                 }
                 .padding(.top, 16)
 
                 // Suggestions
                 VStack(alignment: .leading, spacing: 12) {
                     Text("SUGGESTED SEARCHES")
-                        .font(HBFont.sans(11, weight: .semibold))
-                        .kerning(1.5)
+                        .font(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
                         .padding(.horizontal, 4)
 
@@ -94,11 +92,11 @@ struct SearchView: View {
                             } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: suggestion.icon)
-                                        .font(.system(size: 12))
+                                        .font(.caption)
                                         .foregroundColor(.hbAccent)
 
                                     Text(suggestion.text)
-                                        .font(HBFont.sans(14, weight: .medium))
+                                        .font(.footnote.weight(.medium))
                                         .foregroundColor(.hbTextSecondary)
                                 }
                                 .padding(.horizontal, 14)
@@ -119,8 +117,7 @@ struct SearchView: View {
                 // Browse by chapter
                 VStack(alignment: .leading, spacing: 12) {
                     Text("BROWSE BY CHAPTER")
-                        .font(HBFont.sans(11, weight: .semibold))
-                        .kerning(1.5)
+                        .font(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
                         .padding(.horizontal, 4)
 
@@ -136,20 +133,18 @@ struct SearchView: View {
 
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(chapter.number.uppercased())
-                                            .font(HBFont.sans(10, weight: .semibold))
-                                            .kerning(1)
+                                            .font(.caption2.weight(.semibold))
                                             .foregroundColor(.hbTextMuted)
 
                                         Text(chapter.title)
-                                            .font(HBFont.sans(14, weight: .medium))
+                                            .font(.footnote.weight(.medium))
                                             .foregroundColor(.hbTextPrimary)
-                                            .lineLimit(1)
                                     }
 
                                     Spacer()
 
                                     Image(systemName: "magnifyingglass")
-                                        .font(.system(size: 12, weight: .medium))
+                                        .font(.caption.weight(.medium))
                                         .foregroundColor(.hbTextMuted)
                                 }
                                 .padding(.horizontal, 16)
@@ -178,15 +173,15 @@ struct SearchView: View {
             Spacer()
 
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 40, weight: .light))
+                .font(.largeTitle.weight(.light))
                 .foregroundColor(.hbTextMuted.opacity(0.4))
 
             Text("No results for \"\(searchText)\"")
-                .font(HBFont.sans(16, weight: .semibold))
+                .font(.callout.weight(.semibold))
                 .foregroundColor(.hbTextPrimary)
 
             Text("Try a different search term or check your spelling.")
-                .font(HBFont.sans(14))
+                .font(.footnote)
                 .foregroundColor(.hbTextMuted)
 
             Spacer()
@@ -202,7 +197,7 @@ struct SearchView: View {
                 // Results count header
                 HStack {
                     Text("\(searchModel.results.count) result\(searchModel.results.count == 1 ? "" : "s")")
-                        .font(HBFont.sans(13, weight: .medium))
+                        .font(.footnote.weight(.medium))
                         .foregroundColor(.hbTextMuted)
                     Spacer()
                 }

@@ -139,7 +139,7 @@ All components use existing design tokens:
 - `Color.hbAccent` - Primary accent color
 - `Color.hbSurface` - Card backgrounds
 - `Color.hbTextPrimary/Secondary/Muted` - Text colors
-- `HBFont.sans/lora` - Typography system
+- Native SwiftUI text styles - Adaptive typography system (see `Typography.md`)
 - `HBRadius.sm/md` - Border radius values
 
 ## Migration Notes

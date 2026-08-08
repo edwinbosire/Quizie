@@ -15,7 +15,7 @@ struct ChapterView: View {
     @State private var initialLoadComplete: Bool = false
     @State private var presentedSheet: ChapterSheet?
     @AppStorage("readingThemeStyle") private var themeStyleRaw: String = ReadingThemeStyle.classic.rawValue
-    @AppStorage("readingFontSizeAdjustment") private var fontSizeAdjustment: Double = 0
+    @AppStorage(ReaderTextSize.storageKey) private var readerTextSizeRaw: String = ReaderTextSize.standard.rawValue
     @Environment(\.dismiss) private var dismiss
     private var catalog: HandbookCatalog { dependencies.catalog }
     private var progressLibrary: ReadingProgressLibrary { dependencies.progress }
@@ -34,6 +34,10 @@ struct ChapterView: View {
         self.initialSectionIndex = initialSectionIndex
         self.searchHighlight = searchHighlight
         self.initialChapterID = chapter.contentID
+        self._readerTextSizeRaw = AppStorage(
+            wrappedValue: ReaderTextSize.loadAndMigrate().rawValue,
+            ReaderTextSize.storageKey
+        )
     }
 
     private var readingThemeStyle: ReadingThemeStyle {
@@ -41,7 +45,10 @@ struct ChapterView: View {
     }
 
     private var readingTheme: ReadingTheme {
-        ReadingTheme(style: readingThemeStyle, fontSizeAdjustment: CGFloat(fontSizeAdjustment))
+        ReadingTheme(
+            style: readingThemeStyle,
+            textSize: ReaderTextSize(rawValue: readerTextSizeRaw) ?? .standard
+        )
     }
 
     private var presentation: ReaderPresentation {
@@ -198,9 +205,9 @@ struct ChapterView: View {
                         get: { readingThemeStyle },
                         set: { themeStyleRaw = $0.rawValue }
                     ),
-                    fontSizeAdjustment: Binding(
-                        get: { CGFloat(fontSizeAdjustment) },
-                        set: { fontSizeAdjustment = Double($0) }
+                    textSize: Binding(
+                        get: { ReaderTextSize(rawValue: readerTextSizeRaw) ?? .standard },
+                        set: { readerTextSizeRaw = $0.rawValue }
                     )
                 )
             case .chapterPicker:

@@ -4,14 +4,5 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Lora-Regular.ttf</string>
-		<string>Lora-SemiBold.ttf</string>
-		<string>Lora-Italic.ttf</string>
-		<string>SourceSans3-Regular.ttf</string>
-		<string>SourceSans3-Medium.ttf</string>
-		<string>SourceSans3-SemiBold.ttf</string>
-	</array>
 </dict>
 </plist>

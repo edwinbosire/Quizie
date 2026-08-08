@@ -60,44 +60,6 @@ extension Color {
     }
 }
 
-// MARK: - Typography
-struct HBFont {
-    /// Lora serif - used for headings
-    static func lora(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-        .custom("Lora-SemiBold", size: size, relativeTo: relativeStyle(for: size))
-    }
-    static func loraRegular(_ size: CGFloat) -> Font {
-        .custom("Lora-Regular", size: size, relativeTo: relativeStyle(for: size))
-    }
-    static func loraItalic(_ size: CGFloat) -> Font {
-        .custom("Lora-Italic", size: size, relativeTo: relativeStyle(for: size))
-    }
-
-    /// Source Sans 3 - used for body text
-    static func sans(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        switch weight {
-        case .semibold, .bold:
-            return .custom("SourceSans3-SemiBold", size: size, relativeTo: relativeStyle(for: size))
-        case .medium:
-            return .custom("SourceSans3-Medium", size: size, relativeTo: relativeStyle(for: size))
-        default:
-            return .custom("SourceSans3-Regular", size: size, relativeTo: relativeStyle(for: size))
-        }
-    }
-
-    private static func relativeStyle(for size: CGFloat) -> Font.TextStyle {
-        switch size {
-        case 30...: return .largeTitle
-        case 24..<30: return .title
-        case 20..<24: return .title2
-        case 17..<20: return .body
-        case 15..<17: return .subheadline
-        case 13..<15: return .footnote
-        default: return .caption2
-        }
-    }
-}
-
 // MARK: - Spacing & Radius
 enum HBSpacing {
     static let xs: CGFloat = 4
@@ -225,9 +187,66 @@ enum ReadingThemeStyle: String, CaseIterable, Identifiable {
 }
 
 // MARK: - Reader Presentation
+enum ReaderTextSize: String, CaseIterable, Identifiable {
+    case small
+    case standard
+    case large
+
+    static let storageKey = "readingTextSize"
+    static let legacyStorageKey = "readingFontSizeAdjustment"
+
+    var id: String { rawValue }
+
+    var name: String {
+        switch self {
+        case .small: return "Small"
+        case .standard: return "Standard"
+        case .large: return "Large"
+        }
+    }
+
+    var scaleFactor: CGFloat {
+        switch self {
+        case .small: return 0.90
+        case .standard: return 1.00
+        case .large: return 1.15
+        }
+    }
+
+    static func loadAndMigrate(defaults: UserDefaults = .standard) -> ReaderTextSize {
+        if let rawValue = defaults.string(forKey: storageKey),
+           let storedValue = ReaderTextSize(rawValue: rawValue) {
+            defaults.removeObject(forKey: legacyStorageKey)
+            return storedValue
+        }
+
+        guard defaults.object(forKey: legacyStorageKey) != nil else {
+            return .standard
+        }
+
+        let legacyAdjustment = defaults.double(forKey: legacyStorageKey)
+        let migratedValue: ReaderTextSize
+        if legacyAdjustment < 0 {
+            migratedValue = .small
+        } else if legacyAdjustment > 0 {
+            migratedValue = .large
+        } else {
+            migratedValue = .standard
+        }
+
+        defaults.set(migratedValue.rawValue, forKey: storageKey)
+        defaults.removeObject(forKey: legacyStorageKey)
+        return migratedValue
+    }
+}
+
 struct ReadingTheme {
     var style: ReadingThemeStyle = .classic
-    var fontSizeAdjustment: CGFloat = 0  // -2 to +4 offset applied to body text sizes
+    var textSize: ReaderTextSize = .standard
+
+    func scaledFont(_ font: Font) -> Font {
+        font.scaled(by: textSize.scaleFactor)
+    }
 }
 
 struct ReaderPresentation {

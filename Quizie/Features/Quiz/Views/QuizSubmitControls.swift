@@ -23,9 +23,9 @@ struct SubmitButton: View {
                 // Correct answer - auto-advancing
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                     Text("Correct! Moving to next...")
-                        .font(HBFont.sans(16, weight: .semibold))
+                        .font(.callout.weight(.semibold))
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -40,9 +40,9 @@ struct SubmitButton: View {
                 } label: {
                     HStack(spacing: 8) {
                         Text(isLast ? "Submit Exam" : "Next Question")
-                            .font(HBFont.sans(16, weight: .semibold))
+                            .font(.callout.weight(.semibold))
                         Image(systemName: isLast ? "checkmark.circle.fill" : "arrow.right")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(.subheadline.weight(.semibold))
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -60,9 +60,9 @@ struct SubmitButton: View {
             } label: {
                 HStack(spacing: 8) {
                     Text("Submit Answer")
-                        .font(HBFont.sans(16, weight: .semibold))
+                        .font(.callout.weight(.semibold))
                     Image(systemName: "arrow.right.circle.fill")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -189,12 +189,12 @@ struct OptionRow: View {
         }) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.body.weight(.medium))
                     .foregroundColor(iconColor)
                     .frame(width: 24)
                 
                 Text(title)
-                    .font(HBFont.sans(16))
+                    .font(.callout)
                     .foregroundColor(.hbTextPrimary)
 					.frame(maxWidth: .infinity, alignment: .leading)
 

@@ -73,7 +73,7 @@ private struct FlashcardStudyView: View {
                 Spacer()
 
                 Text(session.positionLabel)
-                    .font(HBFont.sans(16, weight: .semibold))
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(Color.hbTextSecondary)
                     .monospacedDigit()
 
@@ -82,7 +82,7 @@ private struct FlashcardStudyView: View {
                 Label("\(session.knownCount)", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(Color(hex: "#145A32"))
             }
-            .font(HBFont.sans(14, weight: .semibold))
+            .font(.footnote.weight(.semibold))
 
             ProgressView(value: session.progress)
                 .tint(Color.hbAccent)
@@ -127,7 +127,7 @@ private struct FlashcardStudyView: View {
 
                 Button(action: session.flip) {
                     Label("Tap to reveal answer", systemImage: "rectangle.on.rectangle.angled")
-                        .font(HBFont.sans(15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.hbAccent)
                 }
 
@@ -148,7 +148,7 @@ private struct FlashcardStudyView: View {
     ) -> some View {
         Button(action: action) {
             Label(title, systemImage: icon)
-                .font(HBFont.sans(15, weight: .semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(foreground)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
@@ -194,15 +194,14 @@ private struct FlashcardView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(card.topic.uppercased())
-                    .font(HBFont.sans(11, weight: .semibold))
-                    .tracking(1.4)
+                    .font(.caption2.weight(.semibold))
                     .foregroundStyle(Color.hbAccent)
 
                 Spacer()
 
                 Button(action: onToggleStar) {
                     Image(systemName: isStarred ? "star.fill" : "star")
-                        .font(.system(size: 20, weight: .medium))
+                        .font(.title3.weight(.medium))
                         .foregroundStyle(isStarred ? Color(hex: "#D99B16") : Color.hbTextMuted)
                         .frame(width: 44, height: 44)
                 }
@@ -214,14 +213,12 @@ private struct FlashcardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Text(title)
-                        .font(HBFont.sans(12, weight: .semibold))
-                        .tracking(1.6)
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(Color.hbTextMuted)
 
                     Text(text)
-                        .font(HBFont.loraRegular(25))
+                        .font(.system(.title2, design: .serif))
                         .foregroundStyle(Color.hbTextPrimary)
-                        .lineSpacing(6)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxWidth: .infinity, minHeight: 250, alignment: .center)
@@ -234,7 +231,7 @@ private struct FlashcardView: View {
                 isShowingAnswer ? "Tap card to see the question" : "Tap card to reveal the answer",
                 systemImage: "hand.tap"
             )
-            .font(HBFont.sans(13))
+            .font(.footnote)
             .foregroundStyle(Color.hbTextMuted)
             .frame(maxWidth: .infinity)
         }
@@ -258,18 +255,17 @@ private struct FlashcardCompletionView: View {
             VStack(spacing: 28) {
                 VStack(spacing: 10) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 34, weight: .semibold))
+                        .font(.largeTitle.weight(.semibold))
                         .foregroundStyle(Color.hbAccent)
 
                     Text("Deck complete")
-                        .font(HBFont.lora(30))
+                        .font(.system(.title, design: .serif, weight: .semibold))
                         .foregroundStyle(Color.hbTextPrimary)
 
                     Text("Nice work. Keep the cards you missed in rotation until they feel easy.")
-                        .font(HBFont.sans(16))
+                        .font(.callout)
                         .foregroundStyle(Color.hbTextMuted)
                         .multilineTextAlignment(.center)
-                        .lineSpacing(4)
                 }
 
                 ZStack {
@@ -283,11 +279,10 @@ private struct FlashcardCompletionView: View {
 
                     VStack(spacing: 2) {
                         Text("\(session.completionPercentage)%")
-                            .font(HBFont.lora(32))
+                            .font(.system(.title, design: .serif, weight: .semibold))
                             .foregroundStyle(Color.hbTextPrimary)
                         Text("KNOWN")
-                            .font(HBFont.sans(11, weight: .semibold))
-                            .tracking(1.4)
+                            .font(.caption2.weight(.semibold))
                             .foregroundStyle(Color.hbTextMuted)
                     }
                 }
@@ -311,7 +306,7 @@ private struct FlashcardCompletionView: View {
                 VStack(spacing: 12) {
                     Button(action: session.reviewLearningCards) {
                         Label("Review \(session.learningCount) learning cards", systemImage: "arrow.clockwise")
-                            .font(HBFont.sans(17, weight: .semibold))
+                            .font(.headline.weight(.semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
@@ -322,7 +317,7 @@ private struct FlashcardCompletionView: View {
                     .opacity(session.learningCount == 0 ? 0.45 : 1)
 
                     Button("Restart all flashcards", action: session.restart)
-                        .font(HBFont.sans(16, weight: .semibold))
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(Color.hbAccent)
                         .padding(.vertical, 8)
                 }
@@ -339,7 +334,7 @@ private struct FlashcardCompletionView: View {
             Text("\(value)")
                 .monospacedDigit()
         }
-        .font(HBFont.sans(16, weight: .semibold))
+        .font(.callout.weight(.semibold))
         .foregroundStyle(Color.hbTextSecondary)
         .padding(.horizontal, 18)
         .padding(.vertical, 14)

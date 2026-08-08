@@ -6,8 +6,7 @@ struct RulesCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("BEFORE YOU START")
-                .font(HBFont.sans(11, weight: .semibold))
-                .kerning(1.5)
+                .font(.caption2.weight(.semibold))
                 .foregroundColor(.hbTextMuted)
 
             VStack(alignment: .leading, spacing: 8) {
@@ -31,12 +30,12 @@ struct RuleItem: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 15, weight: .medium))
+                .font(.subheadline.weight(.medium))
                 .foregroundColor(.hbAccent)
                 .frame(width: 20)
                 .padding(.top, 1)
             Text(text)
-                .font(HBFont.sans(14))
+                .font(.footnote)
                 .foregroundColor(.hbTextSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }

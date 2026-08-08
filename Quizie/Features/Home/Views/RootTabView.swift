@@ -3,13 +3,17 @@ import SwiftUI
 struct RootTabView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("readingThemeStyle") private var readingThemeStyleRaw = ReadingThemeStyle.classic.rawValue
-    @AppStorage("readingFontSizeAdjustment") private var readerFontSizeAdjustment = 0.0
+    @AppStorage(ReaderTextSize.storageKey) private var readerTextSizeRaw = ReaderTextSize.standard.rawValue
     private let dependencies: AppDependencies
     @State private var isShowingSettings = false
     @State private var selectedTab: MainTab = .home
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
+        self._readerTextSizeRaw = AppStorage(
+            wrappedValue: ReaderTextSize.loadAndMigrate().rawValue,
+            ReaderTextSize.storageKey
+        )
     }
 
     var body: some View {
@@ -85,9 +89,9 @@ struct RootTabView: View {
                             get: { ReadingThemeStyle(rawValue: readingThemeStyleRaw) ?? .classic },
                             set: { readingThemeStyleRaw = $0.rawValue }
                         ),
-                        fontSizeAdjustment: Binding(
-                            get: { CGFloat(readerFontSizeAdjustment) },
-                            set: { readerFontSizeAdjustment = Double($0) }
+                        textSize: Binding(
+                            get: { ReaderTextSize(rawValue: readerTextSizeRaw) ?? .standard },
+                            set: { readerTextSizeRaw = $0.rawValue }
                         )
                     )
                 }

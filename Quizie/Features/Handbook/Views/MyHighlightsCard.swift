@@ -11,24 +11,24 @@ struct MyHighlightsCard: View {
 					.frame(width: 40, height: 40)
 
 				Image(systemName: "highlighter")
-					.font(.system(size: 17, weight: .semibold))
+					.font(.headline.weight(.semibold))
 					.foregroundColor(.hbAccent)
 			}
 
 			VStack(alignment: .leading, spacing: 2) {
 				Text("My Highlights")
-					.font(HBFont.sans(15, weight: .semibold))
+					.font(.subheadline.weight(.semibold))
 					.foregroundColor(.hbTextPrimary)
 
 				Text("\(highlightCount) highlight\(highlightCount == 1 ? "" : "s")")
-					.font(HBFont.sans(12))
+					.font(.caption)
 					.foregroundColor(.hbTextMuted)
 			}
 
 			Spacer()
 
 			Image(systemName: "chevron.right")
-				.font(.system(size: 13, weight: .medium))
+				.font(.footnote.weight(.medium))
 				.foregroundColor(.hbTextMuted.opacity(0.5))
 		}
 		.padding(16)

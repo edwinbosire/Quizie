@@ -11,11 +11,10 @@ struct QuestionCard: View {
 				if question.isMultiSelect {
 					HStack(spacing: 6) {
 						Image(systemName: "checkmark.square.fill")
-							.font(.system(size: 12))
+							.font(.caption)
 							.foregroundColor(Color(hex: "#512E5F"))
 						Text("SELECT \(question.correctIndices.count) ANSWERS")
-							.font(HBFont.sans(11, weight: .semibold))
-							.kerning(1.2)
+							.font(.caption2.weight(.semibold))
 							.foregroundColor(Color(hex: "#512E5F"))
 					}
 					.padding(.horizontal, 10)
@@ -27,8 +26,7 @@ struct QuestionCard: View {
 				Spacer()
 				VStack(alignment: .trailing, spacing: 2) {
 					Text("\(questionIndex + 1) / 24")
-						.font(HBFont.sans(11, weight: .semibold))
-						.kerning(1.2)
+						.font(.caption2.weight(.semibold))
 						.foregroundColor(.hbTextMuted)
 						.padding(.horizontal, 10)
 						.padding(.vertical, 5)
@@ -38,17 +36,16 @@ struct QuestionCard: View {
 			}
 
             Text(question.question)
-                .font(HBFont.lora(20))
+                .font(.system(.title3, design: .serif, weight: .semibold))
                 .foregroundColor(.hbTextPrimary)
-                .lineSpacing(6)
 
             // Year hint
 //            if !question.year.isEmpty {
 //                HStack(spacing: 5) {
 //                    Image(systemName: "calendar")
-//                        .font(.system(size: 11))
+//                        .font(.caption2)
 //                    Text("Hint: \(question.year)")
-//                        .font(HBFont.sans(13))
+//                        .font(.footnote)
 //                }
 //                .foregroundColor(.hbTextMuted)
 //            }
@@ -138,7 +135,7 @@ struct ChoiceButton: View {
                         )
                     if isSelected || (hasSubmitted && isCorrect == true) {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.caption.weight(.bold))
                             .foregroundColor(.white)
                     }
                 } else {
@@ -150,18 +147,18 @@ struct ChoiceButton: View {
                         )
                     if hasSubmitted && isCorrect == true {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.caption.weight(.bold))
                             .foregroundColor(.white)
                     } else {
                         Text(label)
-                            .font(HBFont.sans(13, weight: .semibold))
+                            .font(.footnote.weight(.semibold))
                             .foregroundColor(feedbackColor != nil ? .white : (isSelected ? .white : .hbTextMuted))
                     }
                 }
             }
 
             Text(text)
-                .font(HBFont.sans(15.5))
+                .font(.subheadline)
                 .foregroundColor(feedbackColor ?? (isSelected ? Color.hbTextPrimary : Color.hbTextSecondary))
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -169,7 +166,7 @@ struct ChoiceButton: View {
             // Show X icon for wrong selections
             if shouldShowAsWrong {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.callout.weight(.bold))
                     .foregroundColor(Color(hex: "#E74C3C"))
             }
         }

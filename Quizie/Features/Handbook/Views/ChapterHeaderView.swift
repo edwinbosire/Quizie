@@ -10,9 +10,8 @@ struct ChapterHeaderView: View {
             ChapterBadge(text: chapter.number, theme: theme)
 
             Text(chapter.title)
-                .font(HBFont.lora(26 + readingTheme.fontSizeAdjustment))
+                .font(readingTheme.scaledFont(.system(.title2, design: .serif, weight: .semibold)))
                 .foregroundColor(readingTheme.style.textPrimary)
-                .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, 24)

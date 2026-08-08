@@ -25,8 +25,7 @@ struct ChapterBadge: View {
 
     var body: some View {
         Text(text.uppercased())
-            .font(HBFont.sans(11, weight: .semibold))
-            .kerning(1.5)
+            .font(.caption2.weight(.semibold))
             .foregroundColor(theme.accent)
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
@@ -46,7 +45,7 @@ struct SectionTabPill: View {
 
     var body: some View {
         Text(title)
-            .font(HBFont.sans(13, weight: .medium))
+            .font(.footnote.weight(.medium))
             .foregroundColor(isActive ? .white : rt.textSecondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 6)

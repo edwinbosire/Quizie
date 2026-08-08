@@ -2,128 +2,98 @@ import SwiftUI
 
 struct ReaderSettingsSheet: View {
     @Binding var themeStyle: ReadingThemeStyle
-    @Binding var fontSizeAdjustment: CGFloat
+    @Binding var textSize: ReaderTextSize
 
-    private let minAdjustment: CGFloat = -2
-    private let maxAdjustment: CGFloat = 4
+    private var readingTheme: ReadingTheme {
+        ReadingTheme(style: themeStyle, textSize: textSize)
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Drag indicator
-            Capsule()
-                .fill(Color.secondary.opacity(0.3))
-                .frame(width: 36, height: 5)
-                .padding(.top, 10)
-                .padding(.bottom, 16)
+        ScrollView {
+            VStack(spacing: 0) {
+                // Drag indicator
+                Capsule()
+                    .fill(Color.secondary.opacity(0.3))
+                    .frame(width: 36, height: 5)
+                    .padding(.top, 10)
+                    .padding(.bottom, 16)
 
-            VStack(alignment: .leading, spacing: 24) {
-                // Font Size Section
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("TEXT SIZE")
-                        .font(HBFont.sans(11, weight: .semibold))
-                        .kerning(1.5)
-                        .foregroundColor(.hbTextMuted)
+                VStack(alignment: .leading, spacing: 24) {
+                    // Font Size Section
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("TEXT SIZE")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundColor(.hbTextMuted)
 
-                    HStack(spacing: 16) {
-                        // Small A
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                fontSizeAdjustment = max(minAdjustment, fontSizeAdjustment - 1)
+                        Picker("Reader text size", selection: $textSize) {
+                            ForEach(ReaderTextSize.allCases) { size in
+                                Text(size.name)
+                                    .accessibilityIdentifier("reader.textSize.\(size.rawValue)")
+                                    .tag(size)
                             }
-                        } label: {
-                            Text("A")
-                                .font(.system(size: 14, weight: .medium, design: .serif))
-                                .foregroundColor(fontSizeAdjustment <= minAdjustment ? .hbTextMuted.opacity(0.4) : .hbTextSecondary)
-                                .frame(width: 40, height: 40)
-                                .background(Color.hbSurface2)
-                                .clipShape(RoundedRectangle(cornerRadius: HBRadius.sm))
                         }
-                        .disabled(fontSizeAdjustment <= minAdjustment)
-
-                        // Slider
-                        Slider(
-                            value: $fontSizeAdjustment,
-                            in: minAdjustment...maxAdjustment,
-                            step: 1
-                        )
-                        .tint(Color.hbAccent)
-
-                        // Large A
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                fontSizeAdjustment = min(maxAdjustment, fontSizeAdjustment + 1)
-                            }
-                        } label: {
-                            Text("A")
-                                .font(.system(size: 22, weight: .medium, design: .serif))
-                                .foregroundColor(fontSizeAdjustment >= maxAdjustment ? .hbTextMuted.opacity(0.4) : .hbTextSecondary)
-                                .frame(width: 40, height: 40)
-                                .background(Color.hbSurface2)
-                                .clipShape(RoundedRectangle(cornerRadius: HBRadius.sm))
-                        }
-                        .disabled(fontSizeAdjustment >= maxAdjustment)
+                        .pickerStyle(.segmented)
+                        .accessibilityIdentifier("reader.textSize")
                     }
-                }
 
-                // Divider
-                Rectangle()
-                    .fill(Color.hbBorder)
-                    .frame(height: 1)
+                    // Divider
+                    Rectangle()
+                        .fill(Color.hbBorder)
+                        .frame(height: 1)
 
-                // Theme Section
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("THEME")
-                        .font(HBFont.sans(11, weight: .semibold))
-                        .kerning(1.5)
-                        .foregroundColor(.hbTextMuted)
+                    // Theme Section
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("THEME")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundColor(.hbTextMuted)
 
-                    HStack(spacing: 12) {
-                        ForEach(ReadingThemeStyle.allCases) { style in
-                            ThemeOption(
-                                style: style,
-                                isSelected: themeStyle == style,
-                                onSelect: {
-                                    withAnimation(.easeInOut(duration: 0.25)) {
-                                        themeStyle = style
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 12)], spacing: 12) {
+                            ForEach(ReadingThemeStyle.allCases) { style in
+                                ThemeOption(
+                                    style: style,
+                                    isSelected: themeStyle == style,
+                                    onSelect: {
+                                        withAnimation(.easeInOut(duration: 0.25)) {
+                                            themeStyle = style
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
-                }
 
-                // Preview
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("PREVIEW")
-                        .font(HBFont.sans(11, weight: .semibold))
-                        .kerning(1.5)
-                        .foregroundColor(.hbTextMuted)
-
+                    // Preview
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("The United Kingdom")
-                            .font(HBFont.lora(18 + fontSizeAdjustment))
-                            .foregroundColor(themeStyle.textPrimary)
+                        Text("PREVIEW")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundColor(.hbTextMuted)
 
-                        Text("A constitutional monarchy with a rich history spanning over a thousand years of tradition, culture and democratic governance.")
-                            .font(HBFont.sans(16 + fontSizeAdjustment))
-                            .foregroundColor(themeStyle.textSecondary)
-                            .lineSpacing(6 + (fontSizeAdjustment * 0.5))
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("The United Kingdom")
+                                .font(readingTheme.scaledFont(.system(.headline, design: .serif, weight: .semibold)))
+                                .foregroundColor(themeStyle.textPrimary)
+
+                            Text("A constitutional monarchy with a rich history spanning over a thousand years of tradition, culture and democratic governance.")
+                                .font(readingTheme.scaledFont(.body))
+                                .foregroundColor(themeStyle.textSecondary)
+                        }
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(themeStyle.surface)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: HBRadius.sm)
+                                .stroke(themeStyle.border, lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: HBRadius.sm))
                     }
-                    .padding(16)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(themeStyle.surface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: HBRadius.sm)
-                            .stroke(themeStyle.border, lineWidth: 1)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: HBRadius.sm))
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 24)
         }
+        .accessibilityIdentifier("reader.settings")
         .background(Color.hbBackground)
-        .presentationDetents([.height(420)])
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(20)
     }
@@ -165,8 +135,9 @@ struct ThemeOption: View {
 
                 // Label
                 Text(style.name)
-                    .font(HBFont.sans(12, weight: isSelected ? .semibold : .regular))
+                    .font(.caption.weight(isSelected ? .semibold : .regular))
                     .foregroundColor(isSelected ? .hbAccent : .hbTextSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity)
         }
@@ -179,6 +150,6 @@ struct ThemeOption: View {
 #Preview {
     ReaderSettingsSheet(
         themeStyle: .constant(.classic),
-        fontSizeAdjustment: .constant(0)
+        textSize: .constant(.standard)
     )
 }

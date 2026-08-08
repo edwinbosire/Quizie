@@ -49,48 +49,9 @@ All design tokens match the original CSS variables:
 
 ---
 
-## Fonts Required
+## Typography
 
-The app uses **Lora** (serif, for headings) and **Source Sans 3** (sans-serif, for body).
-
-### Option A: Download and add font files to Xcode
-
-1. Download from Google Fonts:
-   - [Lora](https://fonts.google.com/specimen/Lora) — download `Lora-Regular.ttf`, `Lora-SemiBold.ttf`, `Lora-Italic.ttf`
-   - [Source Sans 3](https://fonts.google.com/specimen/Source+Sans+3) — download `SourceSans3-Regular.ttf`, `SourceSans3-Medium.ttf`, `SourceSans3-SemiBold.ttf`
-
-2. Drag the `.ttf` files into your Xcode project (ensure "Add to target" is checked)
-
-3. Add entries to `Info.plist`:
-```xml
-<key>UIAppFonts</key>
-<array>
-    <string>Lora-Regular.ttf</string>
-    <string>Lora-SemiBold.ttf</string>
-    <string>Lora-Italic.ttf</string>
-    <string>SourceSans3-Regular.ttf</string>
-    <string>SourceSans3-Medium.ttf</string>
-    <string>SourceSans3-SemiBold.ttf</string>
-</array>
-```
-
-### Option B: Use system fallbacks (no setup required)
-
-In `DesignSystem.swift`, update `HBFont` to use system fonts while preserving the weight/size system:
-
-```swift
-struct HBFont {
-    static func lora(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-        .system(size: size, weight: weight, design: .serif)
-    }
-    static func loraItalic(_ size: CGFloat) -> Font {
-        .system(size: size, weight: .regular, design: .serif).italic()
-    }
-    static func sans(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .default)
-    }
-}
-```
+The app uses SwiftUI's native semantic text styles and system font designs. No font downloads or `UIAppFonts` configuration are required. See the handbook `Typography.md` guide for role mapping and accessibility requirements.
 
 ---
 

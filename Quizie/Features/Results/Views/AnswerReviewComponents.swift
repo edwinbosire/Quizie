@@ -30,22 +30,21 @@ struct AnswerReviewRow: View {
                             .frame(width: 34, height: 34)
                         if isCorrect {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.footnote.weight(.bold))
                                 .foregroundColor(rowAccent)
                         } else {
                             Image(systemName: "xmark")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.footnote.weight(.bold))
                                 .foregroundColor(rowAccent)
                         }
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Q\(index)")
-                            .font(HBFont.sans(11, weight: .semibold))
-                            .kerning(0.5)
+                            .font(.caption2.weight(.semibold))
                             .foregroundColor(rowAccent.opacity(0.75))
                         Text(question.question)
-                            .font(HBFont.sans(14))
+                            .font(.footnote)
                             .foregroundColor(.hbTextPrimary)
                             .lineLimit(expanded ? nil : 2)
                             .fixedSize(horizontal: false, vertical: true)
@@ -53,7 +52,7 @@ struct AnswerReviewRow: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.caption.weight(.medium))
                         .foregroundColor(.hbTextMuted)
                         .padding(.top, 4)
                 }
@@ -71,8 +70,7 @@ struct AnswerReviewRow: View {
                     if let answer {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("YOUR ANSWER")
-                                .font(HBFont.sans(10, weight: .semibold))
-                                .kerning(1.2)
+                                .font(.caption2.weight(.semibold))
                                 .foregroundColor(.hbTextMuted)
                             ForEach(Array(answer.selectedIndices).sorted(), id: \.self) { idx in
                                 AnswerChip(
@@ -87,8 +85,7 @@ struct AnswerReviewRow: View {
                     if !isCorrect {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("CORRECT ANSWER")
-                                .font(HBFont.sans(10, weight: .semibold))
-                                .kerning(1.2)
+                                .font(.caption2.weight(.semibold))
                                 .foregroundColor(.hbTextMuted)
                             ForEach(Array(question.correctIndices).sorted(), id: \.self) { idx in
                                 AnswerChip(
@@ -148,10 +145,10 @@ struct AnswerChip: View {
     var body: some View {
         HStack(spacing: 7) {
             Image(systemName: icon)
-                .font(.system(size: 13))
+                .font(.footnote)
                 .foregroundColor(fg)
             Text(text)
-                .font(HBFont.sans(14))
+                .font(.footnote)
                 .foregroundColor(fg)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -180,17 +177,15 @@ struct ExplanationBox: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: "lightbulb.fill")
-                    .font(.system(size: 11))
+                    .font(.caption2)
                     .foregroundColor(Color(hex: "#6E2C00"))
                 Text("EXPLANATION")
-                    .font(HBFont.sans(10, weight: .semibold))
-                    .kerning(1.2)
+                    .font(.caption2.weight(.semibold))
                     .foregroundColor(Color(hex: "#6E2C00"))
             }
             Text(explanationText)
-                .font(HBFont.sans(13))
+                .font(.footnote)
                 .foregroundColor(Color(hex: "#6E2C00"))
-                .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(12)

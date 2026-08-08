@@ -8,12 +8,11 @@ struct PerformanceSummary: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("YOUR PROGRESS")
-                        .font(HBFont.sans(11, weight: .semibold))
-                        .kerning(1.5)
+                        .font(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
                     
                     Text(encouragementMessage)
-                        .font(HBFont.sans(14))
+                        .font(.footnote)
                         .foregroundColor(.hbTextSecondary)
                 }
                 Spacer()
@@ -21,11 +20,10 @@ struct PerformanceSummary: View {
                 // Total attempts badge
                 VStack(spacing: 2) {
                     Text("\(attempts.count)")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .font(.system(.title2, design: .rounded, weight: .bold))
                         .foregroundColor(Color.hbAccent)
                     Text("ATTEMPTS")
-                        .font(HBFont.sans(9, weight: .semibold))
-                        .kerning(0.8)
+                        .font(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
                 }
                 .padding(.horizontal, 14)
@@ -96,17 +94,15 @@ struct PerformanceStat: View {
     var body: some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 14, weight: .medium))
+                .font(.footnote.weight(.medium))
                 .foregroundColor(color)
             
             Text(value)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.system(.headline, design: .rounded, weight: .bold))
                 .foregroundColor(color)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
             
             Text(label)
-                .font(HBFont.sans(10, weight: .medium))
+                .font(.caption2.weight(.medium))
                 .foregroundColor(.hbTextMuted)
                 .multilineTextAlignment(.center)
         }

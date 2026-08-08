@@ -14,30 +14,28 @@ struct SearchResultRow: View {
                         .frame(width: 3, height: 14)
 
                     Text(result.chapter.number)
-                        .font(HBFont.sans(12, weight: .semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
 
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 8, weight: .semibold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted.opacity(0.5))
 
                     Text(result.section.title)
-                        .font(HBFont.sans(12, weight: .medium))
+                        .font(.caption.weight(.medium))
                         .foregroundColor(ChapterTheme.forChapter(result.chapter.id).accent)
-                        .lineLimit(1)
                 }
 
                 // Snippet with highlighted match
                 highlightedSnippet
-                    .font(HBFont.sans(14))
+                    .font(.footnote)
                     .foregroundColor(.hbTextSecondary)
-                    .lineSpacing(4)
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
 
                 // Chapter title
                 Text(result.chapter.title)
-                    .font(HBFont.sans(12))
+                    .font(.caption)
                     .foregroundColor(.hbTextMuted)
             }
             .padding(.horizontal, 20)
@@ -57,7 +55,7 @@ struct SearchResultRow: View {
 
         var attributed = AttributedString(result.snippet)
         if let attrRange = Range(range, in: attributed) {
-            attributed[attrRange].font = HBFont.sans(14, weight: .semibold)
+            attributed[attrRange].font = .footnote.weight(.semibold)
             attributed[attrRange].foregroundColor = .hbAccent
         }
         return Text(attributed)

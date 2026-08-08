@@ -13,10 +13,10 @@ struct QuizTopBar: View {
                 // Timer
                 HStack(spacing: 6) {
                     Image(systemName: "clock.fill")
-                        .font(.system(size: 13))
+                        .font(.footnote)
                         .foregroundColor(engine.isTimeWarning ? Color(hex: "#C0392B") : .hbTextMuted)
                     Text(engine.formattedTime)
-                        .font(HBFont.sans(14, weight: .semibold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundColor(engine.isTimeWarning ? Color(hex: "#C0392B") : .hbTextPrimary)
                         .monospacedDigit()
                         .contentTransition(.numericText())
@@ -38,7 +38,7 @@ struct QuizTopBar: View {
                     onOptionsPressed()
                 }) {
                     Image(systemName: "ellipsis.circle")
-                        .font(.system(size: 22))
+                        .font(.title2)
                         .foregroundColor(.hbTextSecondary)
                 }
                 .padding(.leading, 8)

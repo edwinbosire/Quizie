@@ -145,6 +145,56 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testReaderTextSizePresetPersists() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let settingsButton = app.buttons["mainNavigation.settings"]
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: 5))
+        app.tabBars.buttons["Handbook"].tap()
+        XCTAssertTrue(app.navigationBars["Handbook"].waitForExistence(timeout: 5))
+        settingsButton.tap()
+
+        XCTAssertTrue(app.scrollViews["reader.settings"].waitForExistence(timeout: 5))
+        let smallOption = app.buttons["reader.textSize.small"]
+        let standardOption = app.buttons["reader.textSize.standard"]
+        let largeOption = app.buttons["reader.textSize.large"]
+        let previewText = app.staticTexts["The United Kingdom"]
+        XCTAssertTrue(previewText.waitForExistence(timeout: 5))
+
+        standardOption.tap()
+        XCTAssertTrue(standardOption.isSelected)
+
+        smallOption.tap()
+        XCTAssertTrue(smallOption.isSelected)
+        let smallPreviewWidth = previewText.frame.width
+
+        standardOption.tap()
+        XCTAssertTrue(standardOption.isSelected)
+
+        XCTAssertTrue(largeOption.waitForExistence(timeout: 5))
+        largeOption.tap()
+        XCTAssertTrue(largeOption.isSelected)
+        XCTAssertGreaterThan(previewText.frame.width, smallPreviewWidth)
+
+        app.terminate()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let reopenedSettingsButton = app.buttons["mainNavigation.settings"]
+        XCTAssertTrue(reopenedSettingsButton.waitForExistence(timeout: 5))
+        app.tabBars.buttons["Handbook"].tap()
+        XCTAssertTrue(app.navigationBars["Handbook"].waitForExistence(timeout: 5))
+        reopenedSettingsButton.tap()
+
+        XCTAssertTrue(app.scrollViews["reader.settings"].waitForExistence(timeout: 5))
+        let reopenedLargeOption = app.buttons["reader.textSize.large"]
+        XCTAssertTrue(reopenedLargeOption.waitForExistence(timeout: 5))
+        XCTAssertTrue(reopenedLargeOption.isSelected)
+    }
+
+    @MainActor
     func testQuittingQuizRestoresTabBar() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]

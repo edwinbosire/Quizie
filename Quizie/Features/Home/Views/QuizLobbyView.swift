@@ -9,7 +9,7 @@ struct QuizLobbyView: View {
 
 	var body: some View {
 		content
-//			.background(Color.hbAccent)
+			.background(Color.hbBackground.ignoresSafeArea())
 	}
 
 	private var content: some View {
@@ -73,9 +73,7 @@ struct QuizLobbyView: View {
 
 	private var startExamCard: some View {
 		VStack(spacing: 0) {
-			Button {
-				engine.startExam()
-			} label: {
+			Button(action: { engine.startExam() }) {
 				HStack(spacing: 10) {
 					Image(systemName: "play.fill")
 						.font(.system(size: 15, weight: .semibold))

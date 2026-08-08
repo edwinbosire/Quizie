@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 import Testing
-@testable import Quizie
+@testable import BritReady__Life_in_UK_Test
 
 @MainActor
 struct QuizScoringTests {

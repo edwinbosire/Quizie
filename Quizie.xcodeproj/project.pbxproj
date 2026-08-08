@@ -27,6 +27,7 @@
 		64C37B612F78206E009C85F1 /* BritReady: Life in UK Test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BritReady: Life in UK Test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		64C37B6E2F782070009C85F1 /* QuizieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuizieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		64C37B782F782070009C85F1 /* QuizieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuizieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		64EE7F523026C67E00688077 /* Quizie.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = file; path = Quizie.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +89,7 @@
 		64C37B582F78206E009C85F1 = {
 			isa = PBXGroup;
 			children = (
+				64EE7F523026C67E00688077 /* Quizie.xctestplan */,
 				64C37B632F78206E009C85F1 /* Quizie */,
 				64C37B712F782070009C85F1 /* QuizieTests */,
 				64C37B7B2F782070009C85F1 /* QuizieUITests */,

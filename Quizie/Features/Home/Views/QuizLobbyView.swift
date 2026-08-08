@@ -101,4 +101,68 @@ struct QuizLobbyView: View {
 	}
 }
 
+// MARK: - Previews
+
+#Preview("Quiz Lobby - First Visit") {
+    let services = PersistenceServices(
+        attemptStore: InMemoryExamAttemptStore(),
+        progressStore: InMemoryReadingProgressStore(),
+        highlightStore: InMemoryHighlightStore()
+    )
+
+    NavigationStack {
+        QuizLobbyView(
+            engine: QuizEngine(questionRepository: InMemoryQuestionRepository([])),
+            attemptHistory: services.attempts
+        )
+    }
+}
+
+#Preview("Quiz Lobby - Returning Learner") {
+    let attempts = [
+        ExamAttemptSnapshot(
+            id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!,
+            attemptDate: Date().addingTimeInterval(-46_800),
+            score: 20,
+            totalQuestions: 24,
+            passed: true,
+            elapsedSeconds: 1_678,
+            didTimeOut: false,
+            testID: nil
+        ),
+        ExamAttemptSnapshot(
+            id: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!,
+            attemptDate: Date().addingTimeInterval(-172_800),
+            score: 16,
+            totalQuestions: 24,
+            passed: false,
+            elapsedSeconds: 2_100,
+            didTimeOut: false,
+            testID: nil
+        ),
+        ExamAttemptSnapshot(
+            id: UUID(uuidString: "33333333-3333-3333-3333-333333333333")!,
+            attemptDate: Date().addingTimeInterval(-259_200),
+            score: 22,
+            totalQuestions: 24,
+            passed: true,
+            elapsedSeconds: 1_650,
+            didTimeOut: false,
+            testID: nil
+        )
+    ]
+    let services = PersistenceServices(
+        attemptStore: InMemoryExamAttemptStore(attempts: attempts),
+        progressStore: InMemoryReadingProgressStore(),
+        highlightStore: InMemoryHighlightStore()
+    )
+
+    NavigationStack {
+        QuizLobbyView(
+            engine: QuizEngine(questionRepository: InMemoryQuestionRepository([])),
+            attemptHistory: services.attempts
+        )
+    }
+}
+
 // MARK: - Lobby Hero

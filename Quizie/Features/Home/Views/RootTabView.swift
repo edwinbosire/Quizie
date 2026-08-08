@@ -107,3 +107,11 @@ struct RootTabView: View {
         }
     }
 }
+
+#Preview("Main Tabs") {
+    let defaults = UserDefaults(suiteName: "RootTabViewPreview")!
+    defaults.set(true, forKey: "hasCompletedOnboarding")
+
+    return RootTabView(dependencies: try! AppDependencies.preview())
+        .defaultAppStorage(defaults)
+}

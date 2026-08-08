@@ -222,4 +222,14 @@ struct SearchView: View {
     }
 }
 
+// MARK: - Preview
+
+#Preview("Search") {
+    let dependencies = try! AppDependencies.preview()
+
+    NavigationStack {
+        SearchView(dependencies: dependencies.search)
+    }
+}
+
 // MARK: - Navigation Destination

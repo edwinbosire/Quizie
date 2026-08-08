@@ -128,4 +128,20 @@ private struct QuestionView: View {
 	}
 }
 
+// MARK: - Previews
+
+#Preview("Quiz Question") {
+    NavigationStack {
+        QuizQuestionView(engine: PreviewQuizEngine.sampleEngine, questionIndex: 0)
+    }
+}
+
+#Preview("Quiz Question - Multi-Select") {
+    QuizQuestionView(engine: PreviewQuizEngine.multiSelectEngine, questionIndex: 1)
+}
+
+#Preview("Quiz Question - Time Warning") {
+    QuizQuestionView(engine: PreviewQuizEngine.timeWarningEngine, questionIndex: 0)
+}
+
 // MARK: - Top Bar (timer + question count + options)

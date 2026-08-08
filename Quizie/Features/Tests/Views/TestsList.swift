@@ -120,21 +120,3 @@ private struct TestRow: View {
         )
     }
 }
-
-// MARK: - Previews
-#Preview("Tests - empty") {
-    let dependencies = try! AppDependencies.preview()
-    TestsView(dependencies: dependencies.tests)
-}
-
-#Preview("Tests - with attempts") {
-    let samples: [ExamAttemptSnapshot] = [
-        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-3600), score: 21, totalQuestions: 24, passed: true, elapsedSeconds: 1500, didTimeOut: false, testID: "test-1"),
-        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-86400), score: 14, totalQuestions: 24, passed: false, elapsedSeconds: 2100, didTimeOut: false, testID: "test-3"),
-        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-172800), score: 19, totalQuestions: 24, passed: true, elapsedSeconds: 1800, didTimeOut: false, testID: "test-5"),
-    ]
-    let questions = try! BundleQuestionRepository().questions(count: 24, seed: "preview")
-    let chapters = try! BundleHandbookRepository().document().chapters
-    let dependencies = try! AppDependencies.preview(questions: questions, chapters: chapters, attempts: samples)
-    TestsView(dependencies: dependencies.tests)
-}

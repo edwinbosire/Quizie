@@ -75,30 +75,3 @@ struct RecentAttemptRow: View {
         )
     }
 }
-
-// MARK: - Preview
-#Preview("Quiz Lobby") {
-    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
-    NavigationStack {
-        QuizLobbyView(
-            engine: QuizEngine(questionRepository: InMemoryQuestionRepository([])),
-            attemptHistory: services.attempts
-        )
-    }
-}
-
-#Preview("Quiz Lobby with History") {
-    let attempts = [
-        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-13*60*60*60), score: 20, totalQuestions: 24, passed: true, elapsedSeconds: 678000, didTimeOut: false, testID: nil),
-        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-172800), score: 19, totalQuestions: 24, passed: false, elapsedSeconds: 2100, didTimeOut: false, testID: nil),
-        ExamAttemptSnapshot(id: UUID(), attemptDate: Date().addingTimeInterval(-259200), score: 22, totalQuestions: 24, passed: true, elapsedSeconds: 1650, didTimeOut: false, testID: nil),
-    ]
-    let services = PersistenceServices(attemptStore: InMemoryExamAttemptStore(attempts: attempts), progressStore: InMemoryReadingProgressStore(), highlightStore: InMemoryHighlightStore())
-    
-    NavigationStack {
-        QuizLobbyView(
-            engine: QuizEngine(questionRepository: InMemoryQuestionRepository([])),
-            attemptHistory: services.attempts
-        )
-    }
-}

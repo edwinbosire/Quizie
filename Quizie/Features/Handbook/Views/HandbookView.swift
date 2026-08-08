@@ -36,4 +36,14 @@ struct RepositoryErrorView: View {
 	}
 }
 
+// MARK: - Preview
+
+#Preview("Handbook") {
+    let dependencies = try! AppDependencies.preview()
+
+    NavigationStack {
+        HandbookView(dependencies: dependencies.handbook)
+    }
+}
+
 // MARK: - Hero Header

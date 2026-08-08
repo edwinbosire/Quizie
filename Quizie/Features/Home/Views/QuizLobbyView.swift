@@ -36,6 +36,10 @@ struct QuizLobbyView: View {
 						))
 				}
 
+				startExamCard
+					.padding(.horizontal, 16)
+					.padding(.top, 20)
+
                 VStack(alignment: .leading, spacing: 10) {
                     Text("QUICK STUDY")
                         .font(HBFont.sans(11, weight: .semibold))
@@ -62,19 +66,13 @@ struct QuizLobbyView: View {
 					.padding(.horizontal, 16)
 					.padding(.top, 20)
 			}
-			.padding(.bottom, 20) // Space for fixed button
+			.padding(.bottom, 20)
 			.background(Color.hbBackground)
-		}
-		.safeAreaInset(edge: .bottom, spacing: 0.0) {
-			// Fixed Start button at bottom
-			startExamButton
 		}
 	}
 
-	private var startExamButton: some View {
+	private var startExamCard: some View {
 		VStack(spacing: 0) {
-			Divider()
-
 			Button {
 				engine.startExam()
 			} label: {
@@ -91,11 +89,14 @@ struct QuizLobbyView: View {
 				.cornerRadius(HBRadius.md)
 				.shadow(color: Color.hbAccent.opacity(0.35), radius: 8, x: 0, y: 4)
 			}
-			.padding(.horizontal, 16)
-			.padding(.top, 12)
-			.padding(.bottom, 16)
 		}
-		.background(Color.hbBackground)
+		.padding(12)
+		.background(Color.hbSurface)
+		.clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
+		.overlay {
+			RoundedRectangle(cornerRadius: HBRadius.md)
+				.stroke(Color.hbBorder, lineWidth: 1)
+		}
 	}
 }
 

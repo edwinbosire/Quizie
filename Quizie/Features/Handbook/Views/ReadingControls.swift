@@ -47,6 +47,7 @@ struct ContinueReadingBanner: View {
                         .background(rt.surface2)
                         .clipShape(Circle())
                 }
+                .accessibilityLabel("Dismiss continue reading")
                 
                 // Continue button
                 Button {

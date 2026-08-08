@@ -19,6 +19,7 @@ struct InlineText: View {
 
     var body: some View {
         Text(attributedString)
+            .lineSpacing(5)
     }
 
     var attributedString: AttributedString {

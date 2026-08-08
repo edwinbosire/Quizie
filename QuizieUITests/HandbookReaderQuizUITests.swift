@@ -9,6 +9,20 @@ import XCTest
 
 final class HandbookReaderQuizUITests: XCTestCase {
 
+    private struct AppStoreScene {
+        let index: Int
+        let name: String
+        let tab: String
+    }
+
+    private let appStoreScenes = [
+        AppStoreScene(index: 1, name: "home", tab: "Home"),
+        AppStoreScene(index: 2, name: "tests", tab: "Tests"),
+        AppStoreScene(index: 3, name: "flashcards", tab: "Flashcards"),
+        AppStoreScene(index: 4, name: "handbook", tab: "Handbook"),
+        AppStoreScene(index: 5, name: "search", tab: "Search"),
+    ]
+
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
 
@@ -29,6 +43,47 @@ final class HandbookReaderQuizUITests: XCTestCase {
         app.launch()
 
         // Use XCTAssert and related functions to verify your tests produce the correct results.
+    }
+
+    @MainActor
+    func testAppStoreScreenshotsLight() throws {
+        try captureAppStoreScreenshots(appearance: "light")
+    }
+
+    @MainActor
+    func testAppStoreScreenshotsDark() throws {
+        try captureAppStoreScreenshots(appearance: "dark")
+    }
+
+    @MainActor
+    private func captureAppStoreScreenshots(appearance: String) throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-hasCompletedOnboarding", "YES",
+            "-AppleLanguages", "(en)",
+            "-AppleLocale", "en_GB",
+            "-AppleInterfaceStyle", appearance.capitalized,
+        ]
+        app.launch()
+
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 10), "The main tab bar did not appear")
+
+        for scene in appStoreScenes {
+            let tab = tabBar.buttons[scene.tab]
+            XCTAssertTrue(tab.waitForExistence(timeout: 5), "Missing \(scene.tab) tab")
+            tab.tap()
+
+            // Give animated tab transitions and async content one beat to settle.
+            let settled = expectation(description: "Wait for \(scene.name) to settle")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { settled.fulfill() }
+            wait(for: [settled], timeout: 2)
+
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = String(format: "%02d-%@-%@", scene.index, scene.name, appearance)
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
     }
 
     @MainActor

@@ -1,14 +1,17 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
-// MARK: - Color Palette (matches CSS variables exactly)
+// MARK: - Adaptive Color Palette
 extension Color {
-    static let hbBackground    = Color(hex: "#F7F5F0")
-    static let hbSurface       = Color(hex: "#FFFFFF")
-    static let hbSurface2      = Color(hex: "#F0EDE6")
-    static let hbBorder        = Color(hex: "#E2DDD4")
-    static let hbTextPrimary   = Color(hex: "#1A1814")
-    static let hbTextSecondary = Color(hex: "#3D3830")
-    static let hbTextMuted     = Color(hex: "#8C8478")
+    static let hbBackground    = Color(lightHex: "#F7F5F0", darkHex: "#111315")
+    static let hbSurface       = Color(lightHex: "#FFFFFF", darkHex: "#1C1F22")
+    static let hbSurface2      = Color(lightHex: "#F0EDE6", darkHex: "#272B2F")
+    static let hbBorder        = Color(lightHex: "#E2DDD4", darkHex: "#3A4046")
+    static let hbTextPrimary   = Color(lightHex: "#1A1814", darkHex: "#F4F1EA")
+    static let hbTextSecondary = Color(lightHex: "#3D3830", darkHex: "#D5D0C8")
+    static let hbTextMuted     = Color(lightHex: "#8C8478", darkHex: "#A69F95")
 
     // Default (Chapter 1 / global) accent
     static let hbAccent        = Color(hex: "#1B4F72")
@@ -42,6 +45,18 @@ extension Color {
         default:(a, r, g, b) = (255, 0, 0, 0)
         }
         self.init(.sRGB, red: Double(r)/255, green: Double(g)/255, blue: Double(b)/255, opacity: Double(a)/255)
+    }
+
+    init(lightHex: String, darkHex: String) {
+        #if canImport(UIKit)
+        let light = UIColor(Color(hex: lightHex))
+        let dark = UIColor(Color(hex: darkHex))
+        self.init(UIColor { traits in
+            traits.userInterfaceStyle == .dark ? dark : light
+        })
+        #else
+        self.init(hex: lightHex)
+        #endif
     }
 }
 

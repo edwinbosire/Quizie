@@ -6,6 +6,7 @@ struct RootTabView: View {
     @AppStorage("readingFontSizeAdjustment") private var readerFontSizeAdjustment = 0.0
     private let dependencies: AppDependencies
     @State private var isShowingSettings = false
+    @State private var selectedTab: MainTab = .home
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -14,37 +15,66 @@ struct RootTabView: View {
     var body: some View {
         Group {
             if hasCompletedOnboarding {
-                TabView {
-                    Tab("Home", systemImage: "square.grid.2x2") {
+                TabView(selection: $selectedTab) {
+                    Tab("Home", systemImage: "square.grid.2x2", value: .home) {
                         QuizRootView(
                             dependencies: dependencies.quiz,
-                            handbookDependencies: dependencies.handbook,
-                            searchDependencies: dependencies.search,
+                            showsMainNavigationBar: true,
+                            onOpenSearch: { selectedTab = .search },
+                            onOpenHandbook: { selectedTab = .handbook },
                             onOpenSettings: { isShowingSettings = true }
                         )
                     }
 
-                    Tab("Tests", systemImage: "sparkle.text.clipboard") {
-                        TestsView(dependencies: dependencies.tests)
+                    Tab("Tests", systemImage: "sparkle.text.clipboard", value: .tests) {
+                        NavigationStack {
+                            TestsView(dependencies: dependencies.tests)
+                                .mainNavigationBar(
+                                    title: "Tests",
+                                    tab: .tests,
+                                    onOpenSearch: { selectedTab = .search },
+                                    onOpenHandbook: { selectedTab = .handbook },
+                                    onOpenSettings: { isShowingSettings = true }
+                                )
+                        }
                     }
 
-                    Tab("Flashcards", systemImage: "rectangle.stack.fill") {
+                    Tab("Flashcards", systemImage: "rectangle.stack.fill", value: .flashcards) {
                         NavigationStack {
                             FlashcardsView(dependencies: dependencies.quiz)
+                                .mainNavigationBar(
+                                    title: "Flashcards",
+                                    tab: .flashcards,
+                                    onOpenSearch: { selectedTab = .search },
+                                    onOpenHandbook: { selectedTab = .handbook },
+                                    onOpenSettings: { isShowingSettings = true }
+                                )
                         }
                     }
 
-                    Tab("Handbook", systemImage: "checklist") {
+                    Tab("Handbook", systemImage: "checklist", value: .handbook) {
                         NavigationStack {
                             HandbookView(dependencies: dependencies.handbook)
-                                .ignoresSafeArea(edges: .top)
-                                .toolbar(.hidden, for: .navigationBar)
+                                .mainNavigationBar(
+                                    title: "Handbook",
+                                    tab: .handbook,
+                                    onOpenSearch: { selectedTab = .search },
+                                    onOpenHandbook: { selectedTab = .handbook },
+                                    onOpenSettings: { isShowingSettings = true }
+                                )
                         }
                     }
 
-                    Tab("Search", systemImage: "magnifyingglass", role: .search) {
+                    Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
                         NavigationStack {
                             SearchView(dependencies: dependencies.search)
+                                .mainNavigationBar(
+                                    title: "Search",
+                                    tab: .search,
+                                    onOpenSearch: { selectedTab = .search },
+                                    onOpenHandbook: { selectedTab = .handbook },
+                                    onOpenSettings: { isShowingSettings = true }
+                                )
                         }
                     }
                 }

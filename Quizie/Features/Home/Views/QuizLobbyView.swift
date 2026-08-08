@@ -3,28 +3,20 @@ import SwiftUI
 struct QuizLobbyView: View {
     let engine: QuizEngine
     let attemptHistory: AttemptHistory
-    var onOpenSearch: () -> Void = {}
-    var onOpenHandbook: () -> Void = {}
     var onOpenFlashcards: () -> Void = {}
     var onOpenMatchGame: () -> Void = {}
-    var onOpenSettings: () -> Void = {}
     private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
 
 	var body: some View {
 		content
 			.background(Color.hbAccent)
-			.ignoresSafeArea(edges: .top)
 	}
 
 	private var content: some View {
 		ScrollView {
 			VStack(spacing: 0) {
 				// Hero
-				HeroHeader(
-                    onOpenSearch: onOpenSearch,
-                    onOpenHandbook: onOpenHandbook,
-                    onOpenSettings: onOpenSettings
-                )
+				HeroHeader()
 
 				// Performance Summary (only show if there are attempts)
 				if !attempts.isEmpty {

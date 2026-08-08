@@ -115,6 +115,36 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testMainNavigationBarRoutesAndHidesCurrentDestination() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let searchButton = app.buttons["mainNavigation.search"]
+        let handbookButton = app.buttons["mainNavigation.handbook"]
+        let settingsButton = app.buttons["mainNavigation.settings"]
+
+        XCTAssertTrue(searchButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(handbookButton.exists)
+        XCTAssertTrue(settingsButton.exists)
+
+        searchButton.tap()
+
+        XCTAssertTrue(app.navigationBars["Search"].waitForExistence(timeout: 5))
+        XCTAssertFalse(searchButton.exists)
+        XCTAssertTrue(handbookButton.exists)
+
+        handbookButton.tap()
+
+        XCTAssertTrue(app.navigationBars["Handbook"].waitForExistence(timeout: 5))
+        XCTAssertFalse(handbookButton.exists)
+        XCTAssertTrue(searchButton.exists)
+
+        settingsButton.tap()
+        XCTAssertTrue(app.staticTexts["TEXT SIZE"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     func testMatchingGameLaunchesFromHome() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]

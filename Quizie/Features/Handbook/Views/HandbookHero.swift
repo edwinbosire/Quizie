@@ -2,9 +2,6 @@ import SwiftUI
 
 struct HeroHeader: View {
 	@State private var animateBubbles: Bool = false
-	let onOpenSearch: () -> Void
-	let onOpenHandbook: () -> Void
-	let onOpenSettings: () -> Void
 
 	var body: some View {
 		ZStack(alignment: .topLeading) {
@@ -28,30 +25,6 @@ struct HeroHeader: View {
 
 			// Content
 			VStack(alignment: .leading, spacing: 28) {
-				HStack(spacing: 6) {
-					Text("Life in the UK")
-						.font(HBFont.sans(20, weight: .bold))
-						.foregroundColor(.white)
-
-					Spacer(minLength: 12)
-
-					HeaderQuickAccessButton(
-						icon: "magnifyingglass",
-						label: "Search",
-						action: onOpenSearch
-					)
-					HeaderQuickAccessButton(
-						icon: "books.vertical.fill",
-						label: "Handbook",
-						action: onOpenHandbook
-					)
-					HeaderQuickAccessButton(
-						icon: "gearshape.fill",
-						label: "Settings",
-						action: onOpenSettings
-					)
-				}
-
 				VStack(alignment: .leading, spacing: 10) {
 					Text("OFFICIAL STUDY GUIDE")
 						.font(HBFont.sans(11, weight: .semibold))
@@ -81,7 +54,7 @@ struct HeroHeader: View {
 				}
 			}
 			.padding(.horizontal)
-			.padding(.top, 52)
+			.padding(.top, 28)
 			.padding(.bottom, 36)
 		}
 		.frame(maxWidth: .infinity)
@@ -92,28 +65,6 @@ struct HeroHeader: View {
 		}
 	}
 
-}
-
-private struct HeaderQuickAccessButton: View {
-	let icon: String
-	let label: String
-	let action: () -> Void
-
-	var body: some View {
-		Button(action: action) {
-			Image(systemName: icon)
-				.font(.system(size: 17, weight: .semibold))
-				.foregroundStyle(.white)
-				.frame(width: 42, height: 42)
-				.background(Color.white.opacity(0.1), in: Circle())
-				.overlay {
-					Circle()
-						.stroke(Color.white.opacity(0.14), lineWidth: 1)
-				}
-		}
-		.buttonStyle(.plain)
-		.accessibilityLabel(label)
-	}
 }
 
 // MARK: - Flag Stripe Decoration

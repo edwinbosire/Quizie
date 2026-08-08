@@ -7,8 +7,7 @@ struct TestsView: View {
 
     var body: some View {
         content
-            .background(Color.hbAccent)
-            .ignoresSafeArea(edges: .top)
+            .background(Color.hbBackground.ignoresSafeArea())
             .fullScreenCover(item: $selectedTest) { test in
                 QuizRootView(
                     dependencies: dependencies.quiz,
@@ -24,20 +23,21 @@ struct TestsView: View {
 //                TestsHero()
 
                 TestsStatsCard(attempts: attempts)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 60)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
 
                 TestsList(
                     tests: TestCatalog.tests,
                     attempts: attempts,
                     onSelect: { selectedTest = $0 }
                 )
-                .padding(.horizontal, 16)
-                .padding(.top, 24)
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
                 .padding(.bottom, 32)
             }
             .background(Color.hbBackground)
         }
+        .contentMargins(.top, 16, for: .scrollContent)
     }
 }
 

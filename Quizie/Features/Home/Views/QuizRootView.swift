@@ -4,8 +4,9 @@ import SwiftUI
 struct QuizRootView: View {
     let initialTestID: String?
     private let dependencies: QuizFeatureDependencies
-    private let handbookDependencies: HandbookFeatureDependencies?
-    private let searchDependencies: SearchFeatureDependencies?
+    private let showsMainNavigationBar: Bool
+    private let onOpenSearch: () -> Void
+    private let onOpenHandbook: () -> Void
     private let onOpenSettings: () -> Void
     @State private var engine: QuizEngine
     @State private var navigationPath: [HomeNavigationDestination] = []
@@ -14,14 +15,16 @@ struct QuizRootView: View {
         dependencies: QuizFeatureDependencies,
         initialTestID: String? = nil,
         configuration: QuizConfiguration = .practice,
-        handbookDependencies: HandbookFeatureDependencies? = nil,
-        searchDependencies: SearchFeatureDependencies? = nil,
+        showsMainNavigationBar: Bool = false,
+        onOpenSearch: @escaping () -> Void = {},
+        onOpenHandbook: @escaping () -> Void = {},
         onOpenSettings: @escaping () -> Void = {}
     ) {
         self.dependencies = dependencies
         self.initialTestID = initialTestID
-        self.handbookDependencies = handbookDependencies
-        self.searchDependencies = searchDependencies
+        self.showsMainNavigationBar = showsMainNavigationBar
+        self.onOpenSearch = onOpenSearch
+        self.onOpenHandbook = onOpenHandbook
         self.onOpenSettings = onOpenSettings
         _engine = State(initialValue: QuizEngine(
             configuration: configuration,
@@ -40,11 +43,8 @@ struct QuizRootView: View {
                     QuizLobbyView(
                         engine: engine,
                         attemptHistory: dependencies.attempts,
-                        onOpenSearch: openSearch,
-                        onOpenHandbook: openHandbook,
                         onOpenFlashcards: openFlashcards,
-                        onOpenMatchGame: openMatchGame,
-                        onOpenSettings: onOpenSettings
+                        onOpenMatchGame: openMatchGame
                     )
                         .transition(.asymmetric(
                             insertion: .move(edge: .leading),
@@ -73,18 +73,16 @@ struct QuizRootView: View {
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: engine.phase.id)
+            .mainNavigationBar(
+                title: "Life in the UK",
+                tab: .home,
+                isVisible: showsMainNavigationBar && engine.phase == .lobby,
+                onOpenSearch: onOpenSearch,
+                onOpenHandbook: onOpenHandbook,
+                onOpenSettings: onOpenSettings
+            )
             .navigationDestination(for: HomeNavigationDestination.self) { destination in
                 switch destination {
-                case .search:
-                    if let searchDependencies {
-                        SearchView(dependencies: searchDependencies)
-                    }
-                case .handbook:
-                    if let handbookDependencies {
-                        HandbookView(dependencies: handbookDependencies)
-                            .navigationTitle("Handbook")
-                            .navigationBarTitleDisplayMode(.inline)
-                    }
                 case .flashcards:
                     FlashcardsView(dependencies: dependencies)
                 case .matchGame:
@@ -115,16 +113,6 @@ struct QuizRootView: View {
         }
     }
 
-    private func openSearch() {
-        guard searchDependencies != nil else { return }
-        navigationPath.append(.search)
-    }
-
-    private func openHandbook() {
-        guard handbookDependencies != nil else { return }
-        navigationPath.append(.handbook)
-    }
-
     private func openFlashcards() {
         navigationPath.append(.flashcards)
     }
@@ -135,8 +123,6 @@ struct QuizRootView: View {
 }
 
 private enum HomeNavigationDestination: Hashable {
-    case search
-    case handbook
     case flashcards
     case matchGame
 }

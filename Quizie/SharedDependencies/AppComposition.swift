@@ -12,6 +12,14 @@ struct QuizFeatureDependencies {
 @MainActor
 struct TestsFeatureDependencies {
     let quiz: QuizFeatureDependencies
+    let flashcards: FlashcardFeatureDependencies
+}
+
+@MainActor
+struct FlashcardFeatureDependencies {
+    let catalog: FlashcardCatalog
+    let memory: FlashcardMemory
+    let clock: any QuizClock
 }
 
 @MainActor
@@ -61,6 +69,7 @@ struct AppDependencies {
     let modelContainer: ModelContainer
     let quiz: QuizFeatureDependencies
     let tests: TestsFeatureDependencies
+    let flashcards: FlashcardFeatureDependencies
     let handbook: HandbookFeatureDependencies
     let search: SearchFeatureDependencies
     let persistenceIssues: PersistenceIssueCenter
@@ -146,6 +155,11 @@ struct AppDependencies {
             clock: clock,
             scheduler: scheduler
         )
+        let flashcards = FlashcardFeatureDependencies(
+            catalog: FlashcardCatalog(repository: questions),
+            memory: persistence.flashcards,
+            clock: clock
+        )
         let handbook = HandbookFeatureDependencies(
             catalog: catalog,
             progress: persistence.progress,
@@ -154,7 +168,8 @@ struct AppDependencies {
         return AppDependencies(
             modelContainer: container,
             quiz: quiz,
-            tests: TestsFeatureDependencies(quiz: quiz),
+            tests: TestsFeatureDependencies(quiz: quiz, flashcards: flashcards),
+            flashcards: flashcards,
             handbook: handbook,
             search: SearchFeatureDependencies(
                 service: HandbookSearchService(repository: handbookRepository),

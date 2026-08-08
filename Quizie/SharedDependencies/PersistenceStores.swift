@@ -9,7 +9,9 @@ enum AppPersistence {
     static let schema = Schema([
         ExamAttempt.self,
         ReadingProgress.self,
-        Highlight.self
+        Highlight.self,
+        FlashcardReview.self,
+        CustomFlashcard.self
     ])
 
     static func makeContainer(inMemory: Bool = false) throws -> ModelContainer {
@@ -293,6 +295,7 @@ struct PersistenceServices {
     let attempts: AttemptHistory
     let progress: ReadingProgressLibrary
     let highlights: HighlightLibrary
+    let flashcards: FlashcardMemory
 
     init(container: ModelContainer) {
         let issues = PersistenceIssueCenter()
@@ -300,13 +303,29 @@ struct PersistenceServices {
         attempts = AttemptHistory(store: SwiftDataExamAttemptStore(context: container.mainContext), issues: issues)
         progress = ReadingProgressLibrary(store: SwiftDataReadingProgressStore(context: container.mainContext), issues: issues)
         highlights = HighlightLibrary(store: SwiftDataHighlightStore(context: container.mainContext), issues: issues)
+        flashcards = FlashcardMemory(store: SwiftDataFlashcardMemoryStore(context: container.mainContext), issues: issues)
     }
 
     init(attemptStore: any ExamAttemptStore, progressStore: any ReadingProgressStore, highlightStore: any HighlightStore) {
+        self.init(
+            attemptStore: attemptStore,
+            progressStore: progressStore,
+            highlightStore: highlightStore,
+            flashcardStore: InMemoryFlashcardMemoryStore()
+        )
+    }
+
+    init(
+        attemptStore: any ExamAttemptStore,
+        progressStore: any ReadingProgressStore,
+        highlightStore: any HighlightStore,
+        flashcardStore: any FlashcardMemoryStore
+    ) {
         let issues = PersistenceIssueCenter()
         self.issues = issues
         attempts = AttemptHistory(store: attemptStore, issues: issues)
         progress = ReadingProgressLibrary(store: progressStore, issues: issues)
         highlights = HighlightLibrary(store: highlightStore, issues: issues)
+        flashcards = FlashcardMemory(store: flashcardStore, issues: issues)
     }
 }

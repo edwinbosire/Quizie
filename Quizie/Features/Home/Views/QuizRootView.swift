@@ -4,16 +4,18 @@ import SwiftUI
 struct QuizRootView: View {
     let initialTestID: String?
     private let dependencies: QuizFeatureDependencies
+    private let flashcardDependencies: FlashcardFeatureDependencies
     private let showsMainNavigationBar: Bool
     private let onOpenSearch: () -> Void
     private let onOpenHandbook: () -> Void
     private let onOpenSettings: () -> Void
     private let onQuitQuiz: (() -> Void)?
     @State private var engine: QuizEngine
-    @State private var navigationPath: [HomeNavigationDestination] = []
+    @State private var navigationPath = NavigationPath()
 
     init(
         dependencies: QuizFeatureDependencies,
+        flashcardDependencies: FlashcardFeatureDependencies,
         initialTestID: String? = nil,
         configuration: QuizConfiguration = .practice,
         showsMainNavigationBar: Bool = false,
@@ -23,6 +25,7 @@ struct QuizRootView: View {
         onQuitQuiz: (() -> Void)? = nil
     ) {
         self.dependencies = dependencies
+        self.flashcardDependencies = flashcardDependencies
         self.initialTestID = initialTestID
         self.showsMainNavigationBar = showsMainNavigationBar
         self.onOpenSearch = onOpenSearch
@@ -84,13 +87,14 @@ struct QuizRootView: View {
             .navigationDestination(for: HomeNavigationDestination.self) { destination in
                 switch destination {
                 case .flashcards:
-                    FlashcardsView(dependencies: dependencies)
+                    FlashcardsView(dependencies: flashcardDependencies)
                 case .matchGame:
                     MatchGameView()
                 }
             }
+            .flashcardNavigationDestinations(dependencies: flashcardDependencies)
         }
-        .toolbar(engine.phase == .lobby ? .visible : .hidden, for: .tabBar)
+        .toolbar(shouldShowTabBar ? .visible : .hidden, for: .tabBar)
         .toolbar(isShowingQuestion ? .hidden : .visible, for: .navigationBar)
         .alert("Time's Up!", isPresented: Binding(
             get: { engine.didTimeOut },
@@ -116,11 +120,11 @@ struct QuizRootView: View {
     }
 
     private func openFlashcards() {
-        navigationPath.append(.flashcards)
+        navigationPath.append(HomeNavigationDestination.flashcards)
     }
 
     private func openMatchGame() {
-        navigationPath.append(.matchGame)
+        navigationPath.append(HomeNavigationDestination.matchGame)
     }
 
     private func quitQuiz() {
@@ -133,6 +137,10 @@ struct QuizRootView: View {
             return true
         }
         return false
+    }
+
+    private var shouldShowTabBar: Bool {
+        engine.phase == .lobby && navigationPath.isEmpty
     }
 }
 

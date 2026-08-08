@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum MainTab: Hashable {
+enum MainTab: String, Hashable {
 	case home
 	case tests
 	case flashcards

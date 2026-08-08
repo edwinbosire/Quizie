@@ -321,6 +321,7 @@ final class HandbookReaderQuizUITests: XCTestCase {
         homeCard.tap()
 
         XCTAssertTrue(app.staticTexts["Ready to match?"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.firstMatch.waitForNonExistence(timeout: 5))
         app.buttons["matchGame.start"].tap()
 
         XCTAssertTrue(app.descendants(matching: .any)["matchGame.timer"].waitForExistence(timeout: 5))
@@ -343,6 +344,13 @@ final class HandbookReaderQuizUITests: XCTestCase {
         XCTAssertTrue(homeCard.waitForExistence(timeout: 5))
         XCTAssertTrue(homeCard.isHittable)
         homeCard.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["flashcards.landing"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.firstMatch.waitForNonExistence(timeout: 5))
+
+        let chapterOne = app.buttons["flashcards.deck.chapter.1"]
+        XCTAssertTrue(chapterOne.waitForExistence(timeout: 5))
+        chapterOne.tap()
 
         XCTAssertTrue(app.descendants(matching: .any)["flashcards.study"].waitForExistence(timeout: 5))
     }

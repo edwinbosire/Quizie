@@ -4,37 +4,33 @@ import Observation
 @MainActor
 @Observable
 final class FlashcardSession {
-    static let defaultDeckSize = 68
+    static let defaultDeckSize = 20
+    static let learningGap = 3
 
     private(set) var cards: [Flashcard]
     private(set) var currentIndex = 0
     private(set) var ratings: [String: FlashcardRating] = [:]
-    private(set) var starredCardIDs: Set<String> = []
     private(set) var isComplete = false
     var isShowingAnswer = false
     let contentError: String?
 
-    private let originalCards: [Flashcard]
+    private let memory: FlashcardMemory?
+    private let clock: any QuizClock
 
-    init(repository: any QuestionRepository, seed: String? = nil) {
-        do {
-            let cards = try repository
-                .questions(count: Self.defaultDeckSize, seed: seed)
-                .map(Flashcard.init(question:))
-            self.cards = cards
-            originalCards = cards
-            contentError = nil
-        } catch {
-            cards = []
-            originalCards = []
-            contentError = error.localizedDescription
-        }
+    convenience init(cards: [Flashcard]) {
+        self.init(cards: cards, memory: nil, clock: SystemQuizClock())
     }
 
-    init(cards: [Flashcard]) {
+    init(
+        cards: [Flashcard],
+        memory: FlashcardMemory?,
+        clock: any QuizClock
+    ) {
         self.cards = cards
-        originalCards = cards
+        self.memory = memory
+        self.clock = clock
         contentError = nil
+        isComplete = cards.isEmpty
     }
 
     var currentCard: Flashcard? {
@@ -65,50 +61,29 @@ final class FlashcardSession {
         return Int((Double(knownCount) / Double(ratings.count) * 100).rounded())
     }
 
-    var isCurrentCardStarred: Bool {
-        guard let currentCard else { return false }
-        return starredCardIDs.contains(currentCard.id)
-    }
-
-    var canGoBack: Bool {
-        currentIndex > 0
-    }
-
     func flip() {
         guard currentCard != nil else { return }
         isShowingAnswer.toggle()
     }
 
-    func toggleStar() {
-        guard let currentCard else { return }
-        if starredCardIDs.contains(currentCard.id) {
-            starredCardIDs.remove(currentCard.id)
-        } else {
-            starredCardIDs.insert(currentCard.id)
-        }
-    }
-
     func rate(_ rating: FlashcardRating) {
         guard let currentCard else { return }
         ratings[currentCard.id] = rating
+        memory?.record(rating, for: currentCard, at: clock.now)
+        if rating == .learning {
+            scheduleLearningCardIfUseful(currentCard)
+        }
         advance()
     }
 
-    func goBack() {
-        guard canGoBack else { return }
-        currentIndex -= 1
-        isShowingAnswer = false
-        isComplete = false
-    }
+    private func scheduleLearningCardIfUseful(_ card: Flashcard) {
+        let cardsRemaining = cards.count - currentIndex - 1
+        guard cardsRemaining >= Self.learningGap else { return }
 
-    func restart() {
-        begin(cards: originalCards)
-    }
-
-    func reviewLearningCards() {
-        let learningCards = originalCards.filter { ratings[$0.id] == .learning }
-        guard !learningCards.isEmpty else { return }
-        begin(cards: learningCards)
+        let insertionIndex = min(currentIndex + Self.learningGap + 1, cards.count)
+        let scheduledRange = insertionIndex..<cards.count
+        guard !scheduledRange.contains(where: { cards[$0].id == card.id }) else { return }
+        cards.insert(card, at: insertionIndex)
     }
 
     private func advance() {
@@ -119,13 +94,5 @@ final class FlashcardSession {
             currentIndex += 1
             isShowingAnswer = false
         }
-    }
-
-    private func begin(cards: [Flashcard]) {
-        self.cards = cards
-        currentIndex = 0
-        ratings = [:]
-        isShowingAnswer = false
-        isComplete = cards.isEmpty
     }
 }

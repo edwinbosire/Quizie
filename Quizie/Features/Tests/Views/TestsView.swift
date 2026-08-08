@@ -11,6 +11,7 @@ struct TestsView: View {
             .fullScreenCover(item: $selectedTest) { test in
                 QuizRootView(
                     dependencies: dependencies.quiz,
+                    flashcardDependencies: dependencies.flashcards,
                     initialTestID: test.id,
                     configuration: test.configuration,
                     onQuitQuiz: { selectedTest = nil }

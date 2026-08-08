@@ -91,39 +91,87 @@ struct FlashcardSessionTests {
         #expect(session.progress == 1)
     }
 
-    @Test("Learning review creates a focused deck and restart restores every card")
-    func reviewLearningAndRestart() {
-        let session = FlashcardSession(cards: cards)
+    @Test("A learning card returns only after the configured card gap")
+    func learningCardsAreRequeuedAfterGap() {
+        let extendedCards = cards + [
+            Flashcard(id: "four", prompt: "Fourth?", answer: "Fourth answer", topic: "Chapter 4"),
+            Flashcard(id: "five", prompt: "Fifth?", answer: "Fifth answer", topic: "Chapter 5")
+        ]
+        let session = FlashcardSession(cards: extendedCards)
 
-        session.rate(.known)
         session.rate(.learning)
-        session.rate(.known)
-        session.reviewLearningCards()
 
-        #expect(session.cards.map(\.id) == ["two"])
+        #expect(session.cards.map(\.id) == ["one", "two", "three", "four", "one", "five"])
         #expect(session.currentCard?.id == "two")
-        #expect(session.ratings.isEmpty)
-        #expect(!session.isComplete)
 
         session.rate(.known)
-        session.restart()
-
-        #expect(session.cards == cards)
-        #expect(session.currentIndex == 0)
-        #expect(session.ratings.isEmpty)
-        #expect(!session.isComplete)
+        session.rate(.known)
+        #expect(session.currentCard?.id == "four")
+        session.rate(.known)
+        #expect(session.currentCard?.id == "one")
     }
 
-    @Test("Starred cards remain starred while navigating")
-    func starredCardsPersistWithinSession() {
-        let session = FlashcardSession(cards: cards)
+    @Test("Known cards are remembered and learning cards become due after ten minutes")
+    func persistentReviewScheduling() {
+        let start = Date(timeIntervalSince1970: 1_700_000_000)
+        let issues = PersistenceIssueCenter()
+        let memory = FlashcardMemory(store: InMemoryFlashcardMemoryStore(), issues: issues)
+        let catalog = FlashcardCatalog(cards: cards)
 
-        session.toggleStar()
-        session.rate(.known)
-        session.goBack()
+        memory.record(.known, for: cards[0], at: start)
+        memory.record(.learning, for: cards[1], at: start)
 
-        #expect(session.currentCard?.id == "one")
-        #expect(session.isCurrentCardStarred)
+        #expect(!memory.isAvailable(cards[0], at: start.addingTimeInterval(86_400)))
+        #expect(!memory.isDue(cards[1], at: start.addingTimeInterval(599)))
+        #expect(memory.isDue(cards[1], at: start.addingTimeInterval(600)))
+        #expect(catalog.cards(for: .due, memory: memory, at: start.addingTimeInterval(600)).map(\.id) == ["two"])
+        let summary = catalog.progressSummary(memory: memory)
+        #expect(summary.totalAvailable == 3)
+        #expect(summary.mastered == 1)
+        #expect(summary.learning == 1)
+        #expect(summary.totalReviews == 2)
+        #expect(summary.masteryPercentage == 33)
+    }
+
+    @Test("Guide cards are grouped into every chapter and a dates deck")
+    func catalogBuildsChapterAndDateDecks() {
+        let guideCards = (1...5).map { chapter in
+            Flashcard(
+                id: "chapter-\(chapter)",
+                prompt: "Question \(chapter)?",
+                answer: "Answer \(chapter)",
+                topic: "Chapter \(chapter)",
+                chapter: chapter,
+                year: chapter == 3 ? "1215" : nil
+            )
+        }
+        let issues = PersistenceIssueCenter()
+        let memory = FlashcardMemory(store: InMemoryFlashcardMemoryStore(), issues: issues)
+        let catalog = FlashcardCatalog(cards: guideCards)
+
+        #expect(catalog.chapterNumbers == [1, 2, 3, 4, 5])
+        #expect(FlashcardDeck.chapter(1).title == "Chapter 1: The values and principles of the UK")
+        #expect(FlashcardDeck.chapter(2).title == "Chapter 2: What is the UK?")
+        #expect(FlashcardDeck.chapter(3).title == "Chapter 3: A long and illustrious history")
+        #expect(FlashcardDeck.chapter(4).title == "Chapter 4: A modern, thriving society")
+        #expect(FlashcardDeck.chapter(5).title == "Chapter 5: The UK Government, the law and your role")
+        for chapter in 1...5 {
+            #expect(catalog.cards(for: .chapter(chapter), memory: memory, at: .distantPast).count == 1)
+        }
+        #expect(catalog.cards(for: .dates, memory: memory, at: .distantPast).map(\.id) == ["chapter-3"])
+    }
+
+    @Test("Custom cards are saved into the selected deck")
+    func customCardCreation() {
+        let issues = PersistenceIssueCenter()
+        let memory = FlashcardMemory(store: InMemoryFlashcardMemoryStore(), issues: issues)
+        let catalog = FlashcardCatalog(cards: cards)
+
+        memory.createCard(prompt: "When was Magna Carta agreed?", answer: "1215", chapter: 3, isDateCard: true)
+
+        #expect(memory.customCards.count == 1)
+        #expect(catalog.cards(for: .custom, memory: memory, at: .distantPast).count == 1)
+        #expect(catalog.cards(for: .dates, memory: memory, at: .distantPast).contains { $0.prompt == "When was Magna Carta agreed?" })
     }
 }
 

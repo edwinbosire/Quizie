@@ -6,10 +6,27 @@ struct RootTabView: View {
     @AppStorage(ReaderTextSize.storageKey) private var readerTextSizeRaw = ReaderTextSize.standard.rawValue
     private let dependencies: AppDependencies
     @State private var isShowingSettings = false
-    @State private var selectedTab: MainTab = .home
+    @State private var selectedTab: MainTab
+    @State private var flashcardPath: [FlashcardDeck]
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
+        let arguments = ProcessInfo.processInfo.arguments
+        let requestedTab: MainTab? = arguments.firstIndex(of: "-initialMainTab").flatMap { index in
+            guard arguments.indices.contains(index + 1) else { return nil }
+            return MainTab(rawValue: arguments[index + 1])
+        }
+        _selectedTab = State(initialValue: requestedTab ?? .home)
+        let requestedDeck: FlashcardDeck? = arguments.firstIndex(of: "-initialFlashcardDeck").flatMap { index in
+            guard arguments.indices.contains(index + 1) else { return nil }
+            switch arguments[index + 1] {
+            case "new": return .newCards
+            case "due": return .due
+            case "dates": return .dates
+            default: return nil
+            }
+        }
+        _flashcardPath = State(initialValue: requestedDeck.map { [$0] } ?? [])
         self._readerTextSizeRaw = AppStorage(
             wrappedValue: ReaderTextSize.loadAndMigrate().rawValue,
             ReaderTextSize.storageKey
@@ -30,6 +47,7 @@ struct RootTabView: View {
                     Tab("Home", systemImage: "square.grid.2x2", value: .home) {
                         QuizRootView(
                             dependencies: dependencies.quiz,
+                            flashcardDependencies: dependencies.flashcards,
                             showsMainNavigationBar: true,
                             onOpenSearch: { selectedTab = .search },
                             onOpenHandbook: { selectedTab = .handbook },
@@ -51,8 +69,8 @@ struct RootTabView: View {
                     }
 
                     Tab("Flashcards", systemImage: "rectangle.stack.fill", value: .flashcards) {
-                        NavigationStack {
-                            FlashcardsView(dependencies: dependencies.quiz)
+                        NavigationStack(path: $flashcardPath) {
+                            FlashcardsView(dependencies: dependencies.flashcards)
                                 .mainNavigationBar(
                                     title: "Flashcards",
                                     tab: .flashcards,
@@ -60,6 +78,7 @@ struct RootTabView: View {
                                     onOpenHandbook: { selectedTab = .handbook },
                                     onOpenSettings: { isShowingSettings = true }
                                 )
+                                .flashcardNavigationDestinations(dependencies: dependencies.flashcards)
                         }
                     }
 

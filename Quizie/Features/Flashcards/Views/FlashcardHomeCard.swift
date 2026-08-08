@@ -13,7 +13,7 @@ struct FlashcardHomeCard: View {
             accentLight: .hbAccentLight,
             metric: reviewedCount == 0 ? "—" : "\(knownPercentage)%",
             metricLabel: reviewedCount == 0 ? "Start studying" : "Known",
-            detail: reviewedCount == 0 ? "68 cards ready" : "\(reviewedCount) reviewed",
+            detail: reviewedCount == 0 ? "Cards ready to learn" : "\(reviewedCount) reviewed",
             accessibilityIdentifier: "flashcards.homeCard",
             action: onOpen
         )

@@ -24,8 +24,9 @@ struct ChapterList: View {
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
 			Text("CHAPTERS")
-				.font(.caption2.weight(.semibold))
+				.appFont(.caption2.weight(.semibold))
 				.foregroundColor(.hbTextMuted)
+				.accessibilityIdentifier("handbook.chapters.heading")
 				.padding(.horizontal, 24)
 				.padding(.top, 24)
 				.padding(.bottom, 12)

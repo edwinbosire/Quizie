@@ -41,15 +41,15 @@ struct HighlightsView: View {
             Spacer()
 
             Image(systemName: "highlighter")
-                .font(.largeTitle)
+                .appFont(.largeTitle)
                 .foregroundColor(.hbTextMuted.opacity(0.4))
 
             Text("No Highlights Yet")
-                .font(.headline.weight(.semibold))
+                .appFont(.headline.weight(.semibold))
                 .foregroundColor(.hbTextPrimary)
 
             Text("Long-press any paragraph while reading\nto save a highlight.")
-                .font(.footnote)
+                .appFont(.footnote)
                 .foregroundColor(.hbTextMuted)
                 .multilineTextAlignment(.center)
 
@@ -84,17 +84,17 @@ struct HighlightsView: View {
                 .frame(width: 4, height: 20)
 
             Text(chapter.number.uppercased())
-                .font(.caption2.weight(.semibold))
+                .appFont(.caption2.weight(.semibold))
                 .foregroundColor(.hbTextMuted)
 
             Text(chapter.title)
-                .font(.footnote.weight(.medium))
+                .appFont(.footnote.weight(.medium))
                 .foregroundColor(.hbTextPrimary)
 
             Spacer()
 
             Text("\(highlights.count)")
-                .font(.caption.weight(.semibold))
+                .appFont(.caption.weight(.semibold))
                 .foregroundColor(.hbTextMuted)
         }
         .padding(.horizontal, 20)
@@ -157,26 +157,26 @@ struct HighlightRow: View {
                 VStack(alignment: .leading, spacing: 6) {
                     // Section title
                     Text(sectionTitle)
-                        .font(.footnote.weight(.semibold))
+                        .appFont(.footnote.weight(.semibold))
                         .foregroundColor(.hbTextPrimary)
 
                     // Text preview
                     Text(highlight.textPreview)
-                        .font(.footnote)
+                        .appFont(.footnote)
                         .foregroundColor(.hbTextSecondary)
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
 
                     // Date
                     Text(relativeDate)
-                        .font(.caption2)
+                        .appFont(.caption2)
                         .foregroundColor(.hbTextMuted)
                 }
 
                 Spacer(minLength: 0)
 
                 Image(systemName: "chevron.right")
-                    .font(.caption.weight(.medium))
+                    .appFont(.caption.weight(.medium))
                     .foregroundColor(.hbTextMuted.opacity(0.5))
                     .padding(.top, 4)
             }

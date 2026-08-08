@@ -199,6 +199,54 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testAppearanceAppliesOutsideReader() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        app.tabBars.buttons["Handbook"].tap()
+        XCTAssertTrue(app.navigationBars["Handbook"].waitForExistence(timeout: 5))
+        app.buttons["mainNavigation.settings"].tap()
+
+        XCTAssertTrue(app.scrollViews["reader.settings"].waitForExistence(timeout: 5))
+        let smallOption = app.buttons["reader.textSize.small"]
+        let sepiaOption = app.buttons["app.theme.sepia"]
+        XCTAssertTrue(smallOption.waitForExistence(timeout: 5))
+        XCTAssertTrue(sepiaOption.waitForExistence(timeout: 5))
+        smallOption.tap()
+        sepiaOption.tap()
+
+        app.terminate()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let root = app.descendants(matching: .any)["app.root"]
+        XCTAssertTrue(root.waitForExistence(timeout: 5))
+        XCTAssertEqual(root.value as? String, "sepia-small")
+
+        app.tabBars.buttons["Handbook"].tap()
+        let chaptersHeading = app.staticTexts["handbook.chapters.heading"]
+        XCTAssertTrue(chaptersHeading.waitForExistence(timeout: 5))
+        let smallHeadingWidth = chaptersHeading.frame.width
+
+        app.buttons["mainNavigation.settings"].tap()
+        XCTAssertTrue(app.scrollViews["reader.settings"].waitForExistence(timeout: 5))
+        app.buttons["reader.textSize.large"].tap()
+
+        app.terminate()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+        app.tabBars.buttons["Handbook"].tap()
+
+        let largeChaptersHeading = app.staticTexts["handbook.chapters.heading"]
+        XCTAssertTrue(largeChaptersHeading.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(largeChaptersHeading.frame.width, smallHeadingWidth)
+
+        let updatedRoot = app.descendants(matching: .any)["app.root"]
+        XCTAssertEqual(updatedRoot.value as? String, "sepia-large")
+    }
+
+    @MainActor
     func testQuittingQuizRestoresTabBar() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]

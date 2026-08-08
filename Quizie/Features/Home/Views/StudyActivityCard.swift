@@ -16,7 +16,7 @@ struct StudyActivityCard: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: icon)
-                        .font(.headline.weight(.semibold))
+                        .appFont(.headline.weight(.semibold))
                         .foregroundStyle(accent)
                         .frame(width: 34, height: 34)
                         .background(accentLight)
@@ -26,17 +26,17 @@ struct StudyActivityCard: View {
                 }
 
                 Text(title)
-                    .font(.callout.weight(.semibold))
+                    .appFont(.callout.weight(.semibold))
                     .foregroundStyle(Color.hbTextPrimary)
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text(metric)
-                        .font(.system(.title2, design: .serif, weight: .semibold))
+                        .appFont(.system(.title2, design: .serif, weight: .semibold))
                         .foregroundStyle(accent)
                         .monospacedDigit()
 
                     Text(metricLabel)
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundStyle(Color.hbTextMuted)
                         .textCase(.uppercase)
                 }
@@ -44,7 +44,7 @@ struct StudyActivityCard: View {
                 Divider()
 
                 Text(detail)
-                    .font(.caption.weight(.semibold))
+                    .appFont(.caption.weight(.semibold))
                     .foregroundStyle(Color.hbTextSecondary)
             }
             .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)

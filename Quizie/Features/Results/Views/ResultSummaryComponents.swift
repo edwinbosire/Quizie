@@ -55,11 +55,11 @@ struct ResultHero: View {
                 // Icon + badge
                 HStack(spacing: 12) {
                     Image(systemName: icon)
-                        .font(.largeTitle.weight(.medium))
+                        .appFont(.largeTitle.weight(.medium))
                         .foregroundColor(.white)
 
                     Text(passed ? "PASSED" : "NOT PASSED")
-                        .font(.caption.weight(.semibold))
+                        .appFont(.caption.weight(.semibold))
                         .foregroundColor(passed ? Color(hex: "#1B4F72") : Color(hex: "#922B21"))
                         .padding(.horizontal, 12)
                         .padding(.vertical, 5)
@@ -69,12 +69,12 @@ struct ResultHero: View {
                 .padding(.bottom, 18)
 
                 Text(headline)
-                    .font(.system(.title, design: .serif, weight: .semibold))
+                    .appFont(.system(.title, design: .serif, weight: .semibold))
                     .foregroundColor(.white)
                     .padding(.bottom, 8)
 
                 Text(subline)
-                    .font(.subheadline)
+                    .appFont(.subheadline)
                     .foregroundColor(Color.white.opacity(0.75))
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.bottom, 24)
@@ -82,19 +82,19 @@ struct ResultHero: View {
                 // Big score display (animated)
                 HStack(alignment: .lastTextBaseline, spacing: 4) {
 						Text(animatedScore, format: .number.precision(.integerLength(2...)))
-							.font(.system(.largeTitle, design: .rounded, weight: .bold))
+							.appFont(.system(.largeTitle, design: .rounded, weight: .bold))
 							.foregroundColor(.white)
 							.contentTransition(.numericText())
 							.scaleEffect(scoreScale)
 							.animation(.easeOut(duration: 0.5), value: animatedScore)
 
 						Text("/")
-							.font(.system(.title, design: .rounded, weight: .medium))
+							.appFont(.system(.title, design: .rounded, weight: .medium))
 							.foregroundColor(Color.white.opacity(0.4))
 							.id("division_sign") // Stable identity prevents re-layout
 
 						Text("\(session.questions.count)")
-							.font(.system(.title, design: .rounded, weight: .medium))
+							.appFont(.system(.title, design: .rounded, weight: .medium))
 							.foregroundColor(Color.white.opacity(0.6))
 							.id("denominator") // Stable identity prevents re-layout
                 }
@@ -198,11 +198,11 @@ struct ScoreBreakdown: View {
             // Pass mark indicator
             HStack {
                 Text("Pass mark: 18/24")
-                    .font(.footnote)
+                    .appFont(.footnote)
                     .foregroundColor(.hbTextMuted)
                 Spacer()
                 Text(session.passed ? "✓ Passed" : "✗ Not passed")
-                    .font(.footnote.weight(.semibold))
+                    .appFont(.footnote.weight(.semibold))
                     .foregroundColor(session.passed ? Color(hex: "#145A32") : Color(hex: "#922B21"))
             }
             .padding(.horizontal, 4)
@@ -219,10 +219,10 @@ struct StatCard: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(.title, design: .rounded, weight: .bold))
+                .appFont(.system(.title, design: .rounded, weight: .bold))
                 .foregroundColor(color)
             Text(label.uppercased())
-                .font(.caption2.weight(.semibold))
+                .appFont(.caption2.weight(.semibold))
                 .foregroundColor(color.opacity(0.7))
         }
         .frame(maxWidth: .infinity)

@@ -19,16 +19,16 @@ struct LobbyHero: View {
 
 			VStack(alignment: .leading, spacing: 16) {
 				Text("PRACTICE TEST")
-					.font(.caption2.weight(.semibold))
+					.appFont(.caption2.weight(.semibold))
 					.foregroundColor(Color.white.opacity(0.6))
 					.frame(maxWidth: .infinity, alignment: .leading)
 
                 Text("Life in the UK\nPractice Exam")
-                    .font(.system(.title, design: .serif, weight: .semibold))
+                    .appFont(.system(.title, design: .serif, weight: .semibold))
                     .foregroundColor(.white)
 
                 Text("Test your knowledge with a full-length timed exam, just like the real thing.")
-                    .font(.subheadline)
+                    .appFont(.subheadline)
                     .foregroundColor(Color.white.opacity(0.7))
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -70,13 +70,13 @@ private struct ExamInfoItem: View {
     var body: some View {
         VStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.footnote.weight(.medium))
+                .appFont(.footnote.weight(.medium))
                 .foregroundColor(color)
             Text(value)
-                .font(.footnote.weight(.semibold))
+                .appFont(.footnote.weight(.semibold))
                 .foregroundColor(.hbTextPrimary)
             Text(label)
-                .font(.caption2)
+                .appFont(.caption2)
                 .foregroundColor(.hbTextMuted)
         }
         .frame(maxWidth: .infinity)

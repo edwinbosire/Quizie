@@ -22,7 +22,7 @@ struct ReaderSettingsSheet: View {
                     // Font Size Section
                     VStack(alignment: .leading, spacing: 14) {
                         Text("TEXT SIZE")
-                            .font(.caption2.weight(.semibold))
+                            .appFont(.caption2.weight(.semibold))
                             .foregroundColor(.hbTextMuted)
 
                         Picker("Reader text size", selection: $textSize) {
@@ -44,7 +44,7 @@ struct ReaderSettingsSheet: View {
                     // Theme Section
                     VStack(alignment: .leading, spacing: 14) {
                         Text("THEME")
-                            .font(.caption2.weight(.semibold))
+                            .appFont(.caption2.weight(.semibold))
                             .foregroundColor(.hbTextMuted)
 
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 12)], spacing: 12) {
@@ -65,7 +65,7 @@ struct ReaderSettingsSheet: View {
                     // Preview
                     VStack(alignment: .leading, spacing: 8) {
                         Text("PREVIEW")
-                            .font(.caption2.weight(.semibold))
+                            .appFont(.caption2.weight(.semibold))
                             .foregroundColor(.hbTextMuted)
 
                         VStack(alignment: .leading, spacing: 8) {
@@ -135,13 +135,14 @@ struct ThemeOption: View {
 
                 // Label
                 Text(style.name)
-                    .font(.caption.weight(isSelected ? .semibold : .regular))
+                    .appFont(.caption.weight(isSelected ? .semibold : .regular))
                     .foregroundColor(isSelected ? .hbAccent : .hbTextSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("app.theme.\(style.rawValue)")
     }
 }
 

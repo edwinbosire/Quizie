@@ -147,7 +147,7 @@ struct HighlightSelectionToolbar: View {
 
                             if selectedColor == color {
                                 Image(systemName: "checkmark")
-                                    .font(.caption2.weight(.bold))
+                                    .appFont(.caption2.weight(.bold))
                                     .foregroundColor(.white)
                             }
                         }
@@ -163,7 +163,7 @@ struct HighlightSelectionToolbar: View {
                         onDelete()
                     } label: {
                         Image(systemName: "trash")
-                            .font(.footnote.weight(.medium))
+                            .appFont(.footnote.weight(.medium))
                             .foregroundColor(.red.opacity(0.8))
                             .frame(width: 30, height: 30)
                             .background(Color(.systemGray5))
@@ -175,7 +175,7 @@ struct HighlightSelectionToolbar: View {
                     onCancel()
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.caption.weight(.semibold))
+                        .appFont(.caption.weight(.semibold))
                         .foregroundColor(.secondary)
                         .frame(width: 30, height: 30)
                         .background(Color(.systemGray5))

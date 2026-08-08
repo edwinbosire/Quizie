@@ -43,12 +43,12 @@ struct MatchGameView: View {
                 .padding(.bottom, 34)
 
             Text("Ready to match?")
-                .font(.system(.title, design: .serif, weight: .semibold))
+                .appFont(.system(.title, design: .serif, weight: .semibold))
                 .foregroundStyle(Color.hbTextPrimary)
                 .multilineTextAlignment(.center)
 
             Text("Pair every Life in the UK term with its meaning as quickly as you can. A wrong match adds 3 seconds.")
-                .font(.body)
+                .appFont(.body)
                 .foregroundStyle(Color.hbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 30)
@@ -60,7 +60,7 @@ struct MatchGameView: View {
                 game.start()
             } label: {
                 Label("Start game", systemImage: "play.fill")
-                    .font(.headline.weight(.semibold))
+                    .appFont(.headline.weight(.semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 17)
@@ -96,7 +96,7 @@ struct MatchGameView: View {
                                 .foregroundStyle(Color.hbTextMuted)
                         }
                     }
-                    .font(.footnote.weight(.semibold))
+                    .appFont(.footnote.weight(.semibold))
                     .padding(.horizontal, 20)
 
                     ProgressView(value: Double(game.matchedCount), total: Double(game.pairCount))
@@ -140,23 +140,23 @@ struct MatchGameView: View {
                     .frame(width: 118, height: 118)
 
                 Image(systemName: "trophy.fill")
-                    .font(.largeTitle.weight(.semibold))
+                    .appFont(.largeTitle.weight(.semibold))
                     .foregroundStyle(Color.ch4Accent)
             }
 
             Text("All matched!")
-                .font(.system(.largeTitle, design: .serif, weight: .semibold))
+                .appFont(.system(.largeTitle, design: .serif, weight: .semibold))
                 .foregroundStyle(Color.hbTextPrimary)
                 .padding(.top, 26)
 
             Text(format(game.finalTime ?? 0))
-                .font(.largeTitle.weight(.semibold))
+                .appFont(.largeTitle.weight(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(Color.hbAccent)
                 .padding(.top, 8)
 
             Text(resultSummary)
-                .font(.callout)
+                .appFont(.callout)
                 .foregroundStyle(Color.hbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
@@ -168,7 +168,7 @@ struct MatchGameView: View {
                     game.restart()
                 } label: {
                     Label("Play again", systemImage: "arrow.clockwise")
-                        .font(.headline.weight(.semibold))
+                        .appFont(.headline.weight(.semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
@@ -179,7 +179,7 @@ struct MatchGameView: View {
                 Button("Back to home") {
                     dismiss()
                 }
-                .font(.headline.weight(.semibold))
+                .appFont(.headline.weight(.semibold))
                 .foregroundStyle(Color.hbAccent)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
@@ -203,7 +203,7 @@ struct MatchGameView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.headline.weight(.bold))
+                    .appFont(.headline.weight(.bold))
                     .foregroundStyle(Color.hbTextSecondary)
                     .frame(width: 44, height: 44)
                     .background(Color.hbSurface)
@@ -218,13 +218,13 @@ struct MatchGameView: View {
 
             if showsTimer {
                 Label(format(game.elapsedTime(at: date)), systemImage: "stopwatch.fill")
-                    .font(.title3.weight(.semibold))
+                    .appFont(.title3.weight(.semibold))
                     .monospacedDigit()
                     .foregroundStyle(Color.hbAccent)
                     .accessibilityIdentifier("matchGame.timer")
             } else {
                 Text("QUICK MATCH")
-                    .font(.caption.weight(.semibold))
+                    .appFont(.caption.weight(.semibold))
                     .foregroundStyle(Color.hbTextMuted)
             }
 
@@ -251,7 +251,7 @@ private struct MatchGameMark: View {
                     .overlay {
                         if index == 1 || index == 5 {
                             Image(systemName: "checkmark")
-                                .font(.title2.weight(.bold))
+                                .appFont(.title2.weight(.bold))
                                 .foregroundStyle(Color.ch4Accent)
                         }
                     }
@@ -289,7 +289,7 @@ private struct MatchTile: View {
                     .fill(backgroundColor)
 
                 Text(card.text)
-                    .font(card.kind == .term ? .headline : .footnote)
+                    .appFont(card.kind == .term ? .headline : .footnote)
                     .foregroundStyle(foregroundColor)
                     .multilineTextAlignment(.center)
                     .padding(10)
@@ -297,14 +297,14 @@ private struct MatchTile: View {
 
                 if card.kind == .term && !isMatched {
                     Text("TERM")
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundStyle(isSelected ? Color.white.opacity(0.8) : Color.hbTextMuted)
                         .padding(8)
                 }
 
                 if isMatched {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.subheadline.weight(.bold))
+                        .appFont(.subheadline.weight(.bold))
                         .foregroundStyle(Color.ch4Accent)
                         .padding(8)
                 }

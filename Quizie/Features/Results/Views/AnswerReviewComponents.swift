@@ -30,21 +30,21 @@ struct AnswerReviewRow: View {
                             .frame(width: 34, height: 34)
                         if isCorrect {
                             Image(systemName: "checkmark")
-                                .font(.footnote.weight(.bold))
+                                .appFont(.footnote.weight(.bold))
                                 .foregroundColor(rowAccent)
                         } else {
                             Image(systemName: "xmark")
-                                .font(.footnote.weight(.bold))
+                                .appFont(.footnote.weight(.bold))
                                 .foregroundColor(rowAccent)
                         }
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Q\(index)")
-                            .font(.caption2.weight(.semibold))
+                            .appFont(.caption2.weight(.semibold))
                             .foregroundColor(rowAccent.opacity(0.75))
                         Text(question.question)
-                            .font(.footnote)
+                            .appFont(.footnote)
                             .foregroundColor(.hbTextPrimary)
                             .lineLimit(expanded ? nil : 2)
                             .fixedSize(horizontal: false, vertical: true)
@@ -52,7 +52,7 @@ struct AnswerReviewRow: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                        .font(.caption.weight(.medium))
+                        .appFont(.caption.weight(.medium))
                         .foregroundColor(.hbTextMuted)
                         .padding(.top, 4)
                 }
@@ -70,7 +70,7 @@ struct AnswerReviewRow: View {
                     if let answer {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("YOUR ANSWER")
-                                .font(.caption2.weight(.semibold))
+                                .appFont(.caption2.weight(.semibold))
                                 .foregroundColor(.hbTextMuted)
                             ForEach(Array(answer.selectedIndices).sorted(), id: \.self) { idx in
                                 AnswerChip(
@@ -85,7 +85,7 @@ struct AnswerReviewRow: View {
                     if !isCorrect {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("CORRECT ANSWER")
-                                .font(.caption2.weight(.semibold))
+                                .appFont(.caption2.weight(.semibold))
                                 .foregroundColor(.hbTextMuted)
                             ForEach(Array(question.correctIndices).sorted(), id: \.self) { idx in
                                 AnswerChip(
@@ -145,10 +145,10 @@ struct AnswerChip: View {
     var body: some View {
         HStack(spacing: 7) {
             Image(systemName: icon)
-                .font(.footnote)
+                .appFont(.footnote)
                 .foregroundColor(fg)
             Text(text)
-                .font(.footnote)
+                .appFont(.footnote)
                 .foregroundColor(fg)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -177,14 +177,14 @@ struct ExplanationBox: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: "lightbulb.fill")
-                    .font(.caption2)
+                    .appFont(.caption2)
                     .foregroundColor(Color(hex: "#6E2C00"))
                 Text("EXPLANATION")
-                    .font(.caption2.weight(.semibold))
+                    .appFont(.caption2.weight(.semibold))
                     .foregroundColor(Color(hex: "#6E2C00"))
             }
             Text(explanationText)
-                .font(.footnote)
+                .appFont(.footnote)
                 .foregroundColor(Color(hex: "#6E2C00"))
                 .fixedSize(horizontal: false, vertical: true)
         }

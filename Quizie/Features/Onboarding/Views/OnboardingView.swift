@@ -89,17 +89,17 @@ struct OnboardingPageView: View {
                 // Text content
                 VStack(alignment: .leading, spacing: 0) {
                     Text(page.tagline)
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundColor(page.accentColor.opacity(0.7))
                         .padding(.bottom, 12)
 
                     Text(page.title)
-                        .font(.system(.title, design: .serif, weight: .semibold))
+                        .appFont(.system(.title, design: .serif, weight: .semibold))
                         .foregroundColor(.hbTextPrimary)
                         .padding(.bottom, 14)
 
                     Text(page.description)
-                        .font(.callout)
+                        .appFont(.callout)
                         .foregroundColor(.hbTextSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.bottom, 20)
@@ -108,7 +108,7 @@ struct OnboardingPageView: View {
                     FlowLayout(spacing: 8) {
                         ForEach(page.decorativeItems, id: \.self) { item in
                             Text(item)
-                                .font(.footnote.weight(.medium))
+                                .appFont(.footnote.weight(.medium))
                                 .foregroundColor(page.accentColor)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 6)
@@ -159,7 +159,7 @@ struct OnboardingHero: View {
                         .frame(width: 100, height: 100)
 
                     Image(systemName: page.icon)
-                        .font(.largeTitle.weight(.medium))
+                        .appFont(.largeTitle.weight(.medium))
                         .foregroundColor(.white)
                 }
 
@@ -208,11 +208,11 @@ struct OnboardingControls: View {
             } label: {
                 HStack(spacing: 10) {
                     Text(isLastPage ? "Get Started" : "Continue")
-                        .font(.headline.weight(.semibold))
+                        .appFont(.headline.weight(.semibold))
 
                     if !isLastPage {
                         Image(systemName: "arrow.right")
-                            .font(.footnote.weight(.semibold))
+                            .appFont(.footnote.weight(.semibold))
                     }
                 }
                 .foregroundColor(.white)
@@ -229,7 +229,7 @@ struct OnboardingControls: View {
                     onFinish()
                 } label: {
                     Text("Skip")
-                        .font(.subheadline.weight(.medium))
+                        .appFont(.subheadline.weight(.medium))
                         .foregroundColor(.hbTextMuted)
                 }
             }

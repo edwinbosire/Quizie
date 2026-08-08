@@ -14,7 +14,7 @@ struct ChapterView: View {
     @State private var savedScrollOffset: CGFloat = 0
     @State private var initialLoadComplete: Bool = false
     @State private var presentedSheet: ChapterSheet?
-    @AppStorage("readingThemeStyle") private var themeStyleRaw: String = ReadingThemeStyle.classic.rawValue
+    @AppStorage(ReadingThemeStyle.storageKey) private var themeStyleRaw: String = ReadingThemeStyle.classic.rawValue
     @AppStorage(ReaderTextSize.storageKey) private var readerTextSizeRaw: String = ReaderTextSize.standard.rawValue
     @Environment(\.dismiss) private var dismiss
     private var catalog: HandbookCatalog { dependencies.catalog }

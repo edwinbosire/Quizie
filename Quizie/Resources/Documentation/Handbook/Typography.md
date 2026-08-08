@@ -19,9 +19,9 @@ Quizie uses SwiftUI's semantic system fonts directly so text inherits Dynamic Ty
 
 Use `.bold()`, `.italic()`, or `.fontWeight(.semibold)` only when the content hierarchy calls for emphasis. Editorial headings and quotations use the system serif design, scores may use rounded, and timers or changing values use `monospacedDigit()`.
 
-## Reader presets
+## App appearance presets
 
-Handbook content supports Small, Standard, and Large presets. They scale the selected semantic style by 0.90, 1.00, and 1.15 respectively with `Font.scaled(by:)`, so the preset compounds with the user's Dynamic Type setting instead of replacing it.
+Quizie supports Small, Standard, and Large presets app-wide. They scale every selected semantic style by 0.90, 1.00, and 1.15 respectively with `Font.scaled(by:)`, so the preset compounds with the user's Dynamic Type setting instead of replacing it. Classic, Paper, Sepia, and Night palettes also apply to the complete app shell, screens, and settings surfaces through the shared semantic color tokens.
 
 ## Rules
 

@@ -14,9 +14,9 @@ struct ActionButtons: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: showReview ? "chevron.up" : "list.bullet.clipboard")
-                        .font(.subheadline.weight(.semibold))
+                        .appFont(.subheadline.weight(.semibold))
                     Text(showReview ? "Hide Answer Review" : "Review Answers")
-                        .font(.callout.weight(.semibold))
+                        .appFont(.callout.weight(.semibold))
                 }
                 .foregroundColor(Color.hbAccent)
                 .frame(maxWidth: .infinity)
@@ -32,9 +32,9 @@ struct ActionButtons: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.subheadline.weight(.semibold))
+                        .appFont(.subheadline.weight(.semibold))
                     Text("Try Another Exam")
-                        .font(.callout.weight(.semibold))
+                        .appFont(.callout.weight(.semibold))
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -50,9 +50,9 @@ struct ActionButtons: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "house")
-                        .font(.footnote.weight(.medium))
+                        .appFont(.footnote.weight(.medium))
                     Text("Return to Home")
-                        .font(.subheadline)
+                        .appFont(.subheadline)
                 }
                 .foregroundColor(.hbTextMuted)
                 .frame(maxWidth: .infinity)
@@ -71,17 +71,17 @@ struct AnswerReviewList: View {
             // Section header
             HStack {
                 Text("ANSWER REVIEW")
-                    .font(.caption2.weight(.semibold))
+                    .appFont(.caption2.weight(.semibold))
                     .foregroundColor(.hbTextMuted)
                 Spacer()
                 let correct = session.score
                 let wrong = session.questions.count - correct
                 HStack(spacing: 12) {
                     Label("\(correct)", systemImage: "checkmark.circle.fill")
-                        .font(.footnote.weight(.semibold))
+                        .appFont(.footnote.weight(.semibold))
                         .foregroundColor(Color(hex: "#145A32"))
                     Label("\(wrong)", systemImage: "xmark.circle.fill")
-                        .font(.footnote.weight(.semibold))
+                        .appFont(.footnote.weight(.semibold))
                         .foregroundColor(Color(hex: "#922B21"))
                 }
             }

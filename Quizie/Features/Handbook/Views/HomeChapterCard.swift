@@ -25,7 +25,7 @@ struct HomeChapterCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text(chapter.number.uppercased())
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundColor(.white)
 						.frame(maxWidth: .infinity, alignment: .leading)
 
@@ -35,9 +35,9 @@ struct HomeChapterCard: View {
 						if progress.totalReadingTime > 60 {
 							HStack(spacing: 4) {
 								Image(systemName: "clock.fill")
-									.font(.caption2)
+									.appFont(.caption2)
 								Text(progress.formattedReadingTime)
-									.font(.caption2.weight(.medium))
+									.appFont(.caption2.weight(.medium))
 							}
 							.foregroundColor(.white)
 						}
@@ -46,7 +46,7 @@ struct HomeChapterCard: View {
                 }
 
                 Text(chapter.title)
-                    .font(.system(.body, design: .serif, weight: .semibold))
+                    .appFont(.system(.body, design: .serif, weight: .semibold))
                     .foregroundColor(.white)
 
                 // Pill labels and reading time
@@ -54,7 +54,7 @@ struct HomeChapterCard: View {
                     FlowLayout(spacing: 6) {
                         ForEach(chapter.pillLabels, id: \.self) { label in
                             Text(label)
-                                .font(.caption)
+                                .appFont(.caption)
                                 .foregroundColor(.hbTextSecondary)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 3)
@@ -104,9 +104,9 @@ struct ProgressBadge: View {
         if progress.isCompleted {
             HStack(spacing: 4) {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.caption2)
+                    .appFont(.caption2)
                 Text("Completed")
-                    .font(.caption2.weight(.semibold))
+                    .appFont(.caption2.weight(.semibold))
             }
             .foregroundColor(Color(hex: "#145A32"))
             .padding(.horizontal, 8)
@@ -115,7 +115,7 @@ struct ProgressBadge: View {
             .clipShape(Capsule())
         } else if progress.isStarted {
             Text("\(Int(progress.progress * 100))%")
-                .font(.caption2.weight(.semibold))
+                .appFont(.caption2.weight(.semibold))
                 .foregroundColor(Color.hbAccent)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)

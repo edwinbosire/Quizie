@@ -5,13 +5,13 @@ import UIKit
 
 // MARK: - Adaptive Color Palette
 extension Color {
-    static let hbBackground    = Color(lightHex: "#F7F5F0", darkHex: "#111315")
-    static let hbSurface       = Color(lightHex: "#FFFFFF", darkHex: "#1C1F22")
-    static let hbSurface2      = Color(lightHex: "#F0EDE6", darkHex: "#272B2F")
-    static let hbBorder        = Color(lightHex: "#E2DDD4", darkHex: "#3A4046")
-    static let hbTextPrimary   = Color(lightHex: "#1A1814", darkHex: "#F4F1EA")
-    static let hbTextSecondary = Color(lightHex: "#3D3830", darkHex: "#D5D0C8")
-    static let hbTextMuted     = Color(lightHex: "#8C8478", darkHex: "#A69F95")
+    static var hbBackground: Color { AppAppearance.current.style.background }
+    static var hbSurface: Color { AppAppearance.current.style.surface }
+    static var hbSurface2: Color { AppAppearance.current.style.surface2 }
+    static var hbBorder: Color { AppAppearance.current.style.border }
+    static var hbTextPrimary: Color { AppAppearance.current.style.textPrimary }
+    static var hbTextSecondary: Color { AppAppearance.current.style.textSecondary }
+    static var hbTextMuted: Color { AppAppearance.current.style.textMuted }
 
     // Default (Chapter 1 / global) accent
     static let hbAccent        = Color(hex: "#1B4F72")
@@ -81,6 +81,8 @@ enum ReadingThemeStyle: String, CaseIterable, Identifiable {
     case paper    // Pure white, clean
     case sepia    // Deep warm sepia
     case night    // Dark mode
+
+    static let storageKey = "readingThemeStyle"
 
     var id: String { rawValue }
 
@@ -237,6 +239,51 @@ enum ReaderTextSize: String, CaseIterable, Identifiable {
         defaults.set(migratedValue.rawValue, forKey: storageKey)
         defaults.removeObject(forKey: legacyStorageKey)
         return migratedValue
+    }
+}
+
+// MARK: - App Appearance
+struct AppAppearance: Equatable {
+    var style: ReadingThemeStyle
+    var textSize: ReaderTextSize
+
+    static var current: AppAppearance {
+        let defaults = UserDefaults.standard
+        return AppAppearance(
+            style: ReadingThemeStyle(
+                rawValue: defaults.string(forKey: ReadingThemeStyle.storageKey) ?? ""
+            ) ?? .classic,
+            textSize: ReaderTextSize(
+                rawValue: defaults.string(forKey: ReaderTextSize.storageKey) ?? ""
+            ) ?? .standard
+        )
+    }
+}
+
+private struct AppAppearanceKey: EnvironmentKey {
+    static let defaultValue = AppAppearance.current
+}
+
+extension EnvironmentValues {
+    var appAppearance: AppAppearance {
+        get { self[AppAppearanceKey.self] }
+        set { self[AppAppearanceKey.self] = newValue }
+    }
+}
+
+private struct AppFontModifier: ViewModifier {
+    @Environment(\.appAppearance) private var appearance
+    let font: Font
+
+    func body(content: Content) -> some View {
+        content.font(font.scaled(by: appearance.textSize.scaleFactor))
+    }
+}
+
+extension View {
+    /// Applies the app text-size preference in addition to the user's Dynamic Type setting.
+    func appFont(_ font: Font) -> some View {
+        modifier(AppFontModifier(font: font))
     }
 }
 

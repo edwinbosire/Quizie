@@ -51,7 +51,7 @@ struct BulletListRow: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top, spacing: 0) {
                 Text("·")
-                    .font(.headline.weight(.bold))
+                    .appFont(.headline.weight(.bold))
                     .foregroundColor(accentColor)
                     .frame(width: 22, alignment: .leading)
                     .padding(.top, 1)
@@ -104,11 +104,11 @@ struct CheckUnderstandBox: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 Text("✓")
-                    .font(.caption2.weight(.semibold))
+                    .appFont(.caption2.weight(.semibold))
                     .foregroundColor(theme.accent)
 
 				Text("CHECK THAT YOU UNDERSTAND")
-                    .font(.caption2.weight(.semibold))
+                    .appFont(.caption2.weight(.semibold))
                     .foregroundColor(theme.accent)
 					.frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -117,7 +117,7 @@ struct CheckUnderstandBox: View {
                 ForEach(Array(items.enumerated()), id: \.offset) { idx, item in
                     HStack(alignment: .top, spacing: 10) {
                         Text("·")
-                            .font(.callout.weight(.bold))
+                            .appFont(.callout.weight(.bold))
                             .foregroundColor(theme.accent)
                             .padding(.top, 1)
                         Text(highlightedItem(item))

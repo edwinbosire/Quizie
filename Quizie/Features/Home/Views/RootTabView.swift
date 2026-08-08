@@ -2,7 +2,7 @@ import SwiftUI
 
 struct RootTabView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @AppStorage("readingThemeStyle") private var readingThemeStyleRaw = ReadingThemeStyle.classic.rawValue
+    @AppStorage(ReadingThemeStyle.storageKey) private var readingThemeStyleRaw = ReadingThemeStyle.classic.rawValue
     @AppStorage(ReaderTextSize.storageKey) private var readerTextSizeRaw = ReaderTextSize.standard.rawValue
     private let dependencies: AppDependencies
     @State private var isShowingSettings = false
@@ -13,6 +13,13 @@ struct RootTabView: View {
         self._readerTextSizeRaw = AppStorage(
             wrappedValue: ReaderTextSize.loadAndMigrate().rawValue,
             ReaderTextSize.storageKey
+        )
+    }
+
+    private var appAppearance: AppAppearance {
+        AppAppearance(
+            style: ReadingThemeStyle(rawValue: readingThemeStyleRaw) ?? .classic,
+            textSize: ReaderTextSize(rawValue: readerTextSizeRaw) ?? .standard
         )
     }
 
@@ -99,6 +106,11 @@ struct RootTabView: View {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
             }
         }
+        .environment(\.appAppearance, appAppearance)
+        .background(appAppearance.style.background.ignoresSafeArea())
+        .preferredColorScheme(appAppearance.style == .night ? .dark : .light)
+        .accessibilityIdentifier("app.root")
+        .accessibilityValue("\(appAppearance.style.rawValue)-\(appAppearance.textSize.rawValue)")
         .alert(item: Binding(
             get: { dependencies.persistenceIssues.issue },
             set: { if $0 == nil { dependencies.persistenceIssues.dismiss() } }

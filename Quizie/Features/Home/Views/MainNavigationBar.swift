@@ -68,7 +68,7 @@ private struct MainNavigationBarModifier: ViewModifier {
 	) -> some View {
 		Button(action: action) {
 			Image(systemName: systemImage)
-				.font(.subheadline)
+				.appFont(.subheadline)
 		}
 		.buttonStyle(.plain)
 		.glassEffectTransition(.materialize)

@@ -8,7 +8,7 @@ struct TestsList: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("ALL TESTS")
-                .font(.caption2.weight(.semibold))
+                .appFont(.caption2.weight(.semibold))
                 .foregroundColor(.hbTextMuted)
                 .padding(.horizontal, 2)
 
@@ -58,11 +58,11 @@ private struct TestRow: View {
                 .overlay {
                     if let stats {
                         Image(systemName: stats.passed ? "checkmark.circle.fill" : "xmark.circle.fill")
-                            .font(.headline.weight(.semibold))
+                            .appFont(.headline.weight(.semibold))
                             .foregroundColor(statusFg)
                     } else {
                         Text("\(test.number)")
-                            .font(.system(.callout, design: .rounded, weight: .semibold))
+                            .appFont(.system(.callout, design: .rounded, weight: .semibold))
                             .foregroundColor(statusFg)
                     }
                 }
@@ -70,25 +70,25 @@ private struct TestRow: View {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(test.title)
-                        .font(.subheadline.weight(.semibold))
+                        .appFont(.subheadline.weight(.semibold))
                         .foregroundColor(.hbTextPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     HStack(spacing: 6) {
                         if let stats {
                             Text(stats.passed ? "Passed" : "Not Passed")
-                                .font(.caption.weight(.semibold))
+                                .appFont(.caption.weight(.semibold))
                                 .foregroundColor(statusFg)
 
                             Text("•")
                                 .foregroundColor(.hbTextMuted)
 
                             Text("\(stats.attempts) attempt\(stats.attempts == 1 ? "" : "s")")
-                                .font(.caption)
+                                .appFont(.caption)
                                 .foregroundColor(.hbTextMuted)
                         } else {
                             Text(test.subtitle)
-                                .font(.caption)
+                                .appFont(.caption)
                                 .foregroundColor(.hbTextMuted)
                         }
                     }
@@ -97,15 +97,15 @@ private struct TestRow: View {
                 if let stats {
                     HStack(alignment: .firstTextBaseline, spacing: 0.0) {
                         Text("\(stats.bestScore)")
-                            .font(.system(.title2, design: .rounded, weight: .medium))
+                            .appFont(.system(.title2, design: .rounded, weight: .medium))
                             .foregroundColor(.hbTextPrimary)
                         Text("/\(stats.totalQuestions)")
-                            .font(.system(.subheadline, design: .rounded))
+                            .appFont(.system(.subheadline, design: .rounded))
                             .foregroundColor(.hbTextSecondary)
                     }
                 } else {
                     Image(systemName: "chevron.right")
-                        .font(.footnote.weight(.medium))
+                        .appFont(.footnote.weight(.medium))
                         .foregroundColor(.hbTextMuted.opacity(0.6))
                 }
             }

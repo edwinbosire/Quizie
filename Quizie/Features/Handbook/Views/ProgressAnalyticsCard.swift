@@ -51,11 +51,11 @@ struct ProgressAnalyticsCard: View {
 			// Header
 			HStack {
 				Image(systemName: "chart.line.uptrend.xyaxis")
-					.font(.callout.weight(.semibold))
+					.appFont(.callout.weight(.semibold))
 					.foregroundColor(.hbAccent)
 
 				Text("Your Progress")
-					.font(.footnote.weight(.semibold))
+					.appFont(.footnote.weight(.semibold))
 					.foregroundColor(.hbTextPrimary)
 					.frame(maxWidth: .infinity, alignment: .leading)
 			}
@@ -64,13 +64,13 @@ struct ProgressAnalyticsCard: View {
 			VStack(alignment: .leading, spacing: 8) {
 				HStack {
 					Text("Overall Completion")
-						.font(.footnote)
+						.appFont(.footnote)
 						.foregroundColor(.hbTextSecondary)
 						.frame(maxWidth: .infinity, alignment: .leading)
 
 					Text("\(Int(progress * 100))%")
 						.contentTransition(.numericText(value: progress))
-						.font(.subheadline.weight(.bold))
+						.appFont(.subheadline.weight(.bold))
 						.foregroundColor(.hbAccent)
 						.animation(.easeOut.delay(0.2), value: progress)
 				}
@@ -151,19 +151,19 @@ struct StatBox: View {
 				.frame(width: 18, height: 18)
 				.overlay {
 					Image(systemName: icon)
-						.font(.body)
+						.appFont(.body)
 						.foregroundColor(.hbAccent)
 				}
 
 			// Text
 			VStack(alignment: .leading, spacing: 0) {
 				Text(label)
-					.font(.caption2)
+					.appFont(.caption2)
 					.foregroundColor(.hbTextMuted)
 					.frame(maxWidth: .infinity, alignment: .leading)
 
 				Text(value)
-					.font(.footnote.weight(.semibold))
+					.appFont(.footnote.weight(.semibold))
 					.foregroundColor(.hbTextPrimary)
 			}
 

@@ -10,21 +10,21 @@ struct TestsStatsCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("YOUR STATISTICS")
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
 
                     Text(hasAttempts ? "Across all attempts so far" : "Take your first test to get started")
-                        .font(.footnote)
+                        .appFont(.footnote)
                         .foregroundColor(.hbTextSecondary)
                 }
                 Spacer()
 
                 VStack(spacing: 2) {
                     Text("\(attempts.count)")
-                        .font(.system(.title2, design: .rounded, weight: .bold))
+                        .appFont(.system(.title2, design: .rounded, weight: .bold))
                         .foregroundColor(Color.hbAccent)
                     Text("ATTEMPTS")
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
                 }
                 .padding(.horizontal, 14)

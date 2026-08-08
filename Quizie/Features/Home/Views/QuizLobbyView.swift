@@ -42,7 +42,7 @@ struct QuizLobbyView: View {
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("QUICK STUDY")
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundStyle(Color.hbTextMuted)
 
                     HStack(alignment: .top, spacing: 12) {
@@ -75,9 +75,9 @@ struct QuizLobbyView: View {
 			Button(action: { engine.startExam() }) {
 				HStack(spacing: 10) {
 					Image(systemName: "play.fill")
-						.font(.subheadline.weight(.semibold))
+						.appFont(.subheadline.weight(.semibold))
 					Text(attempts.isEmpty ? "Start Practice Exam" : "Try Another Exam")
-						.font(.headline.weight(.semibold))
+						.appFont(.headline.weight(.semibold))
 				}
 				.foregroundColor(.white)
 				.frame(maxWidth: .infinity)

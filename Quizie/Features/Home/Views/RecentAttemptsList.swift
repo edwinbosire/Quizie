@@ -6,7 +6,7 @@ struct RecentAttemptsList: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("RECENT ATTEMPTS")
-                .font(.caption2.weight(.semibold))
+                .appFont(.caption2.weight(.semibold))
                 .foregroundColor(.hbTextMuted)
                 .padding(.horizontal, 2)
             
@@ -30,7 +30,7 @@ struct RecentAttemptRow: View {
 				.frame(width: 42, height: 42)
 				.overlay {
 					Image(systemName: attempt.passed ? "checkmark.circle.fill" : "xmark.circle.fill")
-						.font(.headline.weight(.semibold))
+						.appFont(.headline.weight(.semibold))
 						.foregroundColor(attempt.passed ? Color(hex: "#145A32") : Color(hex: "#922B21"))
 				}
 
@@ -38,29 +38,29 @@ struct RecentAttemptRow: View {
 			HStack {
 				VStack(alignment: .leading, spacing: 3) {
 					Text(attempt.passed ? "Passed" : "Not Passed")
-						.font(.footnote.weight(.semibold))
+						.appFont(.footnote.weight(.semibold))
 						.foregroundColor(attempt.passed ? Color(hex: "#145A32") : Color(hex: "#922B21"))
 						.frame(maxWidth: .infinity, alignment: .leading)
 
 					HStack(spacing: 8) {
 						Label(attempt.formattedElapsed, systemImage: "clock")
-							.font(.caption)
+							.appFont(.caption)
 							.foregroundColor(.hbTextMuted)
 
 						Text("•")
 							.foregroundColor(.hbTextMuted)
 
 						Text(attempt.formattedAttemptedDate)
-							.font(.caption)
+							.appFont(.caption)
 							.foregroundColor(.hbTextMuted)
 					}
 				}
 
 				HStack(alignment: .firstTextBaseline,spacing: 0.0) {
 					Text("\(attempt.score)")
-						.font(.system(.title2, design: .rounded, weight: .medium))
+						.appFont(.system(.title2, design: .rounded, weight: .medium))
 					Text("/\(attempt.totalQuestions)")
-						.font(.system(.callout, design: .rounded))
+						.appFont(.system(.callout, design: .rounded))
 						.foregroundColor(.hbTextSecondary)
 				}
 			}

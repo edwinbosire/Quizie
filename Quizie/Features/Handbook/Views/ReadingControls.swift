@@ -17,18 +17,18 @@ struct ContinueReadingBanner: View {
                     .frame(width: 44, height: 44)
                 
                 Image(systemName: "book.fill")
-                    .font(.body)
+                    .appFont(.body)
                     .foregroundColor(.hbAccent)
             }
             
             // Text content
             VStack(alignment: .leading, spacing: 4) {
                 Text("Continue Reading")
-                    .font(.footnote.weight(.semibold))
+                    .appFont(.footnote.weight(.semibold))
                     .foregroundColor(rt.textPrimary)
                 
                 Text("Resume from \(Int(progress * 100))% complete")
-                    .font(.caption)
+                    .appFont(.caption)
                     .foregroundColor(rt.textSecondary)
             }
             
@@ -41,7 +41,7 @@ struct ContinueReadingBanner: View {
                     onDismiss()
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.footnote.weight(.medium))
+                        .appFont(.footnote.weight(.medium))
                         .foregroundColor(rt.textMuted)
                         .frame(width: 32, height: 32)
                         .background(rt.surface2)
@@ -53,7 +53,7 @@ struct ContinueReadingBanner: View {
                     onContinue()
                 } label: {
                     Image(systemName: "arrow.down")
-                        .font(.callout.weight(.semibold))
+                        .appFont(.callout.weight(.semibold))
                         .foregroundColor(.white)
                         .frame(width: 44, height: 44)
                         .background(Color.hbAccent)
@@ -79,7 +79,7 @@ struct ReaderToolbar: View {
     var body: some View {
         Button(action: onOpenSettings) {
             Image(systemName: "textformat.size")
-                .font(.headline.weight(.semibold))
+                .appFont(.headline.weight(.semibold))
                 .foregroundColor(.white)
                 .frame(width: 52, height: 52)
                 .background(Color.hbAccent)
@@ -106,9 +106,9 @@ struct ChapterNavBar: View {
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "chevron.left")
-                        .font(.body.weight(.medium))
+                        .appFont(.body.weight(.medium))
                     Text("Contents")
-                        .font(.subheadline.weight(.medium))
+                        .appFont(.subheadline.weight(.medium))
                 }
                 .foregroundStyle(rt == .night ? .white : Color.hbAccent)
             }
@@ -120,11 +120,11 @@ struct ChapterNavBar: View {
             Button(action: onChooseChapter) {
                 HStack(spacing: 4) {
                     Text(currentChapter.number)
-                        .font(.footnote.weight(.semibold))
+                        .appFont(.footnote.weight(.semibold))
                         .foregroundColor(rt.textMuted)
 
                     Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundColor(rt.textMuted)
                 }
             }

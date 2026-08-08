@@ -14,28 +14,28 @@ struct SearchResultRow: View {
                         .frame(width: 3, height: 14)
 
                     Text(result.chapter.number)
-                        .font(.caption.weight(.semibold))
+                        .appFont(.caption.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
 
                     Image(systemName: "chevron.right")
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted.opacity(0.5))
 
                     Text(result.section.title)
-                        .font(.caption.weight(.medium))
+                        .appFont(.caption.weight(.medium))
                         .foregroundColor(ChapterTheme.forChapter(result.chapter.id).accent)
                 }
 
                 // Snippet with highlighted match
                 highlightedSnippet
-                    .font(.footnote)
+                    .appFont(.footnote)
                     .foregroundColor(.hbTextSecondary)
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
 
                 // Chapter title
                 Text(result.chapter.title)
-                    .font(.caption)
+                    .appFont(.caption)
                     .foregroundColor(.hbTextMuted)
             }
             .padding(.horizontal, 20)

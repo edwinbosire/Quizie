@@ -8,11 +8,11 @@ struct PerformanceSummary: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("YOUR PROGRESS")
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
                     
                     Text(encouragementMessage)
-                        .font(.footnote)
+                        .appFont(.footnote)
                         .foregroundColor(.hbTextSecondary)
                 }
                 Spacer()
@@ -20,10 +20,10 @@ struct PerformanceSummary: View {
                 // Total attempts badge
                 VStack(spacing: 2) {
                     Text("\(attempts.count)")
-                        .font(.system(.title2, design: .rounded, weight: .bold))
+                        .appFont(.system(.title2, design: .rounded, weight: .bold))
                         .foregroundColor(Color.hbAccent)
                     Text("ATTEMPTS")
-                        .font(.caption2.weight(.semibold))
+                        .appFont(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
                 }
                 .padding(.horizontal, 14)
@@ -94,15 +94,15 @@ struct PerformanceStat: View {
     var body: some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.footnote.weight(.medium))
+                .appFont(.footnote.weight(.medium))
                 .foregroundColor(color)
             
             Text(value)
-                .font(.system(.headline, design: .rounded, weight: .bold))
+                .appFont(.system(.headline, design: .rounded, weight: .bold))
                 .foregroundColor(color)
             
             Text(label)
-                .font(.caption2.weight(.medium))
+                .appFont(.caption2.weight(.medium))
                 .foregroundColor(.hbTextMuted)
                 .multilineTextAlignment(.center)
         }

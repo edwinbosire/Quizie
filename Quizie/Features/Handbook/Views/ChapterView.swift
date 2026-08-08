@@ -322,6 +322,17 @@ struct ChapterView: View {
     }
 }
 
+#Preview("Chapter Reader") {
+    let dependencies = try! AppDependencies.preview()
+
+    NavigationStack {
+        ChapterView(
+            chapter: dependencies.handbook.catalog.chapters[0],
+            dependencies: dependencies.handbook.reader
+        )
+    }
+}
+
 private enum ChapterSheet: String, Identifiable {
     case readerSettings
     case chapterPicker

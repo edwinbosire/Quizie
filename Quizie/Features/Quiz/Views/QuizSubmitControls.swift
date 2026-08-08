@@ -206,20 +206,3 @@ struct OptionRow: View {
         .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: isPressed)
     }
 }
-
-// MARK: - Preview
-#Preview("Quiz Question View") {
-	NavigationStack {
-		QuizQuestionView(engine: PreviewQuizEngine.sampleEngine, questionIndex: 0)
-	}
-}
-
-#Preview("Quiz Question - Multi-Select") {
-    QuizQuestionView(engine: PreviewQuizEngine.multiSelectEngine, questionIndex: 1)
-}
-
-#Preview("Quiz Question - Time Warning") {
-    QuizQuestionView(engine: PreviewQuizEngine.timeWarningEngine, questionIndex: 0)
-}
-
-// MARK: - Preview Helper

@@ -57,4 +57,18 @@ struct QuizResultsView: View {
     }
 }
 
+// MARK: - Previews
+
+#Preview("Quiz Results - Passed") {
+    NavigationStack {
+        QuizResultsView(engine: PreviewResultsEngine.passedEngine)
+    }
+}
+
+#Preview("Quiz Results - Failed") {
+    NavigationStack {
+        QuizResultsView(engine: PreviewResultsEngine.failedEngine)
+    }
+}
+
 // MARK: - Result Hero

@@ -21,7 +21,7 @@ private struct MainNavigationBarModifier: ViewModifier {
             .navigationTitle(isVisible ? title : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbarColorScheme(tab == .home ? .dark : nil, for: .navigationBar)
+			.toolbarRole(.browser)
             .toolbar {
                 if isVisible {
                     if tab != .search {

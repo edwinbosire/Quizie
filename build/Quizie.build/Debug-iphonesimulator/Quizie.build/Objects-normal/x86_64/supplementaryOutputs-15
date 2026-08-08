@@ -1,0 +1,65 @@
+{
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Home/Views/RootTabView.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/RootTabView.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/RootTabView.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/RootTabView.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/RootTabView.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/RootTabView.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Home/Views/StudyActivityCard.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyActivityCard.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyActivityCard.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyActivityCard.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyActivityCard.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyActivityCard.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/MatchGame/Models/MatchGameModels.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameModels.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameModels.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameModels.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameModels.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameModels.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/MatchGame/Models/MatchGameState.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameState.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameState.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameState.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameState.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameState.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/MatchGame/Views/MatchGameHomeCard.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameHomeCard.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameHomeCard.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameHomeCard.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameHomeCard.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameHomeCard.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/MatchGame/Views/MatchGameView.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameView.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameView.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameView.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameView.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MatchGameView.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Onboarding/Models/OnboardingModels.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingModels.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingModels.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingModels.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingModels.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingModels.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Onboarding/Repository/OnboardingRepository.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingRepository.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingRepository.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingRepository.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingRepository.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingRepository.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Onboarding/ViewModels/OnboardingViewModels.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingViewModels.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingViewModels.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingViewModels.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingViewModels.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/OnboardingViewModels.swiftdeps"
+  }
+}

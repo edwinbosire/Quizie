@@ -1,0 +1,72 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Tests/Views/TestsList.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "ALL TESTS",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 10
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld attempt%@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Passed",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not Passed",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "/%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 103
+        }
+      }
+    ]
+  },
+  "version": 1
+}

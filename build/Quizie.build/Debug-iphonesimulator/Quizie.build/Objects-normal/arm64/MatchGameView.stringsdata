@@ -1,0 +1,136 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/MatchGame/Views/MatchGameView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Ready to match?",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pair every Life in the UK term with its meaning as quickly as you can. A wrong match adds 3 seconds.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start game",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%llds penalty",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 93
+        }
+      },
+      {
+        "comment": "",
+        "key": "No penalties",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld of %lld matched",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "All matched!",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 148
+        }
+      },
+      {
+        "comment": "",
+        "key": "Back to home",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 180
+        }
+      },
+      {
+        "comment": "",
+        "key": "Play again",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 171
+        }
+      },
+      {
+        "comment": "",
+        "key": "QUICK MATCH",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close matching game",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 216
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@: %@",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "Matched",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 327
+        }
+      },
+      {
+        "comment": "",
+        "key": "Selected",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 327
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 79,
+          "startingLine": 327
+        }
+      },
+      {
+        "comment": "",
+        "key": "TERM",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 303
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'QuizieUITests' in project 'Quizie'
+➜ Explicit dependency on target 'Quizie' in project 'Quizie'
+Target 'Quizie' in project 'Quizie' (no dependencies)

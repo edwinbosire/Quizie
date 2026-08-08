@@ -1,0 +1,56 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/ReadingControls.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Continue Reading",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Resume from %lld%% complete",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reader settings",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "Back to handbook contents",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose chapter",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "Contents",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 110
+        }
+      }
+    ]
+  },
+  "version": 1
+}

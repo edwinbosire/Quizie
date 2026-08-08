@@ -1,0 +1,16 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Home/Views/QuizRulesCard.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "BEFORE YOU START",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 8
+        }
+      }
+    ]
+  },
+  "version": 1
+}

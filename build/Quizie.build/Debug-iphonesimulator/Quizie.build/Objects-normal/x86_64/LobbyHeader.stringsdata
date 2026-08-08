@@ -1,0 +1,32 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Home/Views/LobbyHeader.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "PRACTICE TEST",
+        "location": {
+          "startingColumn": 10,
+          "startingLine": 21
+        }
+      },
+      {
+        "comment": "",
+        "key": "Life in the UK\nPractice Exam",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Test your knowledge with a full-length timed exam, just like the real thing.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 32
+        }
+      }
+    ]
+  },
+  "version": 1
+}

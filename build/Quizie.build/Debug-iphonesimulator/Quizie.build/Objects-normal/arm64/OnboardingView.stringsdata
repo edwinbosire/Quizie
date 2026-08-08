@@ -1,0 +1,32 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Onboarding/Views/OnboardingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Get Started",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Continue",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Skip",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 234
+        }
+      }
+    ]
+  },
+  "version": 1
+}

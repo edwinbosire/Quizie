@@ -1,0 +1,40 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/Views/QuizQuestionCard.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "SELECT %lld ANSWERS",
+        "location": {
+          "startingColumn": 12,
+          "startingLine": 16
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld / 24",
+        "location": {
+          "startingColumn": 11,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "Selected",
+        "location": {
+          "startingColumn": 76,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not selected",
+        "location": {
+          "startingColumn": 89,
+          "startingLine": 89
+        }
+      }
+    ]
+  },
+  "version": 1
+}

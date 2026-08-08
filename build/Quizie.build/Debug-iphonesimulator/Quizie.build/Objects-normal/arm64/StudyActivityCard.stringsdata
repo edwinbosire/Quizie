@@ -1,0 +1,16 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Home/Views/StudyActivityCard.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Opens %@",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 74
+        }
+      }
+    ]
+  },
+  "version": 1
+}

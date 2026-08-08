@@ -1,0 +1,32 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Tests/Views/TestsHero.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "MOCK TESTS",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 21
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose Your\nPractice Test",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Take any of the official-style practice tests below to gauge how ready you are.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 32
+        }
+      }
+    ]
+  },
+  "version": 1
+}

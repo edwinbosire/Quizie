@@ -3,6 +3,7 @@ import SwiftUI
 struct QuizQuestionView: View {
     let engine: QuizEngine
     let questionIndex: Int
+    var onQuit: () -> Void = {}
 
     @State private var showOptionsSheet = false
     @State private var pendingAlert: QuizQuestionAlert?
@@ -65,7 +66,7 @@ struct QuizQuestionView: View {
                     title: Text("Quit Quiz?"),
                     message: Text("Your current progress will be lost permanently. You can start a new quiz from the lobby."),
                     primaryButton: .cancel(),
-                    secondaryButton: .destructive(Text("Quit")) { engine.returnToLobby() }
+                    secondaryButton: .destructive(Text("Quit"), action: onQuit)
                 )
             }
         }

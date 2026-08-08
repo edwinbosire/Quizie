@@ -1,0 +1,32 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/HandbookHero.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "OFFICIAL STUDY GUIDE",
+        "location": {
+          "startingColumn": 11,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "Life in the\nUnited Kingdom",
+        "location": {
+          "startingColumn": 11,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your complete guide to British values, history, culture and citizenship.",
+        "location": {
+          "startingColumn": 11,
+          "startingLine": 40
+        }
+      }
+    ]
+  },
+  "version": 1
+}

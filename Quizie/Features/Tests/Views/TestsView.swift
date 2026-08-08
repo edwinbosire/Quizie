@@ -12,7 +12,8 @@ struct TestsView: View {
                 QuizRootView(
                     dependencies: dependencies.quiz,
                     initialTestID: test.id,
-                    configuration: test.configuration
+                    configuration: test.configuration,
+                    onQuitQuiz: { selectedTest = nil }
                 )
             }
     }

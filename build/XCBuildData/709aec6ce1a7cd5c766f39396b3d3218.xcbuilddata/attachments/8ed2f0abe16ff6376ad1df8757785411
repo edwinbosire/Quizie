@@ -1,0 +1,29 @@
+{
+  "" : {
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/QuizieUITests-primary.dia",
+    "emit-module-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/QuizieUITests-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/QuizieUITests-primary-emit-module.dia",
+    "pch" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/QuizieUITests-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/QuizieUITests-primary.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/QuizieUITests/HandbookReaderQuizUITests.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITests.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITests.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITests.dia",
+    "index-unit-output-path" : "/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITests.o",
+    "llvm-bc" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITests.bc",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITests.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITests.swiftdeps",
+    "swiftmodule" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITests~partial.swiftmodule"
+  },
+  "/Users/ed/Develop/Projects/Quizie/QuizieUITests/HandbookReaderQuizUITestsLaunchTests.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITestsLaunchTests.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITestsLaunchTests.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITestsLaunchTests.dia",
+    "index-unit-output-path" : "/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITestsLaunchTests.o",
+    "llvm-bc" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITestsLaunchTests.bc",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITestsLaunchTests.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITestsLaunchTests.swiftdeps",
+    "swiftmodule" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/QuizieUITests.build/Objects-normal/arm64/HandbookReaderQuizUITestsLaunchTests~partial.swiftmodule"
+  }
+}

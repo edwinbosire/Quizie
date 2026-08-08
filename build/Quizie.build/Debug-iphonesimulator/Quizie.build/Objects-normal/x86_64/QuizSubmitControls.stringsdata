@@ -1,0 +1,56 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/Views/QuizSubmitControls.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Correct! Moving to next...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Submit Exam",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Next Question",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Submit Answer",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hint",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "Got it",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 167
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,16 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/HandbookView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Try Again",
+        "location": {
+          "startingColumn": 11,
+          "startingLine": 33
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -145,6 +145,63 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testQuittingQuizRestoresTabBar() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let startButton = app.buttons["quiz.start"]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 5))
+        startButton.tap()
+
+        let optionsButton = app.buttons["Quiz options"]
+        XCTAssertTrue(optionsButton.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.tabBars.firstMatch.exists)
+        optionsButton.tap()
+
+        let quitQuizButton = app.buttons["Quit Quiz"]
+        XCTAssertTrue(quitQuizButton.waitForExistence(timeout: 5))
+        quitQuizButton.tap()
+
+        let confirmQuitButton = app.alerts["Quit Quiz?"].buttons["Quit"]
+        XCTAssertTrue(confirmQuitButton.waitForExistence(timeout: 5))
+        confirmQuitButton.tap()
+
+        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.buttons["Home"].exists)
+    }
+
+    @MainActor
+    func testQuittingPracticeTestDismissesFullScreenQuiz() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let testsTab = app.tabBars.buttons["Tests"]
+        XCTAssertTrue(testsTab.waitForExistence(timeout: 5))
+        testsTab.tap()
+
+        let firstTest = app.staticTexts["Practice Test 1"]
+        XCTAssertTrue(firstTest.waitForExistence(timeout: 5))
+        firstTest.tap()
+
+        let optionsButton = app.buttons["Quiz options"]
+        XCTAssertTrue(optionsButton.waitForExistence(timeout: 5))
+        optionsButton.tap()
+
+        let quitQuizButton = app.buttons["Quit Quiz"]
+        XCTAssertTrue(quitQuizButton.waitForExistence(timeout: 5))
+        quitQuizButton.tap()
+
+        let confirmQuitButton = app.alerts["Quit Quiz?"].buttons["Quit"]
+        XCTAssertTrue(confirmQuitButton.waitForExistence(timeout: 5))
+        confirmQuitButton.tap()
+
+        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(testsTab.isSelected)
+    }
+
+    @MainActor
     func testMatchingGameLaunchesFromHome() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]

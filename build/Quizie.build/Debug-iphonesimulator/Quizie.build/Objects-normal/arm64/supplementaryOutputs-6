@@ -1,0 +1,58 @@
+{
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Onboarding/Views/OnboardingView.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/OnboardingView.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/OnboardingView.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/OnboardingView.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/OnboardingView.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/OnboardingView.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/Models/QuizModels.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizModels.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizModels.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizModels.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizModels.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizModels.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/Models/QuizState.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizState.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizState.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizState.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizState.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizState.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/Repository/QuestionRepository.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuestionRepository.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuestionRepository.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuestionRepository.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuestionRepository.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuestionRepository.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/Repository/QuizDependencies.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizDependencies.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizDependencies.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizDependencies.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizDependencies.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizDependencies.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/ViewModels/QuizEngine.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizEngine.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizEngine.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizEngine.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizEngine.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizEngine.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/Views/QuizQuestionCard.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionCard.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionCard.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionCard.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionCard.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionCard.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/Views/QuizQuestionHeader.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionHeader.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionHeader.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionHeader.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionHeader.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/arm64/QuizQuestionHeader.swiftdeps"
+  }
+}

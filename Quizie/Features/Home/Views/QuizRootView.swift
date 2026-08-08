@@ -8,6 +8,7 @@ struct QuizRootView: View {
     private let onOpenSearch: () -> Void
     private let onOpenHandbook: () -> Void
     private let onOpenSettings: () -> Void
+    private let onQuitQuiz: (() -> Void)?
     @State private var engine: QuizEngine
     @State private var navigationPath: [HomeNavigationDestination] = []
 
@@ -18,7 +19,8 @@ struct QuizRootView: View {
         showsMainNavigationBar: Bool = false,
         onOpenSearch: @escaping () -> Void = {},
         onOpenHandbook: @escaping () -> Void = {},
-        onOpenSettings: @escaping () -> Void = {}
+        onOpenSettings: @escaping () -> Void = {},
+        onQuitQuiz: (() -> Void)? = nil
     ) {
         self.dependencies = dependencies
         self.initialTestID = initialTestID
@@ -26,6 +28,7 @@ struct QuizRootView: View {
         self.onOpenSearch = onOpenSearch
         self.onOpenHandbook = onOpenHandbook
         self.onOpenSettings = onOpenSettings
+        self.onQuitQuiz = onQuitQuiz
         _engine = State(initialValue: QuizEngine(
             configuration: configuration,
             questionRepository: dependencies.questions,
@@ -52,11 +55,9 @@ struct QuizRootView: View {
                         ))
 
                 case .question(let idx):
-                    QuizQuestionView(engine: engine, questionIndex: idx)
+                    QuizQuestionView(engine: engine, questionIndex: idx, onQuit: quitQuiz)
                         .id(idx)   // force view refresh on index change
                         .navigationBarBackButtonHidden(true)
-                        .toolbar(.hidden, for: .navigationBar)
-                        .toolbar(.hidden, for: .tabBar)
                         .ignoresSafeArea(.container, edges: .bottom)
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing).combined(with: .opacity),
@@ -65,7 +66,6 @@ struct QuizRootView: View {
 
                 case .results:
                     QuizResultsView(engine: engine)
-                        .toolbar(.hidden, for: .tabBar)
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing).combined(with: .opacity),
                             removal: .move(edge: .trailing)
@@ -90,6 +90,8 @@ struct QuizRootView: View {
                 }
             }
         }
+        .toolbar(engine.phase == .lobby ? .visible : .hidden, for: .tabBar)
+        .toolbar(isShowingQuestion ? .hidden : .visible, for: .navigationBar)
         .alert("Time's Up!", isPresented: Binding(
             get: { engine.didTimeOut },
             set: { if !$0 { engine.acknowledgeTimeout() } }
@@ -119,6 +121,18 @@ struct QuizRootView: View {
 
     private func openMatchGame() {
         navigationPath.append(.matchGame)
+    }
+
+    private func quitQuiz() {
+        engine.returnToLobby()
+        onQuitQuiz?()
+    }
+
+    private var isShowingQuestion: Bool {
+        if case .question = engine.phase {
+            return true
+        }
+        return false
     }
 }
 

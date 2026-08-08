@@ -1,0 +1,65 @@
+{
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/HighlightActionSheet.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightActionSheet.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightActionSheet.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightActionSheet.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightActionSheet.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightActionSheet.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/HighlightsView.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightsView.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightsView.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightsView.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightsView.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HighlightsView.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/HomeChapterCard.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeChapterCard.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeChapterCard.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeChapterCard.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeChapterCard.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeChapterCard.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/MyHighlightsCard.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MyHighlightsCard.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MyHighlightsCard.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MyHighlightsCard.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MyHighlightsCard.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/MyHighlightsCard.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/ProgressAnalyticsCard.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ProgressAnalyticsCard.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ProgressAnalyticsCard.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ProgressAnalyticsCard.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ProgressAnalyticsCard.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ProgressAnalyticsCard.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/ReaderSettingsSheet.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReaderSettingsSheet.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReaderSettingsSheet.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReaderSettingsSheet.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReaderSettingsSheet.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReaderSettingsSheet.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Handbook/Views/ReadingControls.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReadingControls.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReadingControls.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReadingControls.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReadingControls.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/ReadingControls.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Home/Models/HomeModels.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeModels.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeModels.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeModels.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeModels.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/HomeModels.swiftdeps"
+  },
+  "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Home/Models/StudyStatistics.swift" : {
+    "const-values" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyStatistics.swiftconstvalues",
+    "dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyStatistics.d",
+    "diagnostics" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyStatistics.dia",
+    "object" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyStatistics.o",
+    "swift-dependencies" : "/Users/ed/Develop/Projects/Quizie/build/Quizie.build/Debug-iphonesimulator/Quizie.build/Objects-normal/x86_64/StudyStatistics.swiftdeps"
+  }
+}

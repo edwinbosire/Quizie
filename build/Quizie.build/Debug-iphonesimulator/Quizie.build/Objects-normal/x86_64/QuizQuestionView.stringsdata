@@ -1,0 +1,56 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Quiz/Views/QuizQuestionView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Restart Quiz?",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your current progress will be lost permanently. This will reset all answers and restart the timer.",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restart",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quit Quiz?",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your current progress will be lost permanently. You can start a new quiz from the lobby.",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quit",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 69
+        }
+      }
+    ]
+  },
+  "version": 1
+}

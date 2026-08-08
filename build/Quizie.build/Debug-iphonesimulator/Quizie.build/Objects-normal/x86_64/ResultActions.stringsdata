@@ -1,0 +1,64 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Results/Views/ResultActions.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Hide Answer Review",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 18
+        }
+      },
+      {
+        "comment": "",
+        "key": "Review Answers",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 18
+        }
+      },
+      {
+        "comment": "",
+        "key": "Try Another Exam",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Return to Home",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "ANSWER REVIEW",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 84
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,80 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Search/Views/SearchView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Search",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search the handbook...",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search the Handbook",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "Find topics, facts, and key information\nacross all chapters.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "SUGGESTED SEARCHES",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "BROWSE BY CHAPTER",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "No results for \"%@\"",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "Try a different search term or check your spelling.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld result%@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 204
+        }
+      }
+    ]
+  },
+  "version": 1
+}

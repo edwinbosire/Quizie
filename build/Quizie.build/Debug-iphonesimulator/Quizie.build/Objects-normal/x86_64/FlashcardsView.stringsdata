@@ -1,0 +1,168 @@
+{
+  "source": "/Users/ed/Develop/Projects/Quizie/Quizie/Features/Flashcards/Views/FlashcardsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Flashcards",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "Previous card",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 124
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap to reveal answer",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 129
+        }
+      },
+      {
+        "comment": "",
+        "key": "Answer: %@",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "Question: %@",
+        "location": {
+          "startingColumn": 74,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "Double tap to flip the card",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 189
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap card to see the question",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap card to reveal the answer",
+        "location": {
+          "startingColumn": 68,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove from starred cards",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add to starred cards",
+        "location": {
+          "startingColumn": 79,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deck complete",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 264
+        }
+      },
+      {
+        "comment": "",
+        "key": "Nice work. Keep the cards you missed in rotation until they feel easy.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 268
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 285
+        }
+      },
+      {
+        "comment": "",
+        "key": "KNOWN",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restart all flashcards",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 324
+        }
+      },
+      {
+        "comment": "",
+        "key": "Review %lld learning cards",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 313
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 339
+        }
+      },
+      {
+        "comment": "",
+        "key": "Flashcards Unavailable",
+        "location": {
+          "startingColumn": 13,
+          "startingLine": 356
+        }
+      }
+    ]
+  },
+  "version": 1
+}

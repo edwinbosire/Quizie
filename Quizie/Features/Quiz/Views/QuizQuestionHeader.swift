@@ -42,6 +42,7 @@ struct QuizTopBar: View {
                         .foregroundColor(.hbTextSecondary)
                 }
                 .padding(.leading, 8)
+                .accessibilityLabel("Quiz options")
                 .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.5), trigger: optionsButtonPressed)
             }
             .padding(.horizontal, 16)

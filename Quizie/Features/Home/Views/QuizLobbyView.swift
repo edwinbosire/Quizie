@@ -89,6 +89,7 @@ struct QuizLobbyView: View {
 				.cornerRadius(HBRadius.md)
 				.shadow(color: Color.hbAccent.opacity(0.35), radius: 8, x: 0, y: 4)
 			}
+			.accessibilityIdentifier("quiz.start")
 		}
 		.padding(12)
 		.background(Color.hbSurface)

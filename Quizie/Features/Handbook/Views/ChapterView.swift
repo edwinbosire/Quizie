@@ -69,7 +69,11 @@ struct ChapterView: View {
                             Color.clear.frame(height: 1).id("scrollAnchor")
                             
                             // Chapter Header (matches .chapter-header)
-                            ChapterHeaderView(chapter: chapter, theme: theme, readingTheme: readingTheme)
+                            ChapterHeaderView(
+                                chapter: chapter,
+                                theme: theme,
+                                readingTheme: readingTheme
+                            )
 
                             // Sticky Tab Bar placeholder (real sticky done via safeAreaInset)
                             Color.clear.frame(height: 0).id("top")
@@ -77,8 +81,9 @@ struct ChapterView: View {
                         // Section content
                         VStack(spacing: 24) {
                             ForEach(Array(chapter.sections.enumerated()), id: \.element.id) { idx, section in
-                                SectionCard(
+                                ReaderSection(
                                     section: section,
+                                    sectionIndex: idx,
                                     theme: theme,
                                     chapterID: chapter.contentID,
                                     highlights: highlights.filter { $0.sectionID == section.id },
@@ -86,7 +91,9 @@ struct ChapterView: View {
                                     presentation: presentation
                                 )
                                     .id(section.id)
-                                    .padding(.horizontal, 16)
+                                    .padding(.horizontal, 28)
+                                    .frame(maxWidth: 760)
+                                    .frame(maxWidth: .infinity)
                                     .onAppear {
                                         withAnimation(.easeInOut(duration: 0.15)) {
                                             selectedSectionIndex = idx
@@ -94,8 +101,8 @@ struct ChapterView: View {
                                     }
                             }
                         }
-                        .padding(.top, 20)
-                        .padding(.bottom, 40)
+                        .padding(.top, 28)
+                        .padding(.bottom, 64)
                     }
                 }
                 .background(readingThemeStyle.background)

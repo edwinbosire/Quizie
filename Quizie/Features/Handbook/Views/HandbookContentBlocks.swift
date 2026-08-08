@@ -1,7 +1,8 @@
 import SwiftUI
 
-struct SectionCard: View {
+struct ReaderSection: View {
     let section: HandbookSection
+    let sectionIndex: Int
     let theme: ChapterTheme
     var chapterID: String = ""
     var highlights: [HighlightSnapshot] = []
@@ -12,45 +13,48 @@ struct SectionCard: View {
 
     private var rt: ReadingThemeStyle { readingTheme.style }
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Title bar
-            VStack(alignment: .leading, spacing: 0) {
-                Text(section.title)
-                    .font(readingTheme.scaledFont(.system(.title3, design: .serif, weight: .semibold)))
-                    .foregroundColor(rt.textPrimary)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                    .padding(.bottom, 16)
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(alignment: .firstTextBaseline, spacing: 14) {
+                Text(String(format: "%02d", sectionIndex + 1))
+                    .font(readingTheme.scaledFont(.system(.title3, design: .serif, weight: .bold)))
+                    .foregroundStyle(theme.accent)
+                sectionTitle(font: .system(.title2, design: .serif, weight: .bold))
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(rt.surface)
-            .overlay(alignment: .bottom) {
-                Rectangle().fill(rt.border).frame(height: 1)
-            }
-
-            // Content
-            VStack(alignment: .leading, spacing: 0) {
-                ContentBlocksView(
-                    blocks: section.blocks,
-                    theme: theme,
-                    chapterID: chapterID,
-                    sectionId: section.id,
-                    highlights: highlights,
-                    highlightLibrary: highlightLibrary,
-                    presentation: presentation
-                )
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 16)
-            .padding(.bottom, 24)
-            .background(rt.surface)
+            content
         }
-        .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
-        .overlay(
-            RoundedRectangle(cornerRadius: HBRadius.md)
-                .stroke(rt.border, lineWidth: 1)
+        .sectionRule(color: theme.accent.opacity(0.28), top: 42)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func sectionTitle(font: Font) -> some View {
+        Text(section.title)
+            .font(readingTheme.scaledFont(font))
+            .foregroundColor(rt.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var content: some View {
+        ContentBlocksView(
+            blocks: section.blocks,
+            theme: theme,
+            chapterID: chapterID,
+            sectionId: section.id,
+            highlights: highlights,
+            highlightLibrary: highlightLibrary,
+            presentation: presentation
         )
-        .shadow(color: Color.black.opacity(0.07), radius: 6, x: 0, y: 2)
+    }
+}
+
+private extension View {
+    func sectionRule(color: Color, top: CGFloat) -> some View {
+        overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(color)
+                .frame(height: 1)
+                .offset(y: top)
+        }
+        .padding(.bottom, top)
     }
 }
 
@@ -119,8 +123,9 @@ struct ContentBlocksView: View {
         switch block.content {
         case .paragraph(let text):
             Text(highlightedText(text, font: readingTheme.scaledFont(.body), color: rt.textSecondary))
+                .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.bottom, 14)
+                .padding(.bottom, 18)
 
         case .subheading(let text):
             SectionSubheading(text: text, isFirst: index == 0, presentation: presentation)

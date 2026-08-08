@@ -6,25 +6,32 @@ struct ChapterHeaderView: View {
     let readingTheme: ReadingTheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            ChapterBadge(text: chapter.number, theme: theme)
+        VStack(alignment: .leading, spacing: 18) {
+            Text(chapter.number.uppercased())
+                .font(readingTheme.scaledFont(.caption.weight(.bold)))
+                .tracking(1.6)
+                .foregroundStyle(theme.accent)
 
-            Text(chapter.title)
-                .font(readingTheme.scaledFont(.system(.title2, design: .serif, weight: .semibold)))
-                .foregroundColor(readingTheme.style.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("reader.chapterHeader.title")
-        }
-        .padding(.horizontal, 24)
-        .padding(.top, 32)
-        .padding(.bottom, 28)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(readingTheme.style.surface)
-        .overlay(alignment: .bottom) {
+            chapterTitle
+
             Rectangle()
-                .fill(readingTheme.style.border)
-                .frame(height: 1)
+                .fill(theme.accent)
+                .frame(width: 56, height: 4)
         }
+        .padding(.horizontal, 28)
+        .padding(.top, 44)
+        .padding(.bottom, 18)
+        .frame(maxWidth: 760, alignment: .leading)
+        .frame(maxWidth: .infinity)
+        .background(readingTheme.style.background)
+    }
+
+    private var chapterTitle: some View {
+        Text(chapter.title)
+            .font(readingTheme.scaledFont(.system(size: 38, weight: .bold, design: .serif)))
+            .foregroundColor(readingTheme.style.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("reader.chapterHeader.title")
     }
 }
 

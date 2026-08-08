@@ -21,3 +21,27 @@ struct MatchGameHomeCard: View {
         )
     }
 }
+
+// MARK: - Previews
+
+#Preview("Match Game Home Card - New") {
+    let defaults = UserDefaults(suiteName: "MatchGameHomeCardPreview.New")!
+    defaults.set(0, forKey: StudyStatistics.matchRoundsKey)
+    defaults.set(0.0, forKey: StudyStatistics.matchBestTimeKey)
+
+    return MatchGameHomeCard(onOpen: {})
+        .padding()
+        .background(Color.hbBackground)
+        .defaultAppStorage(defaults)
+}
+
+#Preview("Match Game Home Card - Progress") {
+    let defaults = UserDefaults(suiteName: "MatchGameHomeCardPreview.Progress")!
+    defaults.set(7, forKey: StudyStatistics.matchRoundsKey)
+    defaults.set(18.4, forKey: StudyStatistics.matchBestTimeKey)
+
+    return MatchGameHomeCard(onOpen: {})
+        .padding()
+        .background(Color.hbBackground)
+        .defaultAppStorage(defaults)
+}

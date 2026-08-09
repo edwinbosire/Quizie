@@ -9,10 +9,6 @@ struct HomeChapterCard: View {
         self.progressLibrary = progressLibrary
     }
 
-    private var theme: ChapterTheme {
-        ChapterTheme.forChapter(chapter.id)
-    }
-
     private var readingProgress: ReadingProgressSnapshot? { progressLibrary.progress(for: chapter.contentID) }
 
 	var body: some View {
@@ -72,10 +68,17 @@ struct HomeChapterCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(alignment: .leading) {
-            Rectangle()
-                .fill(cardAccentColor)
-				.frame(maxWidth: .infinity)
+        .background {
+            ZStack {
+                Color.unionNavy
+
+                if usesRedChapterTheme {
+                    Color.unionRed.opacity(0.55)
+                }
+
+                UnionJackWatermark()
+                    .opacity(0.055)
+            }
         }
 		.background(Color.hbSurface)
         .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
@@ -86,9 +89,74 @@ struct HomeChapterCard: View {
         .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
     }
 
-	private var cardAccentColor: Color {
-		theme.accent
-	}
+    private var usesRedChapterTheme: Bool { chapter.id.isMultiple(of: 2) == false }
+}
+
+private struct UnionJackWatermark: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+            let diagonalLength = hypot(width, height) * 1.15
+            let diagonalAngle = Angle(radians: atan2(height, width))
+
+            ZStack {
+                Color.unionNavy
+
+                diagonalBand(
+                    length: diagonalLength,
+                    thickness: height * 0.24,
+                    color: .unionWhite,
+                    angle: diagonalAngle
+                )
+                diagonalBand(
+                    length: diagonalLength,
+                    thickness: height * 0.24,
+                    color: .unionWhite,
+                    angle: -diagonalAngle
+                )
+                diagonalBand(
+                    length: diagonalLength,
+                    thickness: height * 0.09,
+                    color: .unionRed,
+                    angle: diagonalAngle
+                )
+                diagonalBand(
+                    length: diagonalLength,
+                    thickness: height * 0.09,
+                    color: .unionRed,
+                    angle: -diagonalAngle
+                )
+
+                Rectangle()
+                    .fill(Color.unionWhite)
+                    .frame(height: height * 0.30)
+                Rectangle()
+                    .fill(Color.unionWhite)
+                    .frame(width: width * 0.18)
+                Rectangle()
+                    .fill(Color.unionRed)
+                    .frame(height: height * 0.15)
+                Rectangle()
+                    .fill(Color.unionRed)
+                    .frame(width: width * 0.09)
+            }
+        }
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
+    }
+
+    private func diagonalBand(
+        length: CGFloat,
+        thickness: CGFloat,
+        color: Color,
+        angle: Angle
+    ) -> some View {
+        Rectangle()
+            .fill(color)
+            .frame(width: length, height: thickness)
+            .rotationEffect(angle)
+    }
 }
 
 // MARK: - Progress Badge

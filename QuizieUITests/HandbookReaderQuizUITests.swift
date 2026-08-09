@@ -98,6 +98,22 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testTestsEmptyStateStartsFirstTest() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        app.tabBars.buttons["Tests"].tap()
+
+        let startButton = app.buttons["tests.startFirst"]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["YOUR STATISTICS"].exists)
+        startButton.tap()
+
+        XCTAssertTrue(app.buttons["Quiz options"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     func testHandbookReaderHeaderExposesNavigationControls() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]

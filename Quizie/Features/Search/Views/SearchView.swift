@@ -126,34 +126,11 @@ struct SearchView: View {
                             Button {
                                 searchText = chapter.title
                             } label: {
-                                HStack(spacing: 12) {
-                                    RoundedRectangle(cornerRadius: 2)
-                                        .fill(ChapterTheme.forChapter(chapter.id).accent)
-                                        .frame(width: 4, height: 32)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(chapter.number.uppercased())
-                                            .appFont(.caption2.weight(.semibold))
-                                            .foregroundColor(.hbTextMuted)
-
-                                        Text(chapter.title)
-                                            .appFont(.footnote.weight(.medium))
-                                            .foregroundColor(.hbTextPrimary)
-                                    }
-
-                                    Spacer()
-
-                                    Image(systemName: "magnifyingglass")
-                                        .appFont(.caption.weight(.medium))
-                                        .foregroundColor(.hbTextMuted)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .background(Color.hbSurface)
-                                .clipShape(RoundedRectangle(cornerRadius: HBRadius.sm))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: HBRadius.sm)
-                                        .stroke(Color.hbBorder, lineWidth: 1)
+                                ChapterBrowseRow(
+                                    chapterNumber: chapter.number,
+                                    title: chapter.title,
+                                    chapterIndex: chapter.id,
+                                    trailingSystemImage: "magnifyingglass"
                                 )
                             }
                             .buttonStyle(.plain)

@@ -24,9 +24,17 @@ struct TestsView: View {
             VStack(spacing: 0) {
 //                TestsHero()
 
-                TestsStatsCard(attempts: attempts)
+                if attempts.isEmpty {
+                    TestsStartCard {
+                        selectedTest = TestCatalog.tests.first
+                    }
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
+                } else {
+                    TestsStatsCard(attempts: attempts)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
+                }
 
                 TestsList(
                     tests: TestCatalog.tests,

@@ -17,6 +17,9 @@ struct ReadingProgressSnapshot: Identifiable, Equatable {
     }
     var isCompleted: Bool { progress >= 0.95 }
     var isStarted: Bool { progress > 0.05 }
+    var hasReadingActivity: Bool {
+        progress > 0 || scrollOffset > 0 || totalReadingTime > 0
+    }
 }
 
 /// Persistence record. Feature code consumes `ReadingProgressSnapshot` through

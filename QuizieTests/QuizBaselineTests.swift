@@ -131,6 +131,7 @@ struct FlashcardSessionTests {
         #expect(summary.learning == 1)
         #expect(summary.totalReviews == 2)
         #expect(summary.masteryPercentage == 33)
+        #expect(catalog.revisedCount(for: .newCards, memory: memory) == 2)
     }
 
     @Test("Guide cards are grouped into every chapter and a dates deck")
@@ -159,6 +160,10 @@ struct FlashcardSessionTests {
             #expect(catalog.cards(for: .chapter(chapter), memory: memory, at: .distantPast).count == 1)
         }
         #expect(catalog.cards(for: .dates, memory: memory, at: .distantPast).map(\.id) == ["chapter-3"])
+
+        memory.record(.known, for: guideCards[0], at: .distantPast)
+        #expect(catalog.revisedCount(for: .chapter(1), memory: memory) == 1)
+        #expect(catalog.revisedCount(for: .chapter(2), memory: memory) == 0)
     }
 
     @Test("Custom cards are saved into the selected deck")
@@ -435,6 +440,17 @@ struct ProgressTests {
         ])
         let records = try store.fetchAll()
         #expect(records.reduce(0) { $0 + $1.progress } / 4 == 0.25)
+    }
+
+    @Test("Reading analytics require meaningful activity")
+    func readingAnalyticsRequireActivity() {
+        let untouched = ReadingProgressSnapshot(chapterID: "chapter_01")
+        let scrolled = ReadingProgressSnapshot(chapterID: "chapter_01", scrollOffset: 12)
+        let timed = ReadingProgressSnapshot(chapterID: "chapter_01", totalReadingTime: 3)
+
+        #expect(!untouched.hasReadingActivity)
+        #expect(scrolled.hasReadingActivity)
+        #expect(timed.hasReadingActivity)
     }
 }
 

@@ -3,8 +3,6 @@ import SwiftUI
 struct TestsStatsCard: View {
     let attempts: [ExamAttemptSnapshot]
 
-    var hasAttempts: Bool { !attempts.isEmpty }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
@@ -13,7 +11,7 @@ struct TestsStatsCard: View {
                         .appFont(.caption2.weight(.semibold))
                         .foregroundColor(.hbTextMuted)
 
-                    Text(hasAttempts ? "Across all attempts so far" : "Take your first test to get started")
+                    Text("Across all attempts so far")
                         .appFont(.footnote)
                         .foregroundColor(.hbTextSecondary)
                 }
@@ -36,21 +34,21 @@ struct TestsStatsCard: View {
             HStack(spacing: 10) {
                 PerformanceStat(
                     icon: "target",
-                    value: hasAttempts ? String(format: "%.0f%%", attempts.averagePercentage) : "—",
+                    value: String(format: "%.0f%%", attempts.averagePercentage),
                     label: "Avg Score",
                     color: Color.hbAccent
                 )
 
                 PerformanceStat(
                     icon: "trophy.fill",
-                    value: hasAttempts ? "\(attempts.bestScore)/\(attempts.first?.totalQuestions ?? 24)" : "—",
+                    value: "\(attempts.bestScore)/\(attempts.first?.totalQuestions ?? 24)",
                     label: "Best Score",
                     color: Color(hex: "#145A32")
                 )
 
                 PerformanceStat(
                     icon: "checkmark.circle.fill",
-                    value: hasAttempts ? String(format: "%.0f%%", attempts.passRate) : "—",
+                    value: String(format: "%.0f%%", attempts.passRate),
                     label: "Pass Rate",
                     color: Color(hex: "#6E2C00")
                 )
@@ -69,6 +67,46 @@ struct TestsStatsCard: View {
         )
         .cornerRadius(HBRadius.md)
         .overlay(RoundedRectangle(cornerRadius: HBRadius.md).stroke(Color.hbAccent.opacity(0.15), lineWidth: 1))
+    }
+}
+
+struct TestsStartCard: View {
+    let onStart: () -> Void
+
+    var body: some View {
+        Button(action: onStart) {
+            HStack(spacing: 14) {
+                Image(systemName: "play.fill")
+                    .appFont(.headline.weight(.semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 44, height: 44)
+                    .background(Color.white.opacity(0.16))
+                    .clipShape(Circle())
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Start your first test")
+                        .appFont(.headline.weight(.semibold))
+                        .foregroundColor(.white)
+
+                    Text("Answer 24 questions and see how ready you are.")
+                        .appFont(.footnote)
+                        .foregroundColor(.white.opacity(0.76))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "arrow.right")
+                    .appFont(.footnote.weight(.semibold))
+                    .foregroundColor(.white)
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.hbAccent)
+            .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("tests.startFirst")
     }
 }
 

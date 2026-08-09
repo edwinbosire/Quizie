@@ -7,6 +7,7 @@ struct ChapterList: View {
 	private var highlightLibrary: HighlightLibrary { dependencies.highlights }
 	private var allProgress: [ReadingProgressSnapshot] { progressLibrary.records }
 	private var allHighlights: [HighlightSnapshot] { highlightLibrary.highlights }
+	private var hasReadingActivity: Bool { allProgress.contains { $0.hasReadingActivity } }
 
 	private var overallCompletion: Double {
 			guard !chapters.isEmpty else { return 0 }
@@ -32,7 +33,7 @@ struct ChapterList: View {
 				.padding(.bottom, 12)
 
 			// Progress Analytics Card
-			if !allProgress.isEmpty {
+			if hasReadingActivity {
 				ProgressAnalyticsCard(
 					overallCompletion: overallCompletion,
 					totalReadingTime: totalReadingTime,

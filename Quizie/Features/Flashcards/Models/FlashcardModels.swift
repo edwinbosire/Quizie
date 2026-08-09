@@ -56,20 +56,22 @@ enum FlashcardDeck: Hashable, Identifiable, Sendable {
         switch self {
         case .newCards: return "New flashcards"
         case .due: return "Upcoming practice"
-        case .chapter(let number): return Self.chapterTitle(for: number)
+        case .chapter(let number):
+            guard let name = Self.chapterName(for: number) else { return "Chapter \(number)" }
+            return "Chapter \(number): \(name)"
         case .dates: return "Important dates"
         case .custom: return "My flashcards"
         }
     }
 
-    private static func chapterTitle(for number: Int) -> String {
+    static func chapterName(for number: Int) -> String? {
         switch number {
-        case 1: return "Chapter 1: The values and principles of the UK"
-        case 2: return "Chapter 2: What is the UK?"
-        case 3: return "Chapter 3: A long and illustrious history"
-        case 4: return "Chapter 4: A modern, thriving society"
-        case 5: return "Chapter 5: The UK Government, the law and your role"
-        default: return "Chapter \(number)"
+        case 1: return "The values and principles of the UK"
+        case 2: return "What is the UK?"
+        case 3: return "A long and illustrious history"
+        case 4: return "A modern, thriving society"
+        case 5: return "The UK Government, the law and your role"
+        default: return nil
         }
     }
 }

@@ -121,6 +121,7 @@ struct ProgressAnalyticsCard: View {
 				.stroke(Color.hbAccent.opacity(0.2), lineWidth: 1)
 		)
 		.clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
+		.accessibilityIdentifier("handbook.progress")
 		.task(id: overallCompletion) {
 			animateProgress = false
 			progress = 0.0001

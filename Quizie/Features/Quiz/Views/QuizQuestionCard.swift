@@ -36,7 +36,7 @@ struct QuestionCard: View {
 			}
 
             Text(question.question)
-                .appFont(.system(.title3, design: .serif, weight: .semibold))
+                .appFont(.studyPrompt)
                 .foregroundColor(.hbTextPrimary)
 
             // Year hint

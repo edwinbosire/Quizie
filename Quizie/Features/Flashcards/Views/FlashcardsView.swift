@@ -100,6 +100,7 @@ struct FlashcardsView: View {
     private func deckRow(for deck: FlashcardDeck, icon: String, chapter: Int?) -> some View {
         let total = dependencies.catalog.totalCount(for: deck, memory: dependencies.memory)
         let mastered = dependencies.catalog.masteredCount(for: deck, memory: dependencies.memory)
+        let revised = dependencies.catalog.revisedCount(for: deck, memory: dependencies.memory)
         let available = dependencies.catalog.cards(
             for: deck,
             memory: dependencies.memory,
@@ -108,38 +109,47 @@ struct FlashcardsView: View {
         let theme = chapter.map { ChapterTheme.forChapter(max(0, $0 - 1)) }
 
         return NavigationLink(value: deck) {
-            HStack(spacing: 14) {
-                Image(systemName: icon)
-                    .appFont(.headline.weight(.semibold))
-                    .foregroundStyle(theme?.accent ?? Color.hbAccent)
-                    .frame(width: 42, height: 42)
-                    .background(theme?.accentLight ?? Color.hbAccentLight)
-                    .clipShape(RoundedRectangle(cornerRadius: HBRadius.sm))
+            if let chapter,
+               let chapterName = FlashcardDeck.chapterName(for: chapter) {
+                ChapterBrowseRow(
+                    chapterNumber: "Chapter \(chapter)",
+                    title: chapterName,
+                    chapterIndex: max(0, chapter - 1),
+                    detail: "\(total) flashcard\(total == 1 ? "" : "s") · \(revised) revised",
+                    trailingSystemImage: available == 0 ? "checkmark.circle.fill" : "chevron.right"
+                )
+            } else {
+                HStack(spacing: 14) {
+                    Image(systemName: icon)
+                        .appFont(.headline.weight(.semibold))
+                        .foregroundStyle(theme?.accent ?? Color.hbAccent)
+                        .frame(width: 42, height: 42)
+                        .background(theme?.accentLight ?? Color.hbAccentLight)
+                        .clipShape(RoundedRectangle(cornerRadius: HBRadius.sm))
 
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(deck.title)
-                        .appFont(.callout.weight(.semibold))
-                        .foregroundStyle(Color.hbTextPrimary)
-                        .lineLimit(3)
-                        .fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(deck.title)
+                            .appFont(.callout.weight(.semibold))
+                            .foregroundStyle(Color.hbTextPrimary)
 
-                    Text(available == 0 ? "Complete · \(mastered) mastered" : "\(available) ready · \(mastered) of \(total) mastered")
-                        .appFont(.caption)
-                        .foregroundStyle(Color.hbTextMuted)
+                        Text(available == 0 ? "Complete · \(mastered) mastered" : "\(available) ready · \(mastered) of \(total) mastered")
+                            .appFont(.caption)
+                            .foregroundStyle(Color.hbTextMuted)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: available == 0 ? "checkmark.circle.fill" : "chevron.right")
+                        .appFont(.footnote.weight(.semibold))
+                        .foregroundStyle(available == 0 ? Color(hex: "#145A32") : Color.hbTextMuted)
                 }
-
-                Spacer()
-
-                Image(systemName: available == 0 ? "checkmark.circle.fill" : "chevron.right")
-                    .appFont(.footnote.weight(.semibold))
-                    .foregroundStyle(available == 0 ? Color(hex: "#145A32") : Color.hbTextMuted)
-            }
-            .padding(14)
-            .background(Color.hbSurface)
-            .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
-            .overlay {
-                RoundedRectangle(cornerRadius: HBRadius.md)
-                    .stroke(Color.hbBorder, lineWidth: 1)
+                .padding(14)
+                .background(Color.hbSurface)
+                .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
+                .overlay {
+                    RoundedRectangle(cornerRadius: HBRadius.md)
+                        .stroke(Color.hbBorder, lineWidth: 1)
+                }
             }
         }
         .buttonStyle(.plain)
@@ -477,7 +487,7 @@ private struct FlashcardCardView: View {
                         .foregroundStyle(Color.hbTextMuted)
 
                     Text(text)
-                        .appFont(.system(.largeTitle, design: .serif, weight: .medium))
+                        .appFont(.studyPrompt)
                         .foregroundStyle(Color.hbTextPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }

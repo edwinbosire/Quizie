@@ -85,4 +85,16 @@ struct FlashcardCatalog {
         }
         return matching.filter { memory.review(for: $0.id)?.rating == .known }.count
     }
+
+    func revisedCount(for deck: FlashcardDeck, memory: FlashcardMemory) -> Int {
+        let all = allCards(memory: memory)
+        let matching: [Flashcard]
+        switch deck {
+        case .chapter(let number): matching = all.filter { $0.chapter == number }
+        case .dates: matching = all.filter(\.isDateCard)
+        case .custom: matching = all.filter(\.isCustom)
+        case .newCards, .due: matching = all
+        }
+        return matching.filter { memory.review(for: $0.id) != nil }.count
+    }
 }

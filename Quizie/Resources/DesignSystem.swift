@@ -75,6 +75,10 @@ enum HBRadius {
     static let pill: CGFloat = 20
 }
 
+extension Font {
+    static let studyPrompt = Font.system(.largeTitle, design: .serif, weight: .medium)
+}
+
 // MARK: - Reading Theme (user-selectable page appearance)
 enum ReadingThemeStyle: String, CaseIterable, Identifiable {
     case classic  // Original warm parchment

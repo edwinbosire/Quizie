@@ -369,7 +369,7 @@ final class HandbookReaderQuizUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Ready to match?"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["matchGame.howToPlay"].exists)
-        XCTAssertTrue(app.staticTexts["Choose two cards"].exists)
+        XCTAssertTrue(app.staticTexts["Drag or tap two cards"].exists)
         XCTAssertTrue(app.staticTexts["Correct pairs stay matched"].exists)
         XCTAssertTrue(app.staticTexts["Wrong pair? Keep going"].exists)
         XCTAssertTrue(app.tabBars.firstMatch.waitForNonExistence(timeout: 5))

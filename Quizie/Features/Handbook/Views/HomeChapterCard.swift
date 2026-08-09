@@ -13,11 +13,6 @@ struct HomeChapterCard: View {
         ChapterTheme.forChapter(chapter.id)
     }
 
-    private var cardAccentColors: [Color] = [
-        Color(hex: "#1B4F72"), Color(hex: "#1A5276"),
-        Color(hex: "#6E2C00"), Color(hex: "#145A32"), Color(hex: "#512E5F")
-    ]
-    
     private var readingProgress: ReadingProgressSnapshot? { progressLibrary.progress(for: chapter.contentID) }
 
 	var body: some View {
@@ -71,7 +66,7 @@ struct HomeChapterCard: View {
             
             // Progress bar at bottom if started
             if let progress = readingProgress, progress.isStarted {
-                ProgressBar(progress: progress.progress, color: cardAccentColor)
+                ProgressBar(progress: progress.progress, color: .unionWhite)
 					.padding(.leading, 10)
 					.padding(.bottom, 1)
             }
@@ -92,7 +87,7 @@ struct HomeChapterCard: View {
     }
 
 	private var cardAccentColor: Color {
-		cardAccentColors[min(chapter.id, cardAccentColors.count - 1)]
+		theme.accent
 	}
 }
 

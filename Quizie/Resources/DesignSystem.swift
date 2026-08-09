@@ -17,6 +17,11 @@ extension Color {
     static let hbAccent        = Color(hex: "#1B4F72")
     static let hbAccentLight   = Color(hex: "#D6E8F5")
 
+    // Union flag palette
+    static let unionNavy       = Color(hex: "#012169")
+    static let unionRed        = Color(hex: "#C8102E")
+    static let unionWhite      = Color(hex: "#FFFFFF")
+
     // Per-chapter accents
     static let ch1Accent       = Color(hex: "#1B4F72")
     static let ch1AccentLight  = Color(hex: "#D6E8F5")
@@ -312,11 +317,11 @@ struct ChapterTheme {
     let checkBorderColor: Color
 
     static let themes: [ChapterTheme] = [
-        ChapterTheme(accent: .ch1Accent, accentLight: .ch1AccentLight, checkBorderColor: Color(hex: "#B8D9EF")),
-        ChapterTheme(accent: .ch2Accent, accentLight: .ch2AccentLight, checkBorderColor: Color(hex: "#A9D0E8")),
-        ChapterTheme(accent: .ch3Accent, accentLight: .ch3AccentLight, checkBorderColor: Color(hex: "#E0B89A")),
-        ChapterTheme(accent: .ch4Accent, accentLight: .ch4AccentLight, checkBorderColor: Color(hex: "#A9DFBF")),
-        ChapterTheme(accent: .ch5Accent, accentLight: .ch5AccentLight, checkBorderColor: Color(hex: "#C9A8E0")),
+        ChapterTheme(accent: .unionNavy, accentLight: .unionWhite, checkBorderColor: .unionNavy),
+        ChapterTheme(accent: .unionRed, accentLight: .unionWhite, checkBorderColor: .unionRed),
+        ChapterTheme(accent: .unionNavy, accentLight: .unionWhite, checkBorderColor: .unionNavy),
+        ChapterTheme(accent: .unionRed, accentLight: .unionWhite, checkBorderColor: .unionRed),
+        ChapterTheme(accent: .unionNavy, accentLight: .unionWhite, checkBorderColor: .unionNavy),
     ]
 
     static func forChapter(_ index: Int) -> ChapterTheme {

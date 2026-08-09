@@ -229,6 +229,34 @@ struct MatchGameStateTests {
         #expect(game.selectedCardID == nil)
         #expect(game.matchedCount == 1)
     }
+
+    @Test("Dropping a card onto its match resolves the pair")
+    func droppedCardsCanMatch() {
+        var game = MatchGameState(pairs: pairs, shuffleCards: false)
+        game.start()
+
+        #expect(game.matchedCount == 0)
+        #expect(game.incorrectCardIDs.isEmpty)
+
+        game.match(cardID: "one-term", with: "one-definition")
+
+        #expect(game.matchedCount == 1)
+        #expect(game.mistakeCount == 0)
+        #expect(game.incorrectCardIDs.isEmpty)
+    }
+
+    @Test("Dropping onto a wrong card reveals feedback and adds a penalty")
+    func droppedCardsCanBeIncorrect() {
+        var game = MatchGameState(pairs: pairs, shuffleCards: false)
+        game.start()
+
+        game.match(cardID: "one-term", with: "two-definition")
+
+        #expect(game.matchedCount == 0)
+        #expect(game.mistakeCount == 1)
+        #expect(game.penaltyTime == 3)
+        #expect(game.incorrectCardIDs == ["one-term", "two-definition"])
+    }
 }
 
 @MainActor

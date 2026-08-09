@@ -50,7 +50,7 @@ struct MatchGameView: View {
                         .multilineTextAlignment(.center)
                         .padding(.top, 24)
 
-                    Text("Tap a term, then tap the meaning that belongs with it. Match all 6 pairs as quickly as you can.")
+                    Text("Drag one card onto its match, or tap any two cards. Match all 6 pairs as quickly as you can.")
                         .appFont(.body)
                         .foregroundStyle(Color.hbTextSecondary)
                         .multilineTextAlignment(.center)
@@ -132,16 +132,32 @@ struct MatchGameView: View {
                                 card: card,
                                 isSelected: game.selectedCardID == card.id,
                                 isMatched: game.isMatched(card),
-                                isIncorrect: game.incorrectCardIDs.contains(card.id)
-                            ) {
-                                let previousMistakes = game.mistakeCount
-                                withAnimation(.snappy(duration: 0.25)) {
-                                    game.select(cardID: card.id, at: context.date)
+                                isIncorrect: game.incorrectCardIDs.contains(card.id),
+                                action: {
+                                    let previousMistakes = game.mistakeCount
+                                    withAnimation(.snappy(duration: 0.25)) {
+                                        game.select(cardID: card.id, at: context.date)
+                                    }
+                                    if game.mistakeCount > previousMistakes {
+                                        feedbackTrigger += 1
+                                    }
+                                },
+                                onDrop: { sourceCardID in
+                                    let previousMatches = game.matchedCount
+                                    let previousMistakes = game.mistakeCount
+
+                                    withAnimation(.snappy(duration: 0.3)) {
+                                        game.match(cardID: sourceCardID, with: card.id, at: .now)
+                                    }
+
+                                    if game.mistakeCount > previousMistakes {
+                                        feedbackTrigger += 1
+                                    }
+
+                                    return game.matchedCount > previousMatches
+                                        || game.mistakeCount > previousMistakes
                                 }
-                                if game.mistakeCount > previousMistakes {
-                                    feedbackTrigger += 1
-                                }
-                            }
+                            )
                         }
                     }
                     .padding(.horizontal, 12)
@@ -268,8 +284,13 @@ private struct MatchGameHowToDemo: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var step = 0
 
+    private let columns = Array(
+        repeating: GridItem(.flexible(), spacing: 10),
+        count: 3
+    )
+
     var body: some View {
-        VStack(spacing: 8) {
+        LazyVGrid(columns: columns, spacing: 10) {
             demoCard(
                 label: "TERM",
                 text: "House of Commons",
@@ -277,28 +298,20 @@ private struct MatchGameHowToDemo: View {
                 isMatched: step == 2
             )
 
-            ZStack {
-                Capsule()
-                    .fill(step == 2 ? Color.ch4Accent : Color.hbBorder)
-                    .frame(width: 3, height: 22)
-
-                Image(systemName: step == 2 ? "checkmark.circle.fill" : "arrow.down")
-                    .appFont(.caption.weight(.bold))
-                    .foregroundStyle(step == 2 ? Color.ch4Accent : Color.hbTextMuted)
-                    .padding(5)
-                    .background(Color.hbBackground)
-                    .clipShape(Circle())
-            }
+            ghostCard()
+            ghostCard()
+            ghostCard()
 
             demoCard(
                 label: "MEANING",
-                text: "The elected chamber of Parliament",
+                text: "Elected chamber of Parliament",
                 isSelected: false,
                 isMatched: step == 2
             )
+
+            ghostCard()
         }
-        .frame(maxWidth: 310)
-        .padding(.horizontal, 28)
+        .padding(.horizontal, 20)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Example match: House of Commons pairs with the elected chamber of Parliament")
         .task {
@@ -329,37 +342,69 @@ private struct MatchGameHowToDemo: View {
         isSelected: Bool,
         isMatched: Bool
     ) -> some View {
-        HStack(spacing: 12) {
+        ZStack(alignment: .topLeading) {
+            Text(text)
+                .appFont(label == "TERM" ? .caption.weight(.semibold) : .caption2.weight(.medium))
+                .foregroundStyle(isSelected ? Color.white : Color.hbTextPrimary)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.8)
+                .padding(9)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             Text(label)
                 .appFont(.caption2.weight(.bold))
                 .foregroundStyle(
                     isSelected ? Color.white.opacity(0.82) : isMatched ? Color.ch4Accent : Color.hbTextMuted
                 )
-                .frame(width: 58, alignment: .leading)
+                .padding(8)
 
-            Text(text)
-                .appFont(.subheadline.weight(.semibold))
-                .foregroundStyle(isSelected ? Color.white : Color.hbTextPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            Image(systemName: isMatched ? "checkmark.circle.fill" : "hand.tap")
-                .foregroundStyle(
-                    isSelected ? Color.white : isMatched ? Color.ch4Accent : Color.hbTextMuted
-                )
-                .symbolEffect(.bounce, value: isSelected || isMatched)
+            if isMatched || isSelected {
+                Image(systemName: isMatched ? "checkmark.circle.fill" : "hand.tap.fill")
+                    .appFont(.caption.weight(.bold))
+                    .foregroundStyle(isSelected ? Color.white : Color.ch4Accent)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(8)
+                    .symbolEffect(.bounce, value: isSelected || isMatched)
+            }
         }
-        .padding(.horizontal, 14)
-        .frame(minHeight: 58)
+        .aspectRatio(1, contentMode: .fit)
         .background(isSelected ? Color.hbAccent : isMatched ? Color.ch4AccentLight : Color.hbSurface)
-        .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
+        .clipShape(RoundedRectangle(cornerRadius: 13))
         .overlay {
-            RoundedRectangle(cornerRadius: HBRadius.md)
+            RoundedRectangle(cornerRadius: 13)
                 .stroke(
                     isSelected ? Color.hbAccent : isMatched ? Color.ch4Accent : Color.hbBorder,
                     lineWidth: isSelected || isMatched ? 2 : 1
                 )
         }
         .scaleEffect(isSelected ? 0.98 : 1)
+    }
+
+    private func ghostCard() -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Capsule()
+                .fill(Color.hbTextMuted.opacity(0.14))
+                .frame(width: 28, height: 6)
+
+            Spacer()
+
+            Capsule()
+                .fill(Color.hbTextMuted.opacity(0.12))
+                .frame(height: 7)
+
+            Capsule()
+                .fill(Color.hbTextMuted.opacity(0.09))
+                .frame(width: 48, height: 7)
+        }
+        .padding(10)
+        .aspectRatio(1, contentMode: .fit)
+        .background(Color.hbSurface2.opacity(0.55))
+        .clipShape(RoundedRectangle(cornerRadius: 13))
+        .overlay {
+            RoundedRectangle(cornerRadius: 13)
+                .stroke(Color.hbBorder.opacity(0.65), lineWidth: 1)
+        }
+        .accessibilityHidden(true)
     }
 }
 
@@ -372,8 +417,8 @@ private struct MatchGameRulesCard: View {
 
             rule(
                 icon: "hand.tap.fill",
-                title: "Choose two cards",
-                detail: "One term and one meaning"
+                title: "Drag or tap two cards",
+                detail: "Pair one term with one meaning"
             )
             rule(
                 icon: "checkmark.circle.fill",
@@ -387,6 +432,7 @@ private struct MatchGameRulesCard: View {
                 tint: Color(hex: "#A33A2B")
             )
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(Color.hbSurface)
         .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
@@ -423,11 +469,14 @@ private struct MatchGameRulesCard: View {
 }
 
 private struct MatchTile: View {
+    @State private var isDropTargeted = false
+
     let card: MatchGameCard
     let isSelected: Bool
     let isMatched: Bool
     let isIncorrect: Bool
     let action: () -> Void
+    let onDrop: (String) -> Bool
 
     var body: some View {
         Button(action: action) {
@@ -454,25 +503,50 @@ private struct MatchTile: View {
                         .appFont(.subheadline.weight(.bold))
                         .foregroundStyle(Color.ch4Accent)
                         .padding(8)
+                        .symbolEffect(.bounce, value: isMatched)
                 }
             }
             .frame(minHeight: 128)
             .overlay {
                 RoundedRectangle(cornerRadius: 13)
-                    .stroke(borderColor, lineWidth: isSelected || isIncorrect ? 2 : 1)
+                    .stroke(borderColor, lineWidth: isSelected || isIncorrect || isDropTargeted ? 2 : 1)
             }
-            .scaleEffect(isSelected ? 0.97 : 1)
+            .scaleEffect(tileScale)
+            .rotationEffect(.degrees(isIncorrect ? -1.2 : 0))
+            .shadow(
+                color: isDropTargeted ? Color.hbAccent.opacity(0.22) : .clear,
+                radius: 8,
+                y: 3
+            )
         }
         .buttonStyle(.plain)
         .disabled(isMatched)
+        .draggable(card.id) {
+            MatchTileDragPreview(card: card)
+        }
+        .dropDestination(for: String.self) { cardIDs, _ in
+            guard let sourceCardID = cardIDs.first else { return false }
+            return onDrop(sourceCardID)
+        } isTargeted: { targeted in
+            withAnimation(.snappy(duration: 0.2)) {
+                isDropTargeted = targeted && !isMatched
+            }
+        }
+        .animation(.snappy(duration: 0.24), value: isSelected)
+        .animation(.snappy(duration: 0.24), value: isMatched)
+        .animation(.bouncy(duration: 0.32), value: isIncorrect)
         .accessibilityLabel("\(card.kind == .term ? "Term" : "Definition"): \(card.text)")
         .accessibilityValue(isMatched ? "Matched" : isSelected ? "Selected" : "")
+        .accessibilityHint("Tap to select, or drag onto its matching card")
         .accessibilityIdentifier("matchGame.card.\(card.id)")
     }
 
     private var backgroundColor: Color {
         if isMatched {
             return Color.ch4AccentLight
+        }
+        if isDropTargeted {
+            return Color.hbSurface2
         }
         if isIncorrect {
             return Color(hex: "#F8DDD8")
@@ -491,6 +565,9 @@ private struct MatchTile: View {
         if isMatched {
             return Color.ch4Accent
         }
+        if isDropTargeted {
+            return Color.hbAccent
+        }
         if isIncorrect {
             return Color(hex: "#B54131")
         }
@@ -498,6 +575,51 @@ private struct MatchTile: View {
             return Color.hbAccent
         }
         return Color.hbBorder
+    }
+
+    private var tileScale: CGFloat {
+        if isDropTargeted {
+            return 1.035
+        }
+        if isSelected {
+            return 0.97
+        }
+        if isIncorrect {
+            return 0.98
+        }
+        return 1
+    }
+}
+
+private struct MatchTileDragPreview: View {
+    let card: MatchGameCard
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: 13)
+                .fill(Color.hbSurface)
+
+            Text(card.text)
+                .appFont(card.kind == .term ? .headline : .footnote)
+                .foregroundStyle(Color.hbTextPrimary)
+                .multilineTextAlignment(.center)
+                .padding(10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if card.kind == .term {
+                Text("TERM")
+                    .appFont(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.hbTextMuted)
+                    .padding(8)
+            }
+        }
+        .frame(width: 112, height: 128)
+        .overlay {
+            RoundedRectangle(cornerRadius: 13)
+                .stroke(Color.hbAccent, lineWidth: 2)
+        }
+        .shadow(color: Color.black.opacity(0.18), radius: 12, y: 7)
+        .scaleEffect(1.03)
     }
 }
 

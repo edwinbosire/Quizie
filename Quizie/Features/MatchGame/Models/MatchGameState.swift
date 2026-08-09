@@ -85,16 +85,38 @@ struct MatchGameState {
         }
 
         self.selectedCardID = nil
+        resolveMatch(between: selectedCard, and: card, at: date)
+    }
 
-        if selectedCard.pairID == card.pairID && selectedCard.kind != card.kind {
-            matchedPairIDs.insert(card.pairID)
+    mutating func match(cardID: String, with targetCardID: String, at date: Date = .now) {
+        guard phase == .playing,
+              cardID != targetCardID,
+              let card = cards.first(where: { $0.id == cardID }),
+              let targetCard = cards.first(where: { $0.id == targetCardID }),
+              !matchedPairIDs.contains(card.pairID),
+              !matchedPairIDs.contains(targetCard.pairID) else {
+            return
+        }
+
+        selectedCardID = nil
+        incorrectCardIDs = []
+        resolveMatch(between: card, and: targetCard, at: date)
+    }
+
+    private mutating func resolveMatch(
+        between firstCard: MatchGameCard,
+        and secondCard: MatchGameCard,
+        at date: Date
+    ) {
+        if firstCard.pairID == secondCard.pairID && firstCard.kind != secondCard.kind {
+            matchedPairIDs.insert(firstCard.pairID)
             if matchedPairIDs.count == pairCount {
                 finalTime = elapsedTime(at: date)
                 phase = .finished
             }
         } else {
             mistakeCount += 1
-            incorrectCardIDs = [selectedCard.id, card.id]
+            incorrectCardIDs = [firstCard.id, secondCard.id]
         }
     }
 

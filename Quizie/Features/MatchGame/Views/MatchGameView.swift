@@ -2,8 +2,10 @@ import SwiftUI
 
 struct MatchGameView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var game = MatchGameState()
     @State private var feedbackTrigger = 0
+    @State private var isReadyContentVisible = false
 
     private let columns = Array(
         repeating: GridItem(.flexible(), spacing: 10),
@@ -37,24 +39,33 @@ struct MatchGameView: View {
         VStack(spacing: 0) {
             gameHeader(showsTimer: false)
 
-            Spacer(minLength: 28)
+            ScrollView {
+                VStack(spacing: 0) {
+                    MatchGameHowToDemo()
+                        .padding(.top, 26)
 
-            MatchGameMark()
-                .padding(.bottom, 34)
+                    Text("Ready to match?")
+                        .appFont(.system(.title, design: .serif, weight: .semibold))
+                        .foregroundStyle(Color.hbTextPrimary)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 24)
 
-            Text("Ready to match?")
-                .appFont(.system(.title, design: .serif, weight: .semibold))
-                .foregroundStyle(Color.hbTextPrimary)
-                .multilineTextAlignment(.center)
+                    Text("Tap a term, then tap the meaning that belongs with it. Match all 6 pairs as quickly as you can.")
+                        .appFont(.body)
+                        .foregroundStyle(Color.hbTextSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 26)
+                        .padding(.top, 10)
 
-            Text("Pair every Life in the UK term with its meaning as quickly as you can. A wrong match adds 3 seconds.")
-                .appFont(.body)
-                .foregroundStyle(Color.hbTextSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 30)
-                .padding(.top, 14)
-
-            Spacer()
+                    MatchGameRulesCard()
+                        .padding(.horizontal, 20)
+                        .padding(.top, 22)
+                        .padding(.bottom, 24)
+                }
+                .opacity(isReadyContentVisible ? 1 : 0)
+                .offset(y: isReadyContentVisible ? 0 : 12)
+            }
+            .scrollIndicators(.hidden)
 
             Button {
                 game.start()
@@ -69,7 +80,19 @@ struct MatchGameView: View {
             }
             .accessibilityIdentifier("matchGame.start")
             .padding(.horizontal, 20)
-            .padding(.bottom, 28)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
+            .background(Color.hbBackground)
+        }
+        .task {
+            guard !isReadyContentVisible else { return }
+            if reduceMotion {
+                isReadyContentVisible = true
+            } else {
+                withAnimation(.easeOut(duration: 0.45)) {
+                    isReadyContentVisible = true
+                }
+            }
         }
     }
 
@@ -241,37 +264,161 @@ struct MatchGameView: View {
     }
 }
 
-private struct MatchGameMark: View {
+private struct MatchGameHowToDemo: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var step = 0
+
     var body: some View {
-        ZStack {
-            ForEach(0..<7, id: \.self) { index in
-                RoundedRectangle(cornerRadius: 9)
-                    .fill(index == 1 || index == 5 ? Color.ch4AccentLight : Color.hbSurface2)
-                    .frame(width: index == 1 || index == 5 ? 64 : 46, height: index == 1 || index == 5 ? 64 : 46)
-                    .overlay {
-                        if index == 1 || index == 5 {
-                            Image(systemName: "checkmark")
-                                .appFont(.title2.weight(.bold))
-                                .foregroundStyle(Color.ch4Accent)
-                        }
-                    }
-                    .offset(markOffset(for: index))
+        VStack(spacing: 8) {
+            demoCard(
+                label: "TERM",
+                text: "House of Commons",
+                isSelected: step == 1,
+                isMatched: step == 2
+            )
+
+            ZStack {
+                Capsule()
+                    .fill(step == 2 ? Color.ch4Accent : Color.hbBorder)
+                    .frame(width: 3, height: 22)
+
+                Image(systemName: step == 2 ? "checkmark.circle.fill" : "arrow.down")
+                    .appFont(.caption.weight(.bold))
+                    .foregroundStyle(step == 2 ? Color.ch4Accent : Color.hbTextMuted)
+                    .padding(5)
+                    .background(Color.hbBackground)
+                    .clipShape(Circle())
+            }
+
+            demoCard(
+                label: "MEANING",
+                text: "The elected chamber of Parliament",
+                isSelected: false,
+                isMatched: step == 2
+            )
+        }
+        .frame(maxWidth: 310)
+        .padding(.horizontal, 28)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Example match: House of Commons pairs with the elected chamber of Parliament")
+        .task {
+            guard step == 0 else { return }
+
+            if reduceMotion {
+                step = 2
+                return
+            }
+
+            try? await Task.sleep(for: .milliseconds(550))
+            guard !Task.isCancelled else { return }
+            withAnimation(.snappy(duration: 0.35)) {
+                step = 1
+            }
+
+            try? await Task.sleep(for: .milliseconds(900))
+            guard !Task.isCancelled else { return }
+            withAnimation(.snappy(duration: 0.4)) {
+                step = 2
             }
         }
-        .frame(width: 190, height: 150)
-        .accessibilityHidden(true)
     }
 
-    private func markOffset(for index: Int) -> CGSize {
-        [
-            CGSize(width: -70, height: -38),
-            CGSize(width: 0, height: -38),
-            CGSize(width: 70, height: -38),
-            CGSize(width: -70, height: 30),
-            CGSize(width: 0, height: 30),
-            CGSize(width: 70, height: 30),
-            CGSize(width: 0, height: 92)
-        ][index]
+    private func demoCard(
+        label: String,
+        text: String,
+        isSelected: Bool,
+        isMatched: Bool
+    ) -> some View {
+        HStack(spacing: 12) {
+            Text(label)
+                .appFont(.caption2.weight(.bold))
+                .foregroundStyle(
+                    isSelected ? Color.white.opacity(0.82) : isMatched ? Color.ch4Accent : Color.hbTextMuted
+                )
+                .frame(width: 58, alignment: .leading)
+
+            Text(text)
+                .appFont(.subheadline.weight(.semibold))
+                .foregroundStyle(isSelected ? Color.white : Color.hbTextPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Image(systemName: isMatched ? "checkmark.circle.fill" : "hand.tap")
+                .foregroundStyle(
+                    isSelected ? Color.white : isMatched ? Color.ch4Accent : Color.hbTextMuted
+                )
+                .symbolEffect(.bounce, value: isSelected || isMatched)
+        }
+        .padding(.horizontal, 14)
+        .frame(minHeight: 58)
+        .background(isSelected ? Color.hbAccent : isMatched ? Color.ch4AccentLight : Color.hbSurface)
+        .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
+        .overlay {
+            RoundedRectangle(cornerRadius: HBRadius.md)
+                .stroke(
+                    isSelected ? Color.hbAccent : isMatched ? Color.ch4Accent : Color.hbBorder,
+                    lineWidth: isSelected || isMatched ? 2 : 1
+                )
+        }
+        .scaleEffect(isSelected ? 0.98 : 1)
+    }
+}
+
+private struct MatchGameRulesCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("HOW TO PLAY")
+                .appFont(.caption2.weight(.bold))
+                .foregroundStyle(Color.hbTextMuted)
+
+            rule(
+                icon: "hand.tap.fill",
+                title: "Choose two cards",
+                detail: "One term and one meaning"
+            )
+            rule(
+                icon: "checkmark.circle.fill",
+                title: "Correct pairs stay matched",
+                detail: "Clear all 6 pairs to finish"
+            )
+            rule(
+                icon: "plus.circle.fill",
+                title: "Wrong pair? Keep going",
+                detail: "+3 seconds is added to your time",
+                tint: Color(hex: "#A33A2B")
+            )
+        }
+        .padding(16)
+        .background(Color.hbSurface)
+        .clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
+        .overlay {
+            RoundedRectangle(cornerRadius: HBRadius.md)
+                .stroke(Color.hbBorder, lineWidth: 1)
+        }
+        .accessibilityIdentifier("matchGame.howToPlay")
+    }
+
+    private func rule(
+        icon: String,
+        title: String,
+        detail: String,
+        tint: Color = .hbAccent
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .appFont(.body.weight(.semibold))
+                .foregroundStyle(tint)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .appFont(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.hbTextPrimary)
+
+                Text(detail)
+                    .appFont(.caption)
+                    .foregroundStyle(Color.hbTextSecondary)
+            }
+        }
     }
 }
 

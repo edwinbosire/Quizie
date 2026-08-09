@@ -25,13 +25,6 @@ struct HighlightsView: View {
         }
         .navigationTitle("My Highlights")
         .navigationBarTitleDisplayMode(.large)
-        .navigationDestination(for: HighlightNavDestination.self) { destination in
-            ChapterView(
-                chapter: destination.chapter,
-                dependencies: dependencies,
-                initialSectionIndex: destination.sectionIndex
-            )
-        }
     }
 
     // MARK: - Empty State
@@ -103,30 +96,24 @@ struct HighlightsView: View {
 
         // Highlight rows
         ForEach(highlights) { highlight in
-            NavigationLink(value: HighlightNavDestination(highlight: highlight, chapter: chapter)) {
+            NavigationLink {
+                ChapterView(
+                    chapter: chapter,
+                    dependencies: dependencies,
+                    initialSectionIndex: sectionIndex(for: highlight, in: chapter)
+                )
+            } label: {
                 HighlightRow(highlight: highlight, chapter: chapter)
             }
             .buttonStyle(.plain)
         }
     }
-}
 
-// MARK: - Navigation Destination
-
-struct HighlightNavDestination: Hashable {
-    let highlight: HighlightSnapshot
-    let chapter: HandbookChapter
-
-    var sectionIndex: Int {
+    private func sectionIndex(
+        for highlight: HighlightSnapshot,
+        in chapter: HandbookChapter
+    ) -> Int {
         chapter.sections.firstIndex { $0.id == highlight.sectionID } ?? 0
-    }
-
-    static func == (lhs: HighlightNavDestination, rhs: HighlightNavDestination) -> Bool {
-        lhs.highlight.id == rhs.highlight.id
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(highlight.id)
     }
 }
 

@@ -634,9 +634,39 @@ struct ContentRepositoryTests {
         #expect(library.highlights.first?.blockID != reordered[0].id)
     }
 
+    @Test("Multiple ranged highlights can coexist in one block")
+    func multipleHighlightsPerBlock() {
+        let store = InMemoryHighlightStore()
+        let library = HighlightLibrary(store: store, issues: PersistenceIssueCenter())
+        let first = HighlightSnapshot(
+            chapterID: "chapter_01",
+            sectionID: "section_01",
+            blockID: "block_a",
+            textPreview: "First",
+            rangeLocation: 0,
+            rangeLength: 5
+        )
+        let second = HighlightSnapshot(
+            chapterID: "chapter_01",
+            sectionID: "section_01",
+            blockID: "block_a",
+            color: .blue,
+            textPreview: "Second",
+            rangeLocation: 12,
+            rangeLength: 6
+        )
+
+        library.upsert(first)
+        library.upsert(second)
+
+        #expect(library.highlights.count == 2)
+        #expect(library.highlights.contains { $0.id == first.id && $0.selectedRange == first.selectedRange })
+        #expect(library.highlights.contains { $0.id == second.id && $0.selectedRange == second.selectedRange })
+    }
+
     @Test("Content migration rewrites renamed IDs and removes orphaned highlights")
     func contentIdentityMigrationPolicy() throws {
-        let renamed = HighlightSnapshot(chapterID: "chapter_42", sectionID: "origins", blockID: "legacy_block", textPreview: "Magna", contentVersion: 1)
+        let renamed = HighlightSnapshot(chapterID: "chapter_42", sectionID: "origins", blockID: "legacy_block", textPreview: "Magna", contentVersion: 1, rangeLocation: 2, rangeLength: 5)
         let removed = HighlightSnapshot(chapterID: "chapter_42", sectionID: "origins", blockID: "removed_block", textPreview: "Removed", contentVersion: 1)
         let store = InMemoryHighlightStore(records: [renamed, removed])
         let library = HighlightLibrary(store: store, issues: PersistenceIssueCenter())
@@ -656,6 +686,7 @@ struct ContentRepositoryTests {
         #expect(library.highlights.count == 1)
         #expect(library.highlights.first?.blockID == "origins_block_001")
         #expect(library.highlights.first?.contentVersion == 2)
+        #expect(library.highlights.first?.selectedRange == NSRange(location: 2, length: 5))
     }
 }
 

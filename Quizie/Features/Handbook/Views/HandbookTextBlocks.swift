@@ -1,16 +1,59 @@
 import SwiftUI
 
+struct BlockTextSelectionContext {
+    let highlights: [SelectableTextHighlight]
+    let isSelectionActive: Bool
+    let onSelectionChange: (SelectableTextSelection?, Int) -> Void
+}
+
+private struct SelectableBlockText: View {
+    let attributedText: AttributedString
+    let presentation: ReaderPresentation
+    let style: SelectableTextStyle
+    let lineSpacing: CGFloat
+    let rangeOffset: Int
+    let emphasizedRanges: [NSRange]
+    let selectionContext: BlockTextSelectionContext
+
+    var body: some View {
+        SelectableTextView(
+            attributedText: attributedText,
+            fontScale: presentation.readingTheme.textSize.scaleFactor,
+            lineSpacing: lineSpacing,
+            style: style,
+            rangeOffset: rangeOffset,
+            emphasizedRanges: emphasizedRanges,
+            highlights: selectionContext.highlights,
+            isSelectionActive: selectionContext.isSelectionActive,
+            onSelectionChange: { selection in
+                selectionContext.onSelectionChange(selection, rangeOffset)
+            }
+        )
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 struct InlineText: View {
     let raw: String
     let color: Color?
     let presentation: ReaderPresentation
+    let rangeOffset: Int
+    let selectionContext: BlockTextSelectionContext
     private var readingTheme: ReadingTheme { presentation.readingTheme }
     private var searchHighlight: String? { presentation.searchHighlight }
 
-    init(_ raw: String, color: Color? = nil, presentation: ReaderPresentation) {
+    init(
+        _ raw: String,
+        color: Color? = nil,
+        presentation: ReaderPresentation,
+        rangeOffset: Int,
+        selectionContext: BlockTextSelectionContext
+    ) {
         self.raw = raw
         self.color = color
         self.presentation = presentation
+        self.rangeOffset = rangeOffset
+        self.selectionContext = selectionContext
     }
 
     private var resolvedColor: Color {
@@ -18,8 +61,15 @@ struct InlineText: View {
     }
 
     var body: some View {
-        Text(attributedString)
-            .lineSpacing(5)
+        SelectableBlockText(
+            attributedText: attributedString,
+            presentation: presentation,
+            style: .body,
+            lineSpacing: 5,
+            rangeOffset: rangeOffset,
+            emphasizedRanges: emphasizedRanges,
+            selectionContext: selectionContext
+        )
     }
 
     var attributedString: AttributedString {
@@ -38,6 +88,15 @@ struct InlineText: View {
         applySearchHighlight(to: &result, term: searchHighlight)
         return result
     }
+
+    private var emphasizedRanges: [NSRange] {
+        var location = 0
+        return raw.components(separatedBy: "**").enumerated().compactMap { index, part in
+            defer { location += (part as NSString).length }
+            guard index % 2 == 1, !part.isEmpty else { return nil }
+            return NSRange(location: location, length: (part as NSString).length)
+        }
+    }
 }
 
 // MARK: - Bullet List Row
@@ -46,6 +105,8 @@ struct BulletListRow: View {
     let accentColor: Color
     let isLast: Bool
     let presentation: ReaderPresentation
+    let rangeOffset: Int
+    let selectionContext: BlockTextSelectionContext
     private var readingTheme: ReadingTheme { presentation.readingTheme }
 
     var body: some View {
@@ -57,7 +118,12 @@ struct BulletListRow: View {
                     .frame(width: 22, alignment: .leading)
                     .padding(.top, 1)
 
-                InlineText(item.text.raw, presentation: presentation)
+                InlineText(
+                    item.text.raw,
+                    presentation: presentation,
+                    rangeOffset: rangeOffset,
+                    selectionContext: selectionContext
+                )
 					.frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 6)
             }
@@ -77,6 +143,7 @@ struct BulletListBlock: View {
     let items: [BulletItem]
     let accentColor: Color
     let presentation: ReaderPresentation
+    let selectionContext: BlockTextSelectionContext
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -85,11 +152,19 @@ struct BulletListBlock: View {
                     item: item,
                     accentColor: accentColor,
                     isLast: idx == items.count - 1,
-                    presentation: presentation
+                    presentation: presentation,
+                    rangeOffset: itemOffset(at: idx),
+                    selectionContext: selectionContext
                 )
             }
         }
         .padding(.bottom, 4)
+    }
+
+    private func itemOffset(at index: Int) -> Int {
+        items.prefix(index).reduce(0) { offset, item in
+            offset + (item.text.raw.removingBoldMarkers as NSString).length + 1
+        }
     }
 }
 
@@ -98,6 +173,7 @@ struct CheckUnderstandBox: View {
     let items: [String]
     let theme: ChapterTheme
     let presentation: ReaderPresentation
+    let selectionContext: BlockTextSelectionContext
     private var readingTheme: ReadingTheme { presentation.readingTheme }
     private var searchHighlight: String? { presentation.searchHighlight }
 
@@ -121,7 +197,15 @@ struct CheckUnderstandBox: View {
                             .appFont(.callout.weight(.bold))
                             .foregroundColor(theme.accent)
                             .padding(.top, 1)
-                        Text(highlightedItem(item))
+                        SelectableBlockText(
+                            attributedText: highlightedItem(item),
+                            presentation: presentation,
+                            style: .body,
+                            lineSpacing: 0,
+                            rangeOffset: itemOffset(at: idx),
+                            emphasizedRanges: [],
+                            selectionContext: selectionContext
+                        )
 							.frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 5)
                     }
@@ -149,6 +233,10 @@ struct CheckUnderstandBox: View {
         applySearchHighlight(to: &attr, term: searchHighlight)
         return attr
     }
+
+    private func itemOffset(at index: Int) -> Int {
+        items.prefix(index).reduce(0) { $0 + ($1 as NSString).length + 1 }
+    }
 }
 
 // MARK: - Blockquote
@@ -156,6 +244,7 @@ struct BlockquoteView: View {
     let text: String
     let accentColor: Color
     let presentation: ReaderPresentation
+    let selectionContext: BlockTextSelectionContext
     private var readingTheme: ReadingTheme { presentation.readingTheme }
     private var searchHighlight: String? { presentation.searchHighlight }
 
@@ -166,7 +255,15 @@ struct BlockquoteView: View {
                 .frame(width: 3)
                 .cornerRadius(1.5)
 
-            Text(highlightedText)
+            SelectableBlockText(
+                attributedText: highlightedText,
+                presentation: presentation,
+                style: .serifBodyItalic,
+                lineSpacing: 0,
+                rangeOffset: 0,
+                emphasizedRanges: [],
+                selectionContext: selectionContext
+            )
                 .padding(.leading, 14)
                 .padding(.vertical, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -190,6 +287,7 @@ struct SectionSubheading: View {
     let text: String
     let isFirst: Bool
     let presentation: ReaderPresentation
+    let selectionContext: BlockTextSelectionContext
     private var readingTheme: ReadingTheme { presentation.readingTheme }
     private var searchHighlight: String? { presentation.searchHighlight }
 
@@ -200,7 +298,15 @@ struct SectionSubheading: View {
                     .background(readingTheme.style.border)
                     .padding(.bottom, 16)
             }
-            Text(highlightedText)
+            SelectableBlockText(
+                attributedText: highlightedText,
+                presentation: presentation,
+                style: .serifHeadlineSemibold,
+                lineSpacing: 0,
+                rangeOffset: 0,
+                emphasizedRanges: [],
+                selectionContext: selectionContext
+            )
                 .padding(.top, isFirst ? 0 : 0)
                 .padding(.bottom, 8)
         }
@@ -220,11 +326,20 @@ struct SectionSubheading: View {
 struct SectionSubheading2: View {
     let text: String
     let presentation: ReaderPresentation
+    let selectionContext: BlockTextSelectionContext
     private var readingTheme: ReadingTheme { presentation.readingTheme }
     private var searchHighlight: String? { presentation.searchHighlight }
 
     var body: some View {
-        Text(highlightedText)
+        SelectableBlockText(
+            attributedText: highlightedText,
+            presentation: presentation,
+            style: .footnoteSemibold,
+            lineSpacing: 0,
+            rangeOffset: 0,
+            emphasizedRanges: [],
+            selectionContext: selectionContext
+        )
             .padding(.top, 12)
             .padding(.bottom, 4)
     }
@@ -243,6 +358,7 @@ struct DataTableView: View {
     let headers: [String]
     let rows: [[String]]
     let presentation: ReaderPresentation
+    let selectionContext: BlockTextSelectionContext
     private var readingTheme: ReadingTheme { presentation.readingTheme }
     private var searchHighlight: String? { presentation.searchHighlight }
 
@@ -251,8 +367,16 @@ struct DataTableView: View {
         VStack(spacing: 0) {
             // Header row
             HStack(spacing: 0) {
-                ForEach(Array(headers.enumerated()), id: \.offset) { _, header in
-                    Text(highlightedHeader(header))
+                ForEach(Array(headers.enumerated()), id: \.offset) { index, header in
+                    SelectableBlockText(
+                        attributedText: highlightedHeader(header),
+                        presentation: presentation,
+                        style: .captionSemibold,
+                        lineSpacing: 0,
+                        rangeOffset: textOffset(at: index),
+                        emphasizedRanges: [],
+                        selectionContext: selectionContext
+                    )
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
@@ -265,8 +389,18 @@ struct DataTableView: View {
             // Data rows
             ForEach(Array(rows.enumerated()), id: \.offset) { rowIdx, row in
                 HStack(spacing: 0) {
-                    ForEach(Array(row.enumerated()), id: \.offset) { _, cell in
-                        Text(highlightedCell(cell))
+                    ForEach(Array(row.enumerated()), id: \.offset) { cellIdx, cell in
+                        SelectableBlockText(
+                            attributedText: highlightedCell(cell),
+                            presentation: presentation,
+                            style: .footnote,
+                            lineSpacing: 0,
+                            rangeOffset: textOffset(
+                                at: headers.count + rows.prefix(rowIdx).reduce(0) { $0 + $1.count } + cellIdx
+                            ),
+                            emphasizedRanges: [],
+                            selectionContext: selectionContext
+                        )
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
@@ -300,6 +434,17 @@ struct DataTableView: View {
         attr.foregroundColor = rt.textSecondary
         applySearchHighlight(to: &attr, term: searchHighlight)
         return attr
+    }
+
+    private func textOffset(at index: Int) -> Int {
+        let values = headers + rows.flatMap { $0 }
+        return values.prefix(index).reduce(0) { $0 + ($1 as NSString).length + 1 }
+    }
+}
+
+private extension String {
+    var removingBoldMarkers: String {
+        replacingOccurrences(of: "**", with: "")
     }
 }
 

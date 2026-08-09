@@ -21,16 +21,24 @@ struct HighlightSnapshot: Identifiable, Hashable {
     let blockID: String
     var color: HighlightColor
     let createdDate: Date
-    let textPreview: String
+    var textPreview: String
     let contentVersion: Int
+    var rangeLocation: Int?
+    var rangeLength: Int?
 
-    init(id: UUID = UUID(), chapterID: String, sectionID: String, blockID: String, color: HighlightColor = .yellow, createdDate: Date = Date(), textPreview: String = "", contentVersion: Int = 0) {
+    init(id: UUID = UUID(), chapterID: String, sectionID: String, blockID: String, color: HighlightColor = .yellow, createdDate: Date = Date(), textPreview: String = "", contentVersion: Int = 0, rangeLocation: Int? = nil, rangeLength: Int? = nil) {
         self.id = id; self.chapterID = chapterID; self.sectionID = sectionID; self.blockID = blockID
         self.color = color; self.createdDate = createdDate; self.textPreview = textPreview; self.contentVersion = contentVersion
+        self.rangeLocation = rangeLocation; self.rangeLength = rangeLength
     }
     var chapterId: String { chapterID }
     var sectionId: String { sectionID }
     var highlightColor: HighlightColor { color }
+    var selectedRange: NSRange? {
+        guard let rangeLocation, let rangeLength,
+              rangeLocation >= 0, rangeLength > 0 else { return nil }
+        return NSRange(location: rangeLocation, length: rangeLength)
+    }
 }
 
 /// Persistence record owned by `SwiftDataHighlightStore`.
@@ -48,13 +56,17 @@ final class Highlight {
     var createdDate: Date
     var textPreview: String
     var contentVersion: Int = 0
+    var rangeLocation: Int?
+    var rangeLength: Int?
 
     init(snapshot: HighlightSnapshot) {
         id = snapshot.id; chapterID = snapshot.chapterID; sectionID = snapshot.sectionID; blockID = snapshot.blockID; sectionId = snapshot.sectionID
         colorRaw = snapshot.color.rawValue; createdDate = snapshot.createdDate; textPreview = snapshot.textPreview; contentVersion = snapshot.contentVersion
+        rangeLocation = snapshot.rangeLocation; rangeLength = snapshot.rangeLength
     }
-    var snapshot: HighlightSnapshot { HighlightSnapshot(id: id, chapterID: chapterID, sectionID: sectionID, blockID: blockID, color: HighlightColor(rawValue: colorRaw) ?? .yellow, createdDate: createdDate, textPreview: textPreview, contentVersion: contentVersion) }
+    var snapshot: HighlightSnapshot { HighlightSnapshot(id: id, chapterID: chapterID, sectionID: sectionID, blockID: blockID, color: HighlightColor(rawValue: colorRaw) ?? .yellow, createdDate: createdDate, textPreview: textPreview, contentVersion: contentVersion, rangeLocation: rangeLocation, rangeLength: rangeLength) }
     func apply(_ value: HighlightSnapshot) {
         chapterID = value.chapterID; sectionID = value.sectionID; blockID = value.blockID; colorRaw = value.color.rawValue; textPreview = value.textPreview; contentVersion = value.contentVersion
+        rangeLocation = value.rangeLocation; rangeLength = value.rangeLength
     }
 }

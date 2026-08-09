@@ -252,7 +252,7 @@ final class HighlightLibrary {
     }
     func forChapter(_ chapterID: String) -> [HighlightSnapshot] { highlights.filter { $0.chapterID == chapterID } }
     func upsert(_ value: HighlightSnapshot) {
-        let normalized = HighlightSnapshot(id: value.id, chapterID: value.chapterID, sectionID: value.sectionID, blockID: value.blockID, color: value.color, createdDate: value.createdDate, textPreview: value.textPreview, contentVersion: activeContentVersion)
+        let normalized = HighlightSnapshot(id: value.id, chapterID: value.chapterID, sectionID: value.sectionID, blockID: value.blockID, color: value.color, createdDate: value.createdDate, textPreview: value.textPreview, contentVersion: activeContentVersion, rangeLocation: value.rangeLocation, rangeLength: value.rangeLength)
         do { try store.upsert(normalized); reload() }
         catch { issues.report(error, operation: "Saving highlight") }
     }
@@ -276,7 +276,7 @@ final class HighlightLibrary {
             if migrations.removedBlockIDs.contains(value.blockID) || !document.validBlockIDs.contains(blockID) {
                 delete(id: value.id)
             } else {
-                upsert(HighlightSnapshot(id: value.id, chapterID: chapterID, sectionID: sectionID, blockID: blockID, color: value.color, createdDate: value.createdDate, textPreview: value.textPreview, contentVersion: document.contentVersion))
+                upsert(HighlightSnapshot(id: value.id, chapterID: chapterID, sectionID: sectionID, blockID: blockID, color: value.color, createdDate: value.createdDate, textPreview: value.textPreview, contentVersion: document.contentVersion, rangeLocation: value.rangeLocation, rangeLength: value.rangeLength))
             }
         }
     }

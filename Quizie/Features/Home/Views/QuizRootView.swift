@@ -9,6 +9,7 @@ struct QuizRootView: View {
     private let onOpenSearch: () -> Void
     private let onOpenHandbook: () -> Void
     private let onOpenSettings: () -> Void
+    private let onReturnHome: (() -> Void)?
     private let onQuitQuiz: (() -> Void)?
     @State private var engine: QuizEngine
     @State private var navigationPath = NavigationPath()
@@ -22,6 +23,7 @@ struct QuizRootView: View {
         onOpenSearch: @escaping () -> Void = {},
         onOpenHandbook: @escaping () -> Void = {},
         onOpenSettings: @escaping () -> Void = {},
+        onReturnHome: (() -> Void)? = nil,
         onQuitQuiz: (() -> Void)? = nil
     ) {
         self.dependencies = dependencies
@@ -31,6 +33,7 @@ struct QuizRootView: View {
         self.onOpenSearch = onOpenSearch
         self.onOpenHandbook = onOpenHandbook
         self.onOpenSettings = onOpenSettings
+        self.onReturnHome = onReturnHome
         self.onQuitQuiz = onQuitQuiz
         _engine = State(initialValue: QuizEngine(
             configuration: configuration,
@@ -68,7 +71,7 @@ struct QuizRootView: View {
                         ))
 
                 case .results:
-                    QuizResultsView(engine: engine)
+                    QuizResultsView(engine: engine, onReturnHome: returnHome)
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing).combined(with: .opacity),
                             removal: .move(edge: .trailing)
@@ -130,6 +133,11 @@ struct QuizRootView: View {
     private func quitQuiz() {
         engine.returnToLobby()
         onQuitQuiz?()
+    }
+
+    private func returnHome() {
+        engine.returnToLobby()
+        onReturnHome?()
     }
 
     private var isShowingQuestion: Bool {

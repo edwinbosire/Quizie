@@ -3,6 +3,7 @@ import SwiftUI
 struct ActionButtons: View {
     let engine: QuizEngine
     @Binding var showReview: Bool
+    let onReturnHome: () -> Void
 
     var body: some View {
         VStack(spacing: 12) {
@@ -45,9 +46,7 @@ struct ActionButtons: View {
             }
 
             // Return home
-            Button {
-                engine.returnToLobby()
-            } label: {
+            Button(action: onReturnHome) {
                 HStack(spacing: 8) {
                     Image(systemName: "house")
                         .appFont(.footnote.weight(.medium))

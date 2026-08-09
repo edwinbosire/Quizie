@@ -2,6 +2,7 @@ import SwiftUI
 
 struct QuizResultsView: View {
     let engine: QuizEngine
+    var onReturnHome: (() -> Void)?
     @State private var showReview = false
     @State private var showConfetti = false
 
@@ -22,7 +23,11 @@ struct QuizResultsView: View {
 								.padding(.top, 24)
 
 							// Action buttons
-							ActionButtons(engine: engine, showReview: $showReview)
+							ActionButtons(
+								engine: engine,
+								showReview: $showReview,
+								onReturnHome: onReturnHome ?? engine.returnToLobby
+							)
 								.padding(.horizontal, 16)
 								.padding(.top, 20)
 

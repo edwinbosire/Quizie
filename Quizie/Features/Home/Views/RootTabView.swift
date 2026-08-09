@@ -57,7 +57,10 @@ struct RootTabView: View {
 
                     Tab("Tests", systemImage: "sparkle.text.clipboard", value: .tests) {
                         NavigationStack {
-                            TestsView(dependencies: dependencies.tests)
+                            TestsView(
+                                dependencies: dependencies.tests,
+                                onReturnHome: { selectedTab = .home }
+                            )
                                 .mainNavigationBar(
                                     title: "Tests",
                                     tab: .tests,

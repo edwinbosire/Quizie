@@ -82,6 +82,7 @@ struct ChoicesView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("quiz.choice.\(idx)")
                 .disabled(engine.hasSubmittedAnswer)
                 .accessibilityValue(engine.selectedIndices.contains(idx) ? "Selected" : "Not selected")
                 .accessibilityAddTraits(engine.selectedIndices.contains(idx) ? .isSelected : [])

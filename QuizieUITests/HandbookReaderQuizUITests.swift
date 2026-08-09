@@ -320,6 +320,37 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testCompletedPracticeTestReturnsToMainHomeChrome() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-hasCompletedOnboarding", "YES",
+            "-uiTestSingleQuestion",
+        ]
+        app.launch()
+
+        app.tabBars.buttons["Tests"].tap()
+        app.staticTexts["Practice Test 1"].tap()
+
+        let firstChoice = app.buttons["quiz.choice.0"]
+        XCTAssertTrue(firstChoice.waitForExistence(timeout: 5))
+        firstChoice.tap()
+
+        let submitExam = app.buttons["Submit Exam"]
+        if submitExam.waitForExistence(timeout: 2) {
+            submitExam.tap()
+        }
+
+        let returnHome = app.buttons["Return to Home"]
+        XCTAssertTrue(returnHome.waitForExistence(timeout: 8))
+        returnHome.tap()
+
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 5))
+        XCTAssertTrue(tabBar.buttons["Home"].isSelected)
+        XCTAssertTrue(app.buttons["mainNavigation.settings"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     func testMatchingGameLaunchesFromHome() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]

@@ -2,8 +2,17 @@ import SwiftUI
 
 struct TestsView: View {
     let dependencies: TestsFeatureDependencies
+    let onReturnHome: () -> Void
     private var attempts: [ExamAttemptSnapshot] { dependencies.quiz.attempts.attempts }
     @State private var selectedTest: PracticeTest?
+
+    init(
+        dependencies: TestsFeatureDependencies,
+        onReturnHome: @escaping () -> Void = {}
+    ) {
+        self.dependencies = dependencies
+        self.onReturnHome = onReturnHome
+    }
 
     var body: some View {
         content
@@ -13,10 +22,23 @@ struct TestsView: View {
                     dependencies: dependencies.quiz,
                     flashcardDependencies: dependencies.flashcards,
                     initialTestID: test.id,
-                    configuration: test.configuration,
+                    configuration: configuration(for: test),
+                    onReturnHome: {
+                        selectedTest = nil
+                        onReturnHome()
+                    },
                     onQuitQuiz: { selectedTest = nil }
                 )
             }
+    }
+
+    private func configuration(for test: PracticeTest) -> QuizConfiguration {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-uiTestSingleQuestion") {
+            return .custom(questionCount: 1, timeLimitSeconds: 60, passMarkCount: 1)
+        }
+        #endif
+        return test.configuration
     }
 
     private var content: some View {

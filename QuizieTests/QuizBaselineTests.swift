@@ -3,6 +3,110 @@ import SwiftData
 import Testing
 @testable import BritReady__Life_in_UK_Test
 
+struct FlashcardGenerationContextTests {
+    private let chapter = HandbookChapter(
+        id: 0,
+        contentID: "chapter_01",
+        number: "Chapter 1",
+        title: "The values and principles of the UK",
+        pillLabels: ["British values"],
+        sections: []
+    )
+
+    @Test("A sentence selection includes its full block and adjacent blocks")
+    func sentenceSelectionIncludesContext() throws {
+        let section = makeSection([
+            ("before", "People should respect the law."),
+            ("selected", "British life is founded on democracy, the rule of law and individual liberty."),
+            ("after", "Citizens should participate in their communities."),
+            ("outside", "This block is not adjacent.")
+        ])
+        let source = section.blocks[1].plainText as NSString
+        let selection = source.range(of: "democracy, the rule of law and individual liberty")
+
+        let request = try #require(FlashcardGenerationContextBuilder.make(chapter: chapter, section: section, selectedBlockRange: 1...1, selectedTextRange: selection))
+
+        #expect(request.chapter == "Chapter 1: The values and principles of the UK")
+        #expect(request.section == "British values")
+        #expect(request.selection == "democracy, the rule of law and individual liberty")
+        #expect(request.blocks.map(\.id) == ["before", "selected", "after"])
+        #expect(request.blocks.map(\.isSelected) == [false, true, false])
+        #expect(request.context.contains("[selected] [selected]"))
+        #expect(request.maxCards == 1)
+    }
+
+    @Test("Two selected blocks allow several cards without requesting a fixed batch")
+    func twoBlocksScaleCardLimit() throws {
+        let section = makeSection([
+            ("one", "Parliament makes laws. MPs are elected."),
+            ("two", "The government runs the country. The Prime Minister leads the government."),
+            ("adjacent", "Local government provides local services.")
+        ])
+
+        let request = try #require(FlashcardGenerationContextBuilder.make(chapter: chapter, section: section, selectedBlockRange: 0...1))
+
+        #expect(request.maxCards == 4)
+        #expect(request.selection.contains("\n\n"))
+        #expect(request.blocks.map(\.id) == ["one", "two", "adjacent"])
+    }
+
+    @Test("Large selections use a bounded semantic-card ceiling")
+    func largeSelectionIsBounded() throws {
+        let section = makeSection((0..<12).map { ("block-\($0)", "Testable fact number \($0).") })
+        let request = try #require(FlashcardGenerationContextBuilder.make(chapter: chapter, section: section, selectedBlockRange: 0...11))
+        #expect(request.maxCards == 8)
+        #expect(request.blocks.count == 12)
+    }
+
+    @Test("Generation context encodes the complete architecture payload")
+    func contextEncodingContainsRequiredFields() throws {
+        let section = makeSection([("block", "Democracy is a fundamental principle.")])
+        let request = try #require(FlashcardGenerationContextBuilder.make(chapter: chapter, section: section, selectedBlockRange: 0...0))
+        let object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any])
+        #expect(Set(object.keys) == ["chapter", "section", "selection", "context", "blocks", "maxCards"])
+    }
+
+    @Test("Structured cards decode with source block IDs")
+    func structuredResponseDecoding() throws {
+        let data = Data(#"{"cards":[{"question":"What is a principle?","answer":"Democracy.","sourceBlockIds":["block"]}]}"#.utf8)
+        let response = try JSONDecoder().decode(FlashcardGenerationResponse.self, from: data)
+        #expect(response.cards == [GeneratedFlashcard(question: "What is a principle?", answer: "Democracy.", sourceBlockIds: ["block"])])
+    }
+
+    @Test("Features can generate cards through a provider-neutral inference service")
+    func mockInferenceServiceGeneratesCards() async throws {
+        let expected = [GeneratedFlashcard(question: "What is a principle?", answer: "Democracy.", sourceBlockIds: ["block"])]
+        let service: any AIInferenceService = MockInferenceService(flashcards: expected)
+        let context = FlashcardGenerationContext(
+            chapter: "Chapter 1: The values and principles of the UK",
+            section: "British values",
+            selection: "Democracy is a fundamental principle.",
+            context: "[block] [selected]\nDemocracy is a fundamental principle.",
+            blocks: [FlashcardContextBlock(id: "block", text: "Democracy is a fundamental principle.", isSelected: true)],
+            maxCards: 1
+        )
+
+        let cards = try await service.generateFlashcards(from: context)
+        #expect(cards == expected)
+    }
+
+    @MainActor
+    @Test("Generated drafts do not enter the deck until approved")
+    func approvalIsThePersistenceBoundary() {
+        let memory = FlashcardMemory(store: InMemoryFlashcardMemoryStore(), issues: PersistenceIssueCenter())
+        let drafts = [FlashcardDraft(generatedCard: GeneratedFlashcard(question: "What is a principle?", answer: "Democracy.", sourceBlockIds: ["block"]))]
+
+        #expect(memory.customCards.isEmpty)
+        FlashcardDraftApproval.save(drafts, chapterNumber: 1, to: memory)
+        #expect(memory.customCards.map(\.prompt) == ["What is a principle?"])
+        #expect(memory.customCards.first?.sourceBlockIDs == ["block"])
+    }
+
+    private func makeSection(_ values: [(String, String)]) -> HandbookSection {
+        HandbookSection(id: "section_01", title: "British values", blocks: values.map { ContentBlock(id: $0.0, content: .paragraph($0.1)) })
+    }
+}
+
 @MainActor
 struct QuizScoringTests {
     @Test("Score counts only exact correct answers")

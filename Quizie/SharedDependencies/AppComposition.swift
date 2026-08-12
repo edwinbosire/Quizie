@@ -20,6 +20,7 @@ struct FlashcardFeatureDependencies {
     let catalog: FlashcardCatalog
     let memory: FlashcardMemory
     let clock: any QuizClock
+    let aiInference: any AIInferenceService
 }
 
 @MainActor
@@ -27,6 +28,8 @@ struct HandbookReaderDependencies {
     let catalog: HandbookCatalog
     let progress: ReadingProgressLibrary
     let highlights: HighlightLibrary
+    let aiInference: any AIInferenceService
+    let flashcardMemory: FlashcardMemory
 }
 
 @MainActor
@@ -37,8 +40,8 @@ struct HandbookFeatureDependencies {
     var progress: ReadingProgressLibrary { reader.progress }
     var highlights: HighlightLibrary { reader.highlights }
 
-    init(catalog: HandbookCatalog, progress: ReadingProgressLibrary, highlights: HighlightLibrary) {
-        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights)
+    init(catalog: HandbookCatalog, progress: ReadingProgressLibrary, highlights: HighlightLibrary, flashcards: FlashcardFeatureDependencies) {
+        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory)
     }
 }
 
@@ -55,10 +58,11 @@ struct SearchFeatureDependencies {
         service: any HandbookSearchServing,
         catalog: HandbookCatalog,
         progress: ReadingProgressLibrary,
-        highlights: HighlightLibrary
+        highlights: HighlightLibrary,
+        flashcards: FlashcardFeatureDependencies
     ) {
         self.service = service
-        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights)
+        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory)
     }
 }
 
@@ -158,12 +162,14 @@ struct AppDependencies {
         let flashcards = FlashcardFeatureDependencies(
             catalog: FlashcardCatalog(repository: questions),
             memory: persistence.flashcards,
-            clock: clock
+            clock: clock,
+            aiInference: OpenAIInferenceService()
         )
         let handbook = HandbookFeatureDependencies(
             catalog: catalog,
             progress: persistence.progress,
-            highlights: persistence.highlights
+            highlights: persistence.highlights,
+            flashcards: flashcards
         )
         return AppDependencies(
             modelContainer: container,
@@ -175,7 +181,8 @@ struct AppDependencies {
                 service: HandbookSearchService(repository: handbookRepository),
                 catalog: catalog,
                 progress: persistence.progress,
-                highlights: persistence.highlights
+                highlights: persistence.highlights,
+                flashcards: flashcards
             ),
             persistenceIssues: persistence.issues
         )

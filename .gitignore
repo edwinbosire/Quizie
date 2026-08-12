@@ -3,3 +3,10 @@ xcuserdata/
 
 # macOS metadata
 .DS_Store
+
+# Local secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+Secrets.xcconfig

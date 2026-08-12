@@ -45,9 +45,17 @@ struct SelectableTextView: UIViewRepresentable {
     let highlights: [SelectableTextHighlight]
     let isSelectionActive: Bool
     let onSelectionChange: (SelectableTextSelection?) -> Void
+    let onHighlight: ([NSRange], HighlightColor) -> Void
+    let onCreateFlashcard: ([NSRange]) -> Void
+    let onHighlightTap: (SelectableTextSelection) -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onSelectionChange: onSelectionChange)
+        Coordinator(
+            onSelectionChange: onSelectionChange,
+            onHighlight: onHighlight,
+            onCreateFlashcard: onCreateFlashcard,
+            onHighlightTap: onHighlightTap
+        )
     }
 
     func makeUIView(context: Context) -> UITextView {
@@ -64,14 +72,19 @@ struct SelectableTextView: UIViewRepresentable {
         textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
         context.coordinator.observeTextInteraction(in: textView)
+        context.coordinator.observeHighlightTaps(in: textView)
 
         return textView
     }
 
     func updateUIView(_ textView: UITextView, context: Context) {
         context.coordinator.onSelectionChange = onSelectionChange
+        context.coordinator.onHighlight = onHighlight
+        context.coordinator.onCreateFlashcard = onCreateFlashcard
+        context.coordinator.onHighlightTap = onHighlightTap
         context.coordinator.rangeOffset = rangeOffset
         context.coordinator.observeTextInteraction(in: textView)
+        context.coordinator.observeHighlightTaps(in: textView)
 
         let updatedText = NSMutableAttributedString(
             attributedString: NSAttributedString(attributedText)
@@ -105,12 +118,10 @@ struct SelectableTextView: UIViewRepresentable {
                 range: emphasizedRange
             )
         }
-        for highlight in localizedHighlights(textLength: updatedText.length) {
-            updatedText.addAttribute(
-                .backgroundColor,
-                value: UIColor(highlight.color),
-                range: highlight.range
-            )
+        let localizedHighlights = localizedHighlights(textLength: updatedText.length)
+        context.coordinator.highlightRanges = localizedHighlights.map(\.range)
+        for highlight in localizedHighlights {
+            updatedText.addAttribute(.backgroundColor, value: UIColor(highlight.color), range: highlight.range)
         }
         if !textView.attributedText.isEqual(to: updatedText) {
             context.coordinator.isUpdatingText = true
@@ -159,6 +170,10 @@ struct SelectableTextView: UIViewRepresentable {
     @MainActor
     final class Coordinator: NSObject, UITextViewDelegate, UITextInteractionDelegate {
         var onSelectionChange: (SelectableTextSelection?) -> Void
+        var onHighlight: ([NSRange], HighlightColor) -> Void
+        var onCreateFlashcard: ([NSRange]) -> Void
+        var onHighlightTap: (SelectableTextSelection) -> Void
+        var highlightRanges: [NSRange] = []
         var wasSelectionActive = false
         var textInteraction: UITextInteraction?
         var isUpdatingText = false
@@ -166,9 +181,18 @@ struct SelectableTextView: UIViewRepresentable {
 
         private var isInteracting = false
         private weak var textView: UITextView?
+        private weak var highlightTapRecognizer: UITapGestureRecognizer?
 
-        init(onSelectionChange: @escaping (SelectableTextSelection?) -> Void) {
+        init(
+            onSelectionChange: @escaping (SelectableTextSelection?) -> Void,
+            onHighlight: @escaping ([NSRange], HighlightColor) -> Void,
+            onCreateFlashcard: @escaping ([NSRange]) -> Void,
+            onHighlightTap: @escaping (SelectableTextSelection) -> Void
+        ) {
             self.onSelectionChange = onSelectionChange
+            self.onHighlight = onHighlight
+            self.onCreateFlashcard = onCreateFlashcard
+            self.onHighlightTap = onHighlightTap
         }
 
         func observeTextInteraction(in textView: UITextView) {
@@ -182,6 +206,58 @@ struct SelectableTextView: UIViewRepresentable {
                     .first { $0.textInteractionMode == .nonEditable }
                 interaction?.delegate = self
                 self.textInteraction = interaction
+            }
+        }
+
+        func observeHighlightTaps(in textView: UITextView) {
+            guard highlightTapRecognizer == nil else { return }
+            let recognizer = UITapGestureRecognizer(
+                target: self,
+                action: #selector(handleHighlightTap(_:))
+            )
+            recognizer.cancelsTouchesInView = false
+            textView.addGestureRecognizer(recognizer)
+            highlightTapRecognizer = recognizer
+        }
+
+        @objc private func handleHighlightTap(_ recognizer: UITapGestureRecognizer) {
+            guard recognizer.state == .ended,
+                  let textView,
+                  let range = highlightRange(
+                      at: recognizer.location(in: textView),
+                      in: textView
+                  ) else { return }
+
+            DispatchQueue.main.async { [weak self, weak textView] in
+                guard let self, let textView else { return }
+                self.isUpdatingText = true
+                textView.selectedRange = range
+                self.isUpdatingText = false
+                self.onHighlightTap(
+                    SelectableTextSelection(
+                        range: NSRange(
+                            location: range.location + self.rangeOffset,
+                            length: range.length
+                        ),
+                        rect: self.selectionRect(for: range, in: textView)
+                    )
+                )
+            }
+        }
+
+        private func highlightRange(at point: CGPoint, in textView: UITextView) -> NSRange? {
+            highlightRanges.first { range in
+                guard let start = textView.position(
+                    from: textView.beginningOfDocument,
+                    offset: range.location
+                ),
+                let end = textView.position(from: start, offset: range.length),
+                let textRange = textView.textRange(from: start, to: end) else {
+                    return false
+                }
+                return textView.selectionRects(for: textRange).contains {
+                    !$0.rect.isEmpty && $0.rect.insetBy(dx: -2, dy: -2).contains(point)
+                }
             }
         }
 
@@ -235,6 +311,46 @@ struct SelectableTextView: UIViewRepresentable {
                 .reduce(CGRect.null) { $0.union($1) }
             return rect.isNull ? .zero : textView.convert(rect, to: nil)
         }
+
+        func textView(
+            _ textView: UITextView,
+            editMenuForTextInRanges ranges: [NSValue],
+            suggestedActions: [UIMenuElement]
+        ) -> UIMenu? {
+            let selectedRanges = ranges
+                .map(\.rangeValue)
+                .filter { $0.length > 0 }
+            guard !selectedRanges.isEmpty else { return nil }
+
+            let highlightAction = UIAction(
+                title: "Highlight",
+                image: UIImage(systemName: "highlighter")
+            ) { [weak self] _ in
+                guard let self else { return }
+                let documentRanges = selectedRanges.map {
+                    NSRange(
+                        location: $0.location + self.rangeOffset,
+                        length: $0.length
+                    )
+                }
+                self.onHighlight(
+                    documentRanges,
+                    HighlightColor.allCases.first ?? .yellow
+                )
+            }
+
+            let createFlashcardAction = UIAction(
+                title: "Create Flashcard",
+                image: UIImage(systemName: "sparkles.rectangle.stack")
+            ) { [weak self] _ in
+                guard let self else { return }
+                self.onCreateFlashcard(selectedRanges.map {
+                    NSRange(location: $0.location + self.rangeOffset, length: $0.length)
+                })
+            }
+
+            return UIMenu(children: [highlightAction, createFlashcardAction])
+        }
     }
 }
 
@@ -250,6 +366,9 @@ struct SelectableTextView: View {
     let highlights: [SelectableTextHighlight]
     let isSelectionActive: Bool
     let onSelectionChange: (SelectableTextSelection?) -> Void
+    let onHighlight: ([NSRange], HighlightColor) -> Void
+    let onCreateFlashcard: ([NSRange]) -> Void
+    let onHighlightTap: (SelectableTextSelection) -> Void
 
     var body: some View {
         Text(renderedText)

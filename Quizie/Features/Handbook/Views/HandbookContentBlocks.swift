@@ -1,12 +1,15 @@
 import SwiftUI
 
 struct ReaderSection: View {
+    let chapter: HandbookChapter
     let section: HandbookSection
     let sectionIndex: Int
     let theme: ChapterTheme
     var chapterID: String = ""
     var highlights: [HighlightSnapshot] = []
     let highlightLibrary: HighlightLibrary
+    let aiInference: any AIInferenceService
+    let flashcardMemory: FlashcardMemory
     let presentation: ReaderPresentation
 
     private var readingTheme: ReadingTheme { presentation.readingTheme }
@@ -38,12 +41,16 @@ struct ReaderSection: View {
 
     private var content: some View {
         ContentBlocksView(
+            chapter: chapter,
+            section: section,
             blocks: section.blocks,
             theme: theme,
             chapterID: chapterID,
             sectionId: section.id,
             highlights: highlights,
             highlightLibrary: highlightLibrary,
+            aiInference: aiInference,
+            flashcardMemory: flashcardMemory,
             presentation: presentation
         )
     }
@@ -63,12 +70,16 @@ private extension View {
 
 // MARK: - Content Blocks Renderer
 struct ContentBlocksView: View {
+    let chapter: HandbookChapter
+    let section: HandbookSection
     let blocks: [ContentBlock]
     let theme: ChapterTheme
     var chapterID: String = ""
     var sectionId: String = ""
     var highlights: [HighlightSnapshot] = []
     let highlightLibrary: HighlightLibrary
+    let aiInference: any AIInferenceService
+    let flashcardMemory: FlashcardMemory
     let presentation: ReaderPresentation
 
     private var readingTheme: ReadingTheme { presentation.readingTheme }
@@ -76,6 +87,8 @@ struct ContentBlocksView: View {
 
     @State private var selection: BlockSelection?
     @State private var nativeTextSelection: NativeTextSelection?
+    @State private var isNativeHighlightPickerPresented = false
+    @State private var flashcardPresentation: FlashcardGenerationPresentation?
     @State private var blockFrames: [Int: CGRect] = [:]
 
     private var rt: ReadingThemeStyle { readingTheme.style }
@@ -108,16 +121,16 @@ struct ContentBlocksView: View {
                     }
                 )
                 .overlay(alignment: .topLeading) {
-                    if let nativeTextSelection,
+                    if isNativeHighlightPickerPresented,
+                       let nativeTextSelection,
                        nativeTextSelection.blockIndex == idx,
-                       let selection,
-                       !selection.isDragging {
+                       let selection {
                         GeometryReader { geometry in
                             selectionToolbar(for: selection)
                                 .frame(width: geometry.size.width)
                                 .position(
                                     x: geometry.size.width / 2,
-                                    y: selectionToolbarCenterY(
+                                    y: pickerCenterY(
                                         for: nativeTextSelection.selection.rect,
                                         relativeTo: geometry.frame(in: .global)
                                     )
@@ -126,7 +139,11 @@ struct ContentBlocksView: View {
                         }
                     }
                 }
-                .zIndex(nativeTextSelection?.blockIndex == idx ? 1 : 0)
+                .zIndex(
+                    isNativeHighlightPickerPresented && nativeTextSelection?.blockIndex == idx
+                        ? 1
+                        : 0
+                )
 
                 // Legacy multi-block selections still use an in-flow toolbar.
                 if nativeTextSelection == nil,
@@ -144,6 +161,13 @@ struct ContentBlocksView: View {
         .onPreferenceChange(BlockFramePreferenceKey.self) { frames in
             blockFrames = frames
         }
+        .sheet(item: $flashcardPresentation) { presentation in
+            GeneratedFlashcardPreviewView(
+                presentation: presentation,
+                aiInference: aiInference,
+                memory: flashcardMemory
+            )
+        }
     }
 
     @ViewBuilder
@@ -154,31 +178,32 @@ struct ContentBlocksView: View {
     ) -> some View {
         let selectableHighlights: [SelectableTextHighlight] = existingHighlights.reversed().compactMap { highlight in
             guard let range = highlight.selectedRange else { return nil }
-            return SelectableTextHighlight(
-                range: range,
-                color: highlight.highlightColor.backgroundColor
-            )
+            return SelectableTextHighlight(range: range, color: highlight.highlightColor.backgroundColor)
         }
         let selectionContext = BlockTextSelectionContext(
             highlights: selectableHighlights,
             isSelectionActive: selection?.contains(index) == true,
             onSelectionChange: { textSelection, segmentOffset in
-                updateSelection(
-                    textSelection,
-                    for: index,
-                    segmentOffset: segmentOffset
-                )
+                updateSelection(textSelection, for: index, segmentOffset: segmentOffset)
+            },
+            onHighlight: { ranges, color in
+                saveTextHighlights(color: color, blockIndex: index, ranges: ranges)
+                withAnimation(.easeOut(duration: 0.2)) {
+                    isNativeHighlightPickerPresented = true
+                }
+            },
+            onCreateFlashcard: { ranges in
+                createFlashcards(blockRange: index...index, selectedRanges: ranges)
+            },
+            onHighlightTap: { textSelection, segmentOffset in
+                editHighlight(textSelection, for: index, segmentOffset: segmentOffset)
             }
         )
 
         switch block.content {
         case .paragraph(let text):
             SelectableTextView(
-                attributedText: highlightedText(
-                    text,
-                    font: readingTheme.scaledFont(.body),
-                    color: rt.textSecondary
-                ),
+                attributedText: highlightedText(text, font: readingTheme.scaledFont(.body), color: rt.textSecondary),
                 fontScale: readingTheme.textSize.scaleFactor,
                 lineSpacing: 5,
                 style: .body,
@@ -188,42 +213,28 @@ struct ContentBlocksView: View {
                 isSelectionActive: selectionContext.isSelectionActive,
                 onSelectionChange: { textSelection in
                     selectionContext.onSelectionChange(textSelection, 0)
+                },
+                onHighlight: selectionContext.onHighlight,
+                onCreateFlashcard: selectionContext.onCreateFlashcard,
+                onHighlightTap: { textSelection in
+                    selectionContext.onHighlightTap(textSelection, 0)
                 }
             )
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, 18)
 
         case .subheading(let text):
-            SectionSubheading(
-                text: text,
-                isFirst: index == 0,
-                presentation: presentation,
-                selectionContext: selectionContext
-            )
+            SectionSubheading(text: text, isFirst: index == 0, presentation: presentation, selectionContext: selectionContext)
 
         case .subheading2(let text):
-            SectionSubheading2(
-                text: text,
-                presentation: presentation,
-                selectionContext: selectionContext
-            )
+            SectionSubheading2(text: text, presentation: presentation, selectionContext: selectionContext)
 
         case .bulletList(let items):
-            BulletListBlock(
-                items: items,
-                accentColor: theme.accent,
-                presentation: presentation,
-                selectionContext: selectionContext
-            )
+            BulletListBlock(items: items, accentColor: theme.accent, presentation: presentation, selectionContext: selectionContext)
                 .padding(.bottom, 8)
 
         case .checkUnderstand(let items):
-            CheckUnderstandBox(
-                items: items,
-                theme: theme,
-                presentation: presentation,
-                selectionContext: selectionContext
-            )
+            CheckUnderstandBox(items: items, theme: theme, presentation: presentation, selectionContext: selectionContext)
                 .padding(.bottom, 4)
 
         case .blockquote(let text):
@@ -260,6 +271,7 @@ struct ContentBlocksView: View {
     ) {
         withAnimation(.easeOut(duration: 0.2)) {
             if let textSelection {
+                isNativeHighlightPickerPresented = false
                 nativeTextSelection = NativeTextSelection(
                     blockIndex: blockIndex,
                     segmentOffset: segmentOffset,
@@ -272,9 +284,26 @@ struct ContentBlocksView: View {
                 )
             } else if nativeTextSelection?.blockIndex == blockIndex,
                       nativeTextSelection?.segmentOffset == segmentOffset {
+                isNativeHighlightPickerPresented = false
                 nativeTextSelection = nil
                 selection = nil
             }
+        }
+    }
+
+    private func editHighlight(_ textSelection: SelectableTextSelection, for blockIndex: Int, segmentOffset: Int) {
+        withAnimation(.easeOut(duration: 0.2)) {
+            nativeTextSelection = NativeTextSelection(
+                blockIndex: blockIndex,
+                segmentOffset: segmentOffset,
+                selection: textSelection
+            )
+            selection = BlockSelection(
+                anchorIndex: blockIndex,
+                currentIndex: blockIndex,
+                isDragging: false
+            )
+            isNativeHighlightPickerPresented = true
         }
     }
 
@@ -290,6 +319,7 @@ struct ContentBlocksView: View {
                 case .second(true, let drag):
                     if let drag {
                         if selection == nil {
+                            isNativeHighlightPickerPresented = false
                             nativeTextSelection = nil
                             selection = BlockSelection(
                                 anchorIndex: blockIdx,
@@ -345,6 +375,12 @@ struct ContentBlocksView: View {
                 saveHighlights(color: color, range: sel.startIndex...sel.endIndex)
                 clearSelection()
             },
+            onCreateFlashcard: {
+                createFlashcards(
+                    blockRange: sel.startIndex...sel.endIndex,
+                    selectedRanges: nativeTextSelection.map { [$0.selection.range] } ?? []
+                )
+            },
             onDelete: {
                 deleteHighlights(range: sel.startIndex...sel.endIndex)
                 clearSelection()
@@ -357,30 +393,79 @@ struct ContentBlocksView: View {
 
     private func clearSelection() {
         withAnimation(.easeOut(duration: 0.2)) {
+            isNativeHighlightPickerPresented = false
             nativeTextSelection = nil
             selection = nil
         }
     }
 
-    private func selectionToolbarCenterY(
+    private func createFlashcards(blockRange: ClosedRange<Int>, selectedRanges: [NSRange]) {
+        let selectedTextRange = selectedRanges.reduce(nil as NSRange?) { partial, range in
+            partial.map { NSUnionRange($0, range) } ?? range
+        }
+        guard let context = FlashcardGenerationContextBuilder.make(
+            chapter: chapter,
+            section: section,
+            selectedBlockRange: blockRange,
+            selectedTextRange: selectedTextRange
+        ) else { return }
+        flashcardPresentation = FlashcardGenerationPresentation(
+            context: context,
+            chapterNumber: chapter.id + 1
+        )
+        clearSelection()
+    }
+
+    private func pickerCenterY(
         for selectionRect: CGRect,
         relativeTo blockFrame: CGRect
     ) -> CGFloat {
-        let toolbarHalfHeight: CGFloat = 30
+        let pickerHalfHeight: CGFloat = 30
         let spacing: CGFloat = 10
-        let spaceNeededAbove = toolbarHalfHeight * 2 + spacing
         let localSelectionRect = selectionRect.offsetBy(
             dx: -blockFrame.minX,
             dy: -blockFrame.minY
         )
 
-        if localSelectionRect.minY >= spaceNeededAbove {
-            return localSelectionRect.minY - spacing - toolbarHalfHeight
+        if localSelectionRect.minY >= pickerHalfHeight * 2 + spacing {
+            return localSelectionRect.minY - spacing - pickerHalfHeight
         }
-        return localSelectionRect.maxY + spacing + toolbarHalfHeight
+        return localSelectionRect.maxY + spacing + pickerHalfHeight
     }
 
     // MARK: - Save & Delete Highlights
+
+    private func saveTextHighlights(
+        color: HighlightColor,
+        blockIndex: Int,
+        ranges: [NSRange]
+    ) {
+        guard blocks.indices.contains(blockIndex) else { return }
+        let block = blocks[blockIndex]
+
+        for range in ranges where range.length > 0 {
+            let preview = selectedText(in: block.plainText, range: range) ?? ""
+            if var existing = highlights.first(where: {
+                $0.blockID == block.id && $0.selectedRange == range
+            }) {
+                existing.color = color
+                existing.textPreview = preview
+                highlightLibrary.upsert(existing)
+            } else {
+                highlightLibrary.upsert(
+                    HighlightSnapshot(
+                        chapterID: chapterID,
+                        sectionID: sectionId,
+                        blockID: block.id,
+                        color: color,
+                        textPreview: preview,
+                        rangeLocation: range.location,
+                        rangeLength: range.length
+                    )
+                )
+            }
+        }
+    }
 
     private func saveHighlights(color: HighlightColor, range: ClosedRange<Int>) {
         for idx in range {

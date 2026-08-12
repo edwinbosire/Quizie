@@ -693,7 +693,8 @@ private struct FlashcardUnavailableView: View {
             Flashcard(id: "2", prompt: "When was Magna Carta agreed?", answer: "1215", topic: "Chapter 3", chapter: 3, year: "1215")
         ]),
         memory: memory,
-        clock: SystemQuizClock()
+        clock: SystemQuizClock(),
+        aiInference: MockInferenceService()
     )
 
     return NavigationStack {

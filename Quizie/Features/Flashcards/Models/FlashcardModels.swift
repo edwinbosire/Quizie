@@ -93,6 +93,17 @@ struct CustomFlashcardSnapshot: Identifiable, Equatable, Sendable {
     let chapter: Int?
     let isDateCard: Bool
     let createdAt: Date
+    let sourceBlockIDs: [String]
+
+    init(id: String, prompt: String, answer: String, chapter: Int?, isDateCard: Bool, createdAt: Date, sourceBlockIDs: [String] = []) {
+        self.id = id
+        self.prompt = prompt
+        self.answer = answer
+        self.chapter = chapter
+        self.isDateCard = isDateCard
+        self.createdAt = createdAt
+        self.sourceBlockIDs = sourceBlockIDs
+    }
 
     var flashcard: Flashcard {
         Flashcard(

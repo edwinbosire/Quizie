@@ -4,6 +4,9 @@ struct BlockTextSelectionContext {
     let highlights: [SelectableTextHighlight]
     let isSelectionActive: Bool
     let onSelectionChange: (SelectableTextSelection?, Int) -> Void
+    let onHighlight: ([NSRange], HighlightColor) -> Void
+    let onCreateFlashcard: ([NSRange]) -> Void
+    let onHighlightTap: (SelectableTextSelection, Int) -> Void
 }
 
 private struct SelectableBlockText: View {
@@ -27,6 +30,11 @@ private struct SelectableBlockText: View {
             isSelectionActive: selectionContext.isSelectionActive,
             onSelectionChange: { selection in
                 selectionContext.onSelectionChange(selection, rangeOffset)
+            },
+            onHighlight: selectionContext.onHighlight,
+            onCreateFlashcard: selectionContext.onCreateFlashcard,
+            onHighlightTap: { selection in
+                selectionContext.onHighlightTap(selection, rangeOffset)
             }
         )
         .fixedSize(horizontal: false, vertical: true)

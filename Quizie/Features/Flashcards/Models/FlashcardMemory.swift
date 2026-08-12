@@ -52,6 +52,7 @@ final class CustomFlashcard {
     var chapter: Int?
     var isDateCard: Bool
     var createdAt: Date
+    var sourceBlockIDs: [String] = []
 
     init(snapshot: CustomFlashcardSnapshot) {
         id = snapshot.id
@@ -60,6 +61,7 @@ final class CustomFlashcard {
         chapter = snapshot.chapter
         isDateCard = snapshot.isDateCard
         createdAt = snapshot.createdAt
+        sourceBlockIDs = snapshot.sourceBlockIDs
     }
 
     var snapshot: CustomFlashcardSnapshot {
@@ -69,7 +71,8 @@ final class CustomFlashcard {
             answer: answer,
             chapter: chapter,
             isDateCard: isDateCard,
-            createdAt: createdAt
+            createdAt: createdAt,
+            sourceBlockIDs: sourceBlockIDs
         )
     }
 }
@@ -216,6 +219,7 @@ final class FlashcardMemory {
         answer: String,
         chapter: Int?,
         isDateCard: Bool,
+        sourceBlockIDs: [String] = [],
         at date: Date = Date()
     ) {
         let value = CustomFlashcardSnapshot(
@@ -224,7 +228,8 @@ final class FlashcardMemory {
             answer: answer.trimmingCharacters(in: .whitespacesAndNewlines),
             chapter: chapter,
             isDateCard: isDateCard,
-            createdAt: date
+            createdAt: date,
+            sourceBlockIDs: sourceBlockIDs
         )
 
         do {

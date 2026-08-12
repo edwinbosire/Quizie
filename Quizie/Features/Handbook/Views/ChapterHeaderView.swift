@@ -40,7 +40,9 @@ struct ChapterHeaderView: View {
     let dependencies = HandbookReaderDependencies(
         catalog: HandbookCatalog(repository: BundleHandbookRepository()),
         progress: services.progress,
-        highlights: services.highlights
+        highlights: services.highlights,
+        aiInference: MockInferenceService(),
+        flashcardMemory: services.flashcards
     )
     NavigationStack {
         ChapterView(

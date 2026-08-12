@@ -82,12 +82,15 @@ struct ChapterView: View {
                         VStack(spacing: 24) {
                             ForEach(Array(chapter.sections.enumerated()), id: \.element.id) { idx, section in
                                 ReaderSection(
+                                    chapter: chapter,
                                     section: section,
                                     sectionIndex: idx,
                                     theme: theme,
                                     chapterID: chapter.contentID,
                                     highlights: highlights.filter { $0.sectionID == section.id },
                                     highlightLibrary: highlightLibrary,
+                                    aiInference: dependencies.aiInference,
+                                    flashcardMemory: dependencies.flashcardMemory,
                                     presentation: presentation
                                 )
                                     .id(section.id)

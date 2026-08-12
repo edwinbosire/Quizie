@@ -112,6 +112,7 @@ struct HighlightSelectionToolbar: View {
     let hasExistingHighlights: Bool
     let initialColor: HighlightColor
     let onSave: (HighlightColor) -> Void
+    let onCreateFlashcard: () -> Void
     let onDelete: () -> Void
     let onCancel: () -> Void
 
@@ -121,12 +122,14 @@ struct HighlightSelectionToolbar: View {
         hasExistingHighlights: Bool,
         initialColor: HighlightColor = .yellow,
         onSave: @escaping (HighlightColor) -> Void,
+        onCreateFlashcard: @escaping () -> Void,
         onDelete: @escaping () -> Void,
         onCancel: @escaping () -> Void
     ) {
         self.hasExistingHighlights = hasExistingHighlights
         self.initialColor = initialColor
         self.onSave = onSave
+        self.onCreateFlashcard = onCreateFlashcard
         self.onDelete = onDelete
         self.onCancel = onCancel
         _selectedColor = State(initialValue: initialColor)
@@ -158,6 +161,18 @@ struct HighlightSelectionToolbar: View {
             Spacer(minLength: 12)
 
             HStack(spacing: 8) {
+                Button {
+                    onCreateFlashcard()
+                } label: {
+                    Image(systemName: "sparkles.rectangle.stack")
+                        .appFont(.footnote.weight(.medium))
+                        .foregroundColor(.accentColor)
+                        .frame(width: 30, height: 30)
+                        .background(Color(.systemGray5))
+                        .clipShape(Circle())
+                }
+                .accessibilityLabel("Create Flashcard")
+
                 if hasExistingHighlights {
                     Button {
                         onDelete()

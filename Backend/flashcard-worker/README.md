@@ -1,6 +1,6 @@
 # Quizie flashcard generation backend
 
-This worker keeps the OpenAI API key out of the iOS application. The app sends handbook context to `POST /flashcards/generate`; the worker calls the OpenAI Responses API with strict structured output and returns only the generated cards.
+This worker keeps the OpenAI API key out of the iOS application. The app sends handbook context to `POST /flashcards/generate`; the worker calls the OpenAI Responses API, forces a `file_search` against the configured handbook vector store, and returns strict structured cards with validated `sourceBlockIds`.
 
 ## Local development
 

@@ -10,3 +10,7 @@ xcuserdata/
 !.env.example
 .dev.vars
 Secrets.xcconfig
+
+# Node dependencies and local Wrangler state
+node_modules/
+.wrangler/

@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "handbook:index": "node scripts/index-handbook.js",
+    "handbook:validate": "node scripts/index-handbook.js --validate",
     "test": "node --test"
   },
   "devDependencies": {

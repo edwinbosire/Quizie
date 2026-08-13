@@ -1,10 +1,12 @@
+import { createHandbookFileSearchTool } from "./handbook-knowledge.js";
+
 export const SYSTEM_INSTRUCTIONS = `Generate flashcards strictly from the supplied handbook context. Do not introduce external knowledge.
 
 You must search the configured handbook vector store before generating cards. Use retrieved handbook content to verify the selected text, but generate cards only for facts contained in the user's selection and supplied context blocks.
 
 Identify the distinct, testable facts contained in the user's selected text. Use surrounding and adjacent blocks only to resolve meaning and wording. Do not create filler cards and do not force the maximum number of cards. A short single-fact selection should normally produce one card; longer selections may produce several cards grouped by semantic unit. Every answer must be fully supported by the supplied context. Every card must include sourceBlockIds, and every sourceBlockIds entry must identify a supplied block that directly supports that card.`;
 
-export function createOpenAIRequest(input, env) {
+export function createOpenAIRequest(input, env, activeIndex) {
   const allowedBlockIds = [...new Set(input.blocks.map(block => block.id))];
   return {
     model: env.OPENAI_MODEL || "gpt-5.6-luna",
@@ -14,7 +16,7 @@ export function createOpenAIRequest(input, env) {
       { role: "system", content: SYSTEM_INSTRUCTIONS },
       { role: "user", content: JSON.stringify(input) }
     ],
-    tools: [{ type: "file_search", vector_store_ids: [env.HANDBOOK_VECTOR_STORE_ID] }],
+    tools: [createHandbookFileSearchTool(env, activeIndex)],
     tool_choice: { type: "file_search" },
     include: ["file_search_call.results"],
     text: {
@@ -77,6 +79,7 @@ export function validateRequest(input) {
   if (!input.blocks.every(block => typeof block.id === "string" && block.id && typeof block.text === "string" && typeof block.isSelected === "boolean")) {
     return "Every context block must include id, text, and isSelected.";
   }
+  if (!input.blocks.some(block => block.isSelected)) return "At least one context block must be selected.";
   if (!Number.isInteger(input.maxCards) || input.maxCards < 1 || input.maxCards > 8) return "maxCards must be between 1 and 8.";
   return null;
 }

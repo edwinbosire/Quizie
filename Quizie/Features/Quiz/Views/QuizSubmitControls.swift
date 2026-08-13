@@ -97,8 +97,9 @@ struct QuizOptionsSheet: View {
     let isBookmarked: Bool
     let onShowHint: (QuizQuestionSource) -> Void
     let onRestart: () -> Void
-    let onQuit: () -> Void
     let onToggleBookmark: () -> Void
+
+    private var hasHint: Bool { source?.hasHint == true }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -111,21 +112,23 @@ struct QuizOptionsSheet: View {
             
             // Options list
             VStack(spacing: 1) {
-                // Hint option (only show if hint is available)
-                if let source, source.hasHint {
-                    OptionRow(
-                        icon: "lightbulb.fill",
-                        title: "Show Hint",
-                        iconColor: Color(hex: "#F39C12")
-                    ) {
+                OptionRow(
+                    icon: "lightbulb.fill",
+                    title: "Show Hint",
+                    iconColor: Color(hex: "#F39C12")
+                ) {
+                    if let source, source.hasHint {
                         onShowHint(source)
                         dismiss()
                     }
-                    .accessibilityIdentifier("quiz.options.hint")
-                    
-                    Divider()
-                        .padding(.leading, 52)
                 }
+                .disabled(!hasHint)
+                .opacity(hasHint ? 1 : 0.45)
+                .accessibilityIdentifier("quiz.options.hint")
+                .accessibilityHint(hasHint ? "Opens the handbook hint" : "No hint is available for this question")
+
+                Divider()
+                    .padding(.leading, 52)
                 
                 OptionRow(
                     icon: "arrow.clockwise",
@@ -133,18 +136,6 @@ struct QuizOptionsSheet: View {
                     iconColor: Color(hex: "#E67E22")
                 ) {
                     onRestart()
-                    dismiss()
-                }
-                
-                Divider()
-                    .padding(.leading, 52)
-                
-                OptionRow(
-                    icon: "rectangle.portrait.and.arrow.right",
-                    title: "Quit Quiz",
-                    iconColor: Color(hex: "#C0392B")
-                ) {
-                    onQuit()
                     dismiss()
                 }
                 

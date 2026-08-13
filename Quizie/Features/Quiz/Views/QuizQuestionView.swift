@@ -35,10 +35,12 @@ struct QuizQuestionView: View {
     var body: some View {
 		VStack(spacing: 0) {
 			// Top bar: timer + progress + options
-			QuizTopBar(engine: engine, onOptionsPressed: { presentedSheet = .options })
+			QuizTopBar(engine: engine, onOptionsPressed: { presentedSheet = .options }, onClosePressed: { presentedAlert = .quit })
 
 			// Progress track
-			QuizProgressBar(current: questionIndex + 1, total: engine.totalQuestions)
+			if let session = engine.session {
+				QuizProgressBar(questions: session.questions, answers: session.answers, currentIndex: questionIndex)
+			}
 
 			if let question {
 				QuestionView(engine: engine, question: question, questionIndex: questionIndex, source: questionSource, onShowHint: { presentedSheet = .hint($0) })
@@ -52,10 +54,9 @@ struct QuizQuestionView: View {
                     isBookmarked: isBookmarked,
                     onShowHint: { pendingHintSource = $0 },
                     onRestart: { pendingAlert = .restart },
-                    onQuit: { pendingAlert = .quit },
                     onToggleBookmark: toggleBookmark
                 )
-                .presentationDetents([.height(questionSource?.hasHint == true ? 280 : 224)])
+                .presentationDetents([.height(224)])
                 .presentationDragIndicator(.visible)
             case .hint(let source):
                 QuizHintSheet(source: source)
@@ -76,7 +77,7 @@ struct QuizQuestionView: View {
                 Alert(
                     title: Text("Quit Quiz?"),
                     message: Text("Your current progress will be lost permanently. You can start a new quiz from the lobby."),
-                    primaryButton: .cancel(),
+                    primaryButton: .cancel(Text("Continue")),
                     secondaryButton: .destructive(Text("Quit"), action: onQuit)
                 )
             }

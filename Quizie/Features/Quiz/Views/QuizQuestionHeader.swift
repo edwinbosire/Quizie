@@ -3,8 +3,10 @@ import SwiftUI
 struct QuizTopBar: View {
     let engine: QuizEngine
     let onOptionsPressed: () -> Void
+    let onClosePressed: () -> Void
     
     @State private var optionsButtonPressed = false
+    @State private var closeButtonPressed = false
 
 	var body: some View {
         VStack(spacing: 0) {
@@ -32,7 +34,7 @@ struct QuizTopBar: View {
                 .animation(.easeInOut(duration: 0.3), value: engine.isTimeWarning)
 
 				Spacer()
-                // Options button
+
                 Button(action: {
                     optionsButtonPressed.toggle()
                     onOptionsPressed()
@@ -44,6 +46,20 @@ struct QuizTopBar: View {
                 .padding(.leading, 8)
                 .accessibilityLabel("Quiz options")
                 .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.5), trigger: optionsButtonPressed)
+
+                Button(action: {
+                    closeButtonPressed.toggle()
+                    onClosePressed()
+                }) {
+                    Image(systemName: "xmark")
+                        .appFont(.title2.weight(.medium))
+                        .foregroundColor(.hbTextSecondary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel("Quit quiz")
+                .accessibilityHint("Shows a confirmation before quitting")
+                .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.5), trigger: closeButtonPressed)
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
@@ -60,28 +76,59 @@ struct QuizTopBar: View {
 
 // MARK: - Progress Bar
 struct QuizProgressBar: View {
-    let current: Int
-    let total: Int
+    let questions: [QuizQuestion]
+    let answers: [String: UserAnswer]
+    let currentIndex: Int
 
-    var fraction: Double {
-        guard total > 0 else { return 0 }
-        let result = Double(current) / Double(total)
-        return result.isFinite ? min(max(result, 0), 1) : 0
+    private var segmentStates: [QuizProgressSegmentState] {
+        questions.enumerated().map { index, question in
+            if let answer = answers[question.id] {
+                return answer.isCorrect ? .correct : .incorrect
+            }
+            return index == currentIndex ? .current : .unanswered
+        }
     }
 
     var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Rectangle()
-                    .fill(Color.hbBorder)
-                    .frame(height: 3)
-                Rectangle()
-                    .fill(Color.hbAccent)
-                    .frame(width: max(0, geo.size.width * fraction), height: 3)
-                    .animation(.easeInOut(duration: 0.3), value: fraction)
+        GeometryReader { geometry in
+            HStack(spacing: segmentSpacing(for: geometry.size.width)) {
+                ForEach(Array(segmentStates.enumerated()), id: \.offset) { _, state in
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(state.color)
+                        .frame(maxWidth: .infinity)
+                }
             }
         }
-        .frame(height: 3)
+        .frame(height: 6)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.hbBackground)
+        .animation(.easeInOut(duration: 0.25), value: currentIndex)
+        .animation(.easeInOut(duration: 0.25), value: answers.count)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Quiz progress")
+        .accessibilityValue("Question \(min(currentIndex + 1, questions.count)) of \(questions.count), \(answers.count) answered")
+    }
+
+    private func segmentSpacing(for width: CGFloat) -> CGFloat {
+        guard !questions.isEmpty else { return 0 }
+        return min(3, max(0, width / CGFloat(questions.count) * 0.25))
+    }
+}
+
+enum QuizProgressSegmentState {
+    case unanswered
+    case current
+    case correct
+    case incorrect
+
+    var color: Color {
+        switch self {
+        case .unanswered: return .hbBorder
+        case .current: return .hbAccent
+        case .correct: return Color(hex: "#27AE60")
+        case .incorrect: return Color(hex: "#E74C3C")
+        }
     }
 }
 

@@ -299,15 +299,12 @@ final class HandbookReaderQuizUITests: XCTestCase {
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         startButton.tap()
 
-        XCTAssertTrue(app.descendants(matching: .any)["quiz.taxonomy"].waitForExistence(timeout: 5))
-        app.buttons["Quiz options"].tap()
-
-        let showHint = app.buttons["quiz.options.hint"]
-        XCTAssertTrue(showHint.waitForExistence(timeout: 5))
-        showHint.tap()
+        let taxonomy = app.buttons["quiz.taxonomy"]
+        XCTAssertTrue(taxonomy.waitForExistence(timeout: 5))
+        taxonomy.tap()
 
         XCTAssertTrue(app.navigationBars["Handbook Hint"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["quiz.hint.passage"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["quiz.hint.content"].waitForExistence(timeout: 5))
     }
 
     @MainActor

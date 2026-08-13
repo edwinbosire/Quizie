@@ -10,18 +10,22 @@ struct QuizHintSheet: View {
                 VStack(alignment: .leading, spacing: 20) {
                     sourceHeader
 
-                    if let passage = source.passage {
+                    if source.hasHint {
                         VStack(alignment: .leading, spacing: 10) {
                             Label("HANDBOOK PASSAGE", systemImage: "text.quote")
                                 .appFont(.caption2.weight(.semibold))
                                 .foregroundColor(.hbTextMuted)
 
-                            Text(passage)
-                                .appFont(.body)
-                                .foregroundColor(.hbTextPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .textSelection(.enabled)
-                                .accessibilityIdentifier("quiz.hint.passage")
+                            VStack(alignment: .leading, spacing: 10) {
+                                ForEach(source.hintBlocks) { block in
+                                    hintBlock(block)
+                                }
+                            }
+                            .appFont(.body)
+                            .foregroundColor(.hbTextPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                            .accessibilityIdentifier("quiz.hint.content")
                         }
                         .padding(18)
                         .background(Color.hbSurface)
@@ -43,6 +47,32 @@ struct QuizHintSheet: View {
             }
         }
         .accessibilityIdentifier("quiz.hint")
+    }
+
+    @ViewBuilder
+    private func hintBlock(_ block: QuizHintBlock) -> some View {
+        switch block.content {
+        case .paragraph(let text):
+            Text(text)
+                .accessibilityIdentifier("quiz.hint.passage")
+        case .blockquote(let text):
+            Text(text)
+                .italic()
+                .padding(.leading, 12)
+                .overlay(alignment: .leading) { Rectangle().fill(Color.hbBorder).frame(width: 3) }
+        case .bulletList(let items):
+            VStack(alignment: .leading, spacing: 7) {
+                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                    HStack(alignment: .firstTextBaseline, spacing: 9) {
+                        Text("•")
+                            .accessibilityHidden(true)
+                        Text(item)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+            .accessibilityIdentifier("quiz.hint.list")
+        }
     }
 
     private var sourceHeader: some View {

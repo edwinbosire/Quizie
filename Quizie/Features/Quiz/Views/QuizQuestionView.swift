@@ -41,7 +41,7 @@ struct QuizQuestionView: View {
 			QuizProgressBar(current: questionIndex + 1, total: engine.totalQuestions)
 
 			if let question {
-				QuestionView(engine: engine, question: question, questionIndex: questionIndex, source: questionSource)
+				QuestionView(engine: engine, question: question, questionIndex: questionIndex, source: questionSource, onShowHint: { presentedSheet = .hint($0) })
 			}
 		}
         .sheet(item: $presentedSheet, onDismiss: presentPendingPresentation) { sheet in
@@ -55,7 +55,7 @@ struct QuizQuestionView: View {
                     onQuit: { pendingAlert = .quit },
                     onToggleBookmark: toggleBookmark
                 )
-                .presentationDetents([.height(questionSource?.passage == nil ? 224 : 280)])
+                .presentationDetents([.height(questionSource?.hasHint == true ? 280 : 224)])
                 .presentationDragIndicator(.visible)
             case .hint(let source):
                 QuizHintSheet(source: source)
@@ -129,11 +129,12 @@ private struct QuestionView: View {
 	let question: QuizQuestion
 	let questionIndex: Int
 	let source: QuizQuestionSource?
+	let onShowHint: (QuizQuestionSource) -> Void
 	var body: some View {
 		ScrollView {
 			VStack(spacing: 0) {
 				// Question card
-				QuestionCard(question: question, questionIndex: questionIndex, source: source)
+				QuestionCard(question: question, questionIndex: questionIndex, source: source, onShowHint: onShowHint)
 					.frame(minHeight: 200)
 					.padding(.horizontal, 16)
 					.padding(.vertical, 20)

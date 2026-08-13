@@ -97,7 +97,7 @@ struct QuizOptionsSheet: View {
             // Options list
             VStack(spacing: 1) {
                 // Hint option (only show if hint is available)
-                if let source, source.passage != nil {
+                if let source, source.hasHint {
                     OptionRow(
                         icon: "lightbulb.fill",
                         title: "Show Hint",

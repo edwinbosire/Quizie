@@ -4,6 +4,7 @@ struct QuestionCard: View {
     let question: QuizQuestion
     let questionIndex: Int
     let source: QuizQuestionSource?
+    let onShowHint: (QuizQuestionSource) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -37,17 +38,25 @@ struct QuestionCard: View {
 			}
 
             if let source {
-                HStack(alignment: .top, spacing: 6) {
-                    Image(systemName: "point.3.connected.trianglepath.dotted")
-                        .appFont(.caption2.weight(.semibold))
-                        .padding(.top, 1)
-                    Text(source.taxonomyLabel)
-                        .appFont(.caption.weight(.semibold))
-                        .fixedSize(horizontal: false, vertical: true)
+                Button {
+                    onShowHint(source)
+                } label: {
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "point.3.connected.trianglepath.dotted")
+                            .appFont(.caption2.weight(.semibold))
+                            .padding(.top, 1)
+                        Text(source.taxonomyLabel)
+                            .appFont(.caption.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                        Image(systemName: "chevron.right")
+                            .appFont(.caption2.weight(.semibold))
+                            .padding(.top, 1)
+                    }
                 }
+                .buttonStyle(.plain)
                 .foregroundColor(.hbTextMuted)
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("Question source: \(source.taxonomyLabel)")
+                .accessibilityLabel("Open handbook hint for \(source.taxonomyLabel)")
+                .accessibilityHint("Shows the source section from the handbook")
                 .accessibilityIdentifier("quiz.taxonomy")
             }
 

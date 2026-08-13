@@ -40,6 +40,24 @@ struct ContentTaxonomyTaggingTests {
         #expect(source.passage?.contains("began in 1642") == true)
     }
 
+    @Test("Quiz hints include lists attached to the relevant paragraph")
+    func quizHintIncludesAttachedList() throws {
+        let taxonomy = try BundleConceptTaxonomyRepository().taxonomy()
+        let questions = try BundleQuestionRepository().questions(count: .max, seed: "taxonomy-list-source")
+        let chapters = try BundleHandbookRepository().document().chapters
+        let resolver = QuizQuestionSourceResolver(chapters: chapters, taxonomyTagger: TaxonomyTagResolver(taxonomy: taxonomy))
+        let question = try #require(questions.first { $0.id == "202" })
+        let source = try #require(resolver.source(for: question))
+        let listItems = source.hintBlocks.flatMap { block -> [String] in
+            if case .bulletList(let items) = block.content { return items }
+            return []
+        }
+
+        #expect(source.passage?.contains("The denominations (values) of currency are:") == true)
+        #expect(listItems.contains { $0.contains("coins:") })
+        #expect(listItems.contains { $0.contains("notes: £5, £10, £20, £50") })
+    }
+
     @Test("Every bundled question resolves a handbook source and hint")
     func allQuizQuestionsResolveHandbookSources() throws {
         let taxonomy = try BundleConceptTaxonomyRepository().taxonomy()
@@ -50,7 +68,7 @@ struct ContentTaxonomyTaggingTests {
         for question in questions {
             let source = resolver.source(for: question)
             #expect(source != nil, "Question \(question.id) has no handbook source")
-            #expect(source?.passage?.isEmpty == false, "Question \(question.id) has no handbook hint")
+            #expect(source?.hasHint == true, "Question \(question.id) has no handbook hint")
         }
     }
 

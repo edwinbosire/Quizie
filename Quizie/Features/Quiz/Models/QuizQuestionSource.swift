@@ -7,11 +7,31 @@ struct QuizQuestionSource: Identifiable, Equatable {
     let chapterTitle: String
     let sectionTitle: String
     let blockID: String?
-    let passage: String?
+    let hintBlocks: [QuizHintBlock]
 
     var id: String { "\(conceptID)-\(blockID ?? "source")" }
     var taxonomyLabel: String { taxonomyPath.joined(separator: " › ") }
     var handbookLocation: String { "\(chapterNumber) · \(chapterTitle)" }
+    var hasHint: Bool { !hintBlocks.isEmpty }
+    var passage: String? { hasHint ? hintBlocks.map(\.plainText).joined(separator: " ") : nil }
+}
+
+struct QuizHintBlock: Identifiable, Equatable {
+    let id: String
+    let content: QuizHintBlockContent
+
+    var plainText: String {
+        switch content {
+        case .paragraph(let text), .blockquote(let text): return text
+        case .bulletList(let items): return items.joined(separator: " ")
+        }
+    }
+}
+
+enum QuizHintBlockContent: Equatable {
+    case paragraph(String)
+    case bulletList([String])
+    case blockquote(String)
 }
 
 struct QuizQuestionSourceResolver {
@@ -30,6 +50,7 @@ struct QuizQuestionSourceResolver {
         let selectedPassage = candidates.max { passageScore($0.text, for: question, conceptPath: path) < passageScore($1.text, for: question, conceptPath: path) }
         let location = selectedPassage.map { ($0.chapter, $0.section) } ?? firstLocation(for: references)
         guard let location else { return nil }
+        let hintBlocks = selectedPassage.map(hintBlocks(around:)) ?? []
 
         return QuizQuestionSource(
             conceptID: conceptID,
@@ -38,7 +59,7 @@ struct QuizQuestionSourceResolver {
             chapterTitle: location.0.title,
             sectionTitle: location.1.title,
             blockID: selectedPassage?.blockID,
-            passage: selectedPassage?.text
+            hintBlocks: hintBlocks
         )
     }
 
@@ -49,11 +70,39 @@ struct QuizQuestionSourceResolver {
             guard let chapter = chapters.first(where: { $0.contentID == reference.chapterId }),
                   let section = chapter.sections.first(where: { $0.id == reference.sectionId }) else { continue }
             for blockID in reference.blockIds where seenBlockIDs.insert(blockID).inserted {
-                guard let block = section.blocks.first(where: { $0.id == blockID }), isPassage(block) else { continue }
-                candidates.append(PassageCandidate(chapter: chapter, section: section, blockID: block.id, text: block.plainText))
+                guard let blockIndex = section.blocks.firstIndex(where: { $0.id == blockID }), isPassage(section.blocks[blockIndex]) else { continue }
+                let block = section.blocks[blockIndex]
+                candidates.append(PassageCandidate(chapter: chapter, section: section, blockIndex: blockIndex, blockID: block.id, text: block.plainText))
             }
         }
         return candidates
+    }
+
+    private func hintBlocks(around candidate: PassageCandidate) -> [QuizHintBlock] {
+        let blocks = candidate.section.blocks
+        var lowerBound = candidate.blockIndex
+        var upperBound = candidate.blockIndex
+
+        if isBulletList(blocks[candidate.blockIndex]) || (lowerBound > 0 && isBulletList(blocks[lowerBound - 1])) {
+            while lowerBound > 0 && isBulletList(blocks[lowerBound - 1]) { lowerBound -= 1 }
+            if lowerBound > 0 && isParagraphIntroducingList(blocks[lowerBound - 1]) { lowerBound -= 1 }
+        }
+        while upperBound + 1 < blocks.count && isBulletList(blocks[upperBound + 1]) { upperBound += 1 }
+
+        return blocks[lowerBound...upperBound].compactMap(makeHintBlock)
+    }
+
+    private func makeHintBlock(_ block: ContentBlock) -> QuizHintBlock? {
+        switch block.content {
+        case .paragraph(let text):
+            return QuizHintBlock(id: block.id, content: .paragraph(text.strippingMarkdownBold))
+        case .blockquote(let text):
+            return QuizHintBlock(id: block.id, content: .blockquote(text))
+        case .bulletList(let items):
+            return QuizHintBlock(id: block.id, content: .bulletList(items.map { $0.text.raw.strippingMarkdownBold }))
+        case .subheading, .subheading2, .checkUnderstand, .dataTable:
+            return nil
+        }
     }
 
     private func firstLocation(for references: [TaxonomyHandbookReference]) -> (HandbookChapter, HandbookSection)? {
@@ -72,6 +121,16 @@ struct QuizQuestionSourceResolver {
         case .subheading, .subheading2, .checkUnderstand, .dataTable:
             return false
         }
+    }
+
+    private func isBulletList(_ block: ContentBlock) -> Bool {
+        if case .bulletList = block.content { return true }
+        return false
+    }
+
+    private func isParagraphIntroducingList(_ block: ContentBlock) -> Bool {
+        if case .paragraph(let text) = block.content { return text.trimmingCharacters(in: .whitespacesAndNewlines).hasSuffix(":") }
+        return false
     }
 
     private func passageScore(_ passage: String, for question: QuizQuestion, conceptPath: [TaxonomyConcept]) -> Int {
@@ -111,6 +170,11 @@ struct QuizQuestionSourceResolver {
 private struct PassageCandidate {
     let chapter: HandbookChapter
     let section: HandbookSection
+    let blockIndex: Int
     let blockID: String
     let text: String
+}
+
+private extension String {
+    var strippingMarkdownBold: String { replacingOccurrences(of: "**", with: "") }
 }

@@ -91,6 +91,7 @@ struct ChapterView: View {
                                     highlightLibrary: highlightLibrary,
                                     aiInference: dependencies.aiInference,
                                     flashcardMemory: dependencies.flashcardMemory,
+                                    taxonomyTagger: dependencies.taxonomyTagger,
                                     presentation: presentation
                                 )
                                     .id(section.id)

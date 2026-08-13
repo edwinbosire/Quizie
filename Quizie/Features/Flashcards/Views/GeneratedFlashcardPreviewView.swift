@@ -127,7 +127,7 @@ struct GeneratedFlashcardPreviewView: View {
         do {
             let generated = try await aiInference.generateFlashcards(from: presentation.context)
             try Task.checkCancellation()
-            cards = generated.map { FlashcardDraft(generatedCard: $0) }
+            cards = generated.map { FlashcardDraft(generatedCard: $0, fallbackTaxonomy: presentation.context.taxonomy(for: $0.sourceBlockIds)) }
         } catch is CancellationError {
             return
         } catch {

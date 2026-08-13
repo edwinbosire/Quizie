@@ -53,6 +53,7 @@ struct RawQuestion: Codable {
     let choices: [String]
     let correct: [String]
     let explanation: RawExplanation
+    let taxonomy: ContentTaxonomyTags?
 }
 
 struct RawExplanation: Codable {
@@ -60,6 +61,8 @@ struct RawExplanation: Codable {
 }
 
 struct RawQuestionsFile: Codable {
+    let schemaVersion: Int?
+    let taxonomyVersion: String?
     let data: [RawQuestion]
 }
 
@@ -73,6 +76,19 @@ struct QuizQuestion: Identifiable {
     let year: String
     let category: Int
     let explanationLink: String
+    let taxonomy: ContentTaxonomyTags
+
+    init(id: String, question: String, choices: [String], correctIndices: Set<Int>, isMultiSelect: Bool, year: String, category: Int, explanationLink: String, taxonomy: ContentTaxonomyTags = .empty) {
+        self.id = id
+        self.question = question
+        self.choices = choices
+        self.correctIndices = correctIndices
+        self.isMultiSelect = isMultiSelect
+        self.year = year
+        self.category = category
+        self.explanationLink = explanationLink
+        self.taxonomy = taxonomy
+    }
 
     var correctChoices: [String] {
         choices.enumerated()
@@ -187,6 +203,7 @@ extension QuizQuestion {
         self.year = raw.year
         self.category = Int(raw.category) ?? 1
         self.explanationLink = raw.explanation.link
+        self.taxonomy = raw.taxonomy ?? .empty
     }
 }
 

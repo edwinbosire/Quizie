@@ -53,6 +53,9 @@ final class CustomFlashcard {
     var isDateCard: Bool
     var createdAt: Date
     var sourceBlockIDs: [String] = []
+    var primaryConceptID: String?
+    var conceptIDs: [String] = []
+    var entityIDs: [String] = []
 
     init(snapshot: CustomFlashcardSnapshot) {
         id = snapshot.id
@@ -62,6 +65,9 @@ final class CustomFlashcard {
         isDateCard = snapshot.isDateCard
         createdAt = snapshot.createdAt
         sourceBlockIDs = snapshot.sourceBlockIDs
+        primaryConceptID = snapshot.taxonomy.primaryConceptId
+        conceptIDs = snapshot.taxonomy.conceptIds
+        entityIDs = snapshot.taxonomy.entityIds
     }
 
     var snapshot: CustomFlashcardSnapshot {
@@ -72,7 +78,8 @@ final class CustomFlashcard {
             chapter: chapter,
             isDateCard: isDateCard,
             createdAt: createdAt,
-            sourceBlockIDs: sourceBlockIDs
+            sourceBlockIDs: sourceBlockIDs,
+            taxonomy: ContentTaxonomyTags(primaryConceptId: primaryConceptID, conceptIds: conceptIDs, entityIds: entityIDs)
         )
     }
 }
@@ -220,6 +227,7 @@ final class FlashcardMemory {
         chapter: Int?,
         isDateCard: Bool,
         sourceBlockIDs: [String] = [],
+        taxonomy: ContentTaxonomyTags = .empty,
         at date: Date = Date()
     ) {
         let value = CustomFlashcardSnapshot(
@@ -229,7 +237,8 @@ final class FlashcardMemory {
             chapter: chapter,
             isDateCard: isDateCard,
             createdAt: date,
-            sourceBlockIDs: sourceBlockIDs
+            sourceBlockIDs: sourceBlockIDs,
+            taxonomy: taxonomy
         )
 
         do {

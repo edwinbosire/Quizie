@@ -43,7 +43,9 @@ nonisolated struct OpenAIInferenceService: AIInferenceService {
             card.sourceBlockIds.allSatisfy(allowedBlockIDs.contains)
         }
         guard !cards.isEmpty else { throw AIInferenceError.noCards }
-        return Array(cards)
+        return cards.map { card in
+            GeneratedFlashcard(question: card.question, answer: card.answer, sourceBlockIds: card.sourceBlockIds, taxonomy: context.taxonomy(for: card.sourceBlockIds))
+        }
     }
 }
 

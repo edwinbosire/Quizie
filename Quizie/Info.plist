@@ -4,8 +4,6 @@
 <dict>
 	<key>FlashcardAPIBaseURL</key>
 	<string>$(FLASHCARD_API_BASE_URL)</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

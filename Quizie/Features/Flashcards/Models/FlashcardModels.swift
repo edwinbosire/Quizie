@@ -8,6 +8,7 @@ struct Flashcard: Identifiable, Equatable, Sendable {
     let chapter: Int?
     let year: String?
     let isCustom: Bool
+    let taxonomy: ContentTaxonomyTags
 
     init(
         id: String,
@@ -16,7 +17,8 @@ struct Flashcard: Identifiable, Equatable, Sendable {
         topic: String,
         chapter: Int? = nil,
         year: String? = nil,
-        isCustom: Bool = false
+        isCustom: Bool = false,
+        taxonomy: ContentTaxonomyTags = .empty
     ) {
         self.id = id
         self.prompt = prompt
@@ -25,6 +27,7 @@ struct Flashcard: Identifiable, Equatable, Sendable {
         self.chapter = chapter
         self.year = year?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         self.isCustom = isCustom
+        self.taxonomy = taxonomy
     }
 
     var isDateCard: Bool { year != nil }
@@ -94,8 +97,9 @@ struct CustomFlashcardSnapshot: Identifiable, Equatable, Sendable {
     let isDateCard: Bool
     let createdAt: Date
     let sourceBlockIDs: [String]
+    let taxonomy: ContentTaxonomyTags
 
-    init(id: String, prompt: String, answer: String, chapter: Int?, isDateCard: Bool, createdAt: Date, sourceBlockIDs: [String] = []) {
+    init(id: String, prompt: String, answer: String, chapter: Int?, isDateCard: Bool, createdAt: Date, sourceBlockIDs: [String] = [], taxonomy: ContentTaxonomyTags = .empty) {
         self.id = id
         self.prompt = prompt
         self.answer = answer
@@ -103,6 +107,7 @@ struct CustomFlashcardSnapshot: Identifiable, Equatable, Sendable {
         self.isDateCard = isDateCard
         self.createdAt = createdAt
         self.sourceBlockIDs = sourceBlockIDs
+        self.taxonomy = taxonomy
     }
 
     var flashcard: Flashcard {
@@ -113,7 +118,8 @@ struct CustomFlashcardSnapshot: Identifiable, Equatable, Sendable {
             topic: isDateCard ? "Important dates" : chapter.map { "Chapter \($0)" } ?? "My flashcards",
             chapter: chapter,
             year: isDateCard ? "Custom" : nil,
-            isCustom: true
+            isCustom: true,
+            taxonomy: taxonomy
         )
     }
 }
@@ -140,6 +146,7 @@ extension Flashcard {
         chapter = question.category
         year = question.year.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         isCustom = false
+        taxonomy = question.taxonomy
     }
 }
 

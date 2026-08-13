@@ -21,6 +21,7 @@ struct FlashcardFeatureDependencies {
     let memory: FlashcardMemory
     let clock: any QuizClock
     let aiInference: any AIInferenceService
+    var taxonomyTagger: TaxonomyTagResolver = .empty
 }
 
 @MainActor
@@ -30,6 +31,7 @@ struct HandbookReaderDependencies {
     let highlights: HighlightLibrary
     let aiInference: any AIInferenceService
     let flashcardMemory: FlashcardMemory
+    var taxonomyTagger: TaxonomyTagResolver = .empty
 }
 
 @MainActor
@@ -41,7 +43,7 @@ struct HandbookFeatureDependencies {
     var highlights: HighlightLibrary { reader.highlights }
 
     init(catalog: HandbookCatalog, progress: ReadingProgressLibrary, highlights: HighlightLibrary, flashcards: FlashcardFeatureDependencies) {
-        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory)
+        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory, taxonomyTagger: flashcards.taxonomyTagger)
     }
 }
 
@@ -62,7 +64,7 @@ struct SearchFeatureDependencies {
         flashcards: FlashcardFeatureDependencies
     ) {
         self.service = service
-        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory)
+        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory, taxonomyTagger: flashcards.taxonomyTagger)
     }
 }
 
@@ -84,6 +86,7 @@ struct AppDependencies {
             container: container,
             questions: BundleQuestionRepository(bundle: bundle),
             handbook: BundleHandbookRepository(bundle: bundle),
+            taxonomyTagger: TaxonomyTagResolver(taxonomy: try BundleConceptTaxonomyRepository(bundle: bundle).taxonomy()),
             persistence: PersistenceServices(container: container),
             clock: SystemQuizClock(),
             scheduler: SystemQuizScheduler()
@@ -143,6 +146,7 @@ struct AppDependencies {
         container: ModelContainer,
         questions: any QuestionRepository,
         handbook handbookRepository: any HandbookRepository,
+        taxonomyTagger: TaxonomyTagResolver = .empty,
         persistence: PersistenceServices,
         clock: any QuizClock,
         scheduler: any QuizScheduler
@@ -163,7 +167,8 @@ struct AppDependencies {
             catalog: FlashcardCatalog(repository: questions),
             memory: persistence.flashcards,
             clock: clock,
-            aiInference: OpenAIInferenceService()
+            aiInference: OpenAIInferenceService(),
+            taxonomyTagger: taxonomyTagger
         )
         let handbook = HandbookFeatureDependencies(
             catalog: catalog,

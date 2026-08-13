@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "concept-taxonomy.schema.json",
+  "title": "Quizie Concept Taxonomy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "taxonomyVersion",
+    "handbookVersion",
+    "generatedAt",
+    "concepts",
+    "entities"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "taxonomyVersion": {
+      "$ref": "#/$defs/semanticVersion"
+    },
+    "handbookVersion": {
+      "$ref": "#/$defs/semanticVersion"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/concept"
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entity"
+      }
+    }
+  },
+  "$defs": {
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "stableId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$"
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "idArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/stableId"
+      },
+      "uniqueItems": true
+    },
+    "handbookReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chapterId",
+        "sectionId",
+        "blockIds"
+      ],
+      "properties": {
+        "chapterId": {
+          "type": "string",
+          "pattern": "^chapter_[0-9]{2}$"
+        },
+        "sectionId": {
+          "type": "string",
+          "pattern": "^section_[0-9]{2}_[0-9]{2}$"
+        },
+        "blockIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^section_[0-9]{2}_[0-9]{2}_(?:block_[0-9]{3}|facts)$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "importance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "weight",
+        "tier",
+        "rationale"
+      ],
+      "properties": {
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "tier": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "taggingHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "includeTerms",
+        "excludeTerms"
+      ],
+      "properties": {
+        "includeTerms": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "excludeTerms": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "concept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "slug",
+        "displayName",
+        "description",
+        "domainId",
+        "parentId",
+        "childIds",
+        "aliases",
+        "relatedConceptIds",
+        "handbookReferences",
+        "entityIds",
+        "importance"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domainId": {
+          "$ref": "#/$defs/stableId"
+        },
+        "parentId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/stableId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "childIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "aliases": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "relatedConceptIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "handbookReferences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/handbookReference"
+          }
+        },
+        "entityIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "importance": {
+          "$ref": "#/$defs/importance"
+        },
+        "taggingHints": {
+          "$ref": "#/$defs/taggingHints"
+        }
+      }
+    },
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "displayName",
+        "aliases",
+        "relatedConceptIds",
+        "handbookReferences"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "type": {
+          "enum": [
+            "person",
+            "date",
+            "event",
+            "place",
+            "institution",
+            "law",
+            "document",
+            "organisation",
+            "invention",
+            "work"
+          ]
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "aliases": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "relatedConceptIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "handbookReferences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/handbookReference"
+          }
+        }
+      }
+    }
+  }
+}

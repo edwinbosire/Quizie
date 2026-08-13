@@ -63,7 +63,7 @@ struct FlashcardGenerationContextTests {
         let section = makeSection([("block", "Democracy is a fundamental principle.")])
         let request = try #require(FlashcardGenerationContextBuilder.make(chapter: chapter, section: section, selectedBlockRange: 0...0))
         let object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any])
-        #expect(Set(object.keys) == ["chapter", "section", "selection", "context", "blocks", "maxCards"])
+        #expect(Set(object.keys) == ["chapter", "section", "selection", "context", "blocks", "maxCards", "taxonomyVersion", "taxonomy"])
     }
 
     @Test("Structured cards decode with source block IDs")
@@ -100,6 +100,7 @@ struct FlashcardGenerationContextTests {
         FlashcardDraftApproval.save(drafts, chapterNumber: 1, to: memory)
         #expect(memory.customCards.map(\.prompt) == ["What is a principle?"])
         #expect(memory.customCards.first?.sourceBlockIDs == ["block"])
+        #expect(memory.customCards.first?.taxonomy.isEmpty == true)
     }
 
     private func makeSection(_ values: [(String, String)]) -> HandbookSection {

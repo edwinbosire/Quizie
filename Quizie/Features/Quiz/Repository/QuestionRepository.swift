@@ -36,6 +36,9 @@ struct BundleQuestionRepository: QuestionRepository {
         guard !allQuestions.isEmpty else {
             throw ContentRepositoryError.emptyContent(resource)
         }
+        guard allQuestions.allSatisfy({ !$0.taxonomy.conceptIds.isEmpty && $0.taxonomy.primaryConceptId != nil }) else {
+            throw ContentRepositoryError.invalidContent(name: resource, reason: "Every bundled question must include taxonomy metadata.")
+        }
         return QuestionSelector.select(from: allQuestions, count: count, seed: seed)
     }
 }

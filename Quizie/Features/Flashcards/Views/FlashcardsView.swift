@@ -18,7 +18,7 @@ struct FlashcardsView: View {
         .sheet(item: $presentedSheet) { sheet in
             switch sheet {
             case .create:
-                CreateFlashcardView(memory: dependencies.memory)
+                CreateFlashcardView(memory: dependencies.memory, taxonomyTagger: dependencies.taxonomyTagger)
             }
         }
     }
@@ -592,6 +592,7 @@ private struct FlashcardCompletionView: View {
 private struct CreateFlashcardView: View {
     @Environment(\.dismiss) private var dismiss
     let memory: FlashcardMemory
+    let taxonomyTagger: TaxonomyTagResolver
     @State private var prompt = ""
     @State private var answer = ""
     @State private var category = CreateFlashcardCategory.custom
@@ -622,11 +623,13 @@ private struct CreateFlashcardView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
+                        let taxonomy = taxonomyTagger.tags(for: "\(prompt) \(answer)", chapter: category.chapter)
                         memory.createCard(
                             prompt: prompt,
                             answer: answer,
                             chapter: category.chapter,
-                            isDateCard: category == .dates
+                            isDateCard: category == .dates,
+                            taxonomy: taxonomy
                         )
                         dismiss()
                     }

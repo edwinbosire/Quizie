@@ -10,6 +10,7 @@ struct ReaderSection: View {
     let highlightLibrary: HighlightLibrary
     let aiInference: any AIInferenceService
     let flashcardMemory: FlashcardMemory
+    let taxonomyTagger: TaxonomyTagResolver
     let presentation: ReaderPresentation
 
     private var readingTheme: ReadingTheme { presentation.readingTheme }
@@ -51,6 +52,7 @@ struct ReaderSection: View {
             highlightLibrary: highlightLibrary,
             aiInference: aiInference,
             flashcardMemory: flashcardMemory,
+            taxonomyTagger: taxonomyTagger,
             presentation: presentation
         )
     }
@@ -80,6 +82,7 @@ struct ContentBlocksView: View {
     let highlightLibrary: HighlightLibrary
     let aiInference: any AIInferenceService
     let flashcardMemory: FlashcardMemory
+    let taxonomyTagger: TaxonomyTagResolver
     let presentation: ReaderPresentation
 
     private var readingTheme: ReadingTheme { presentation.readingTheme }
@@ -407,7 +410,8 @@ struct ContentBlocksView: View {
             chapter: chapter,
             section: section,
             selectedBlockRange: blockRange,
-            selectedTextRange: selectedTextRange
+            selectedTextRange: selectedTextRange,
+            taxonomyTagger: taxonomyTagger
         ) else { return }
         flashcardPresentation = FlashcardGenerationPresentation(
             context: context,

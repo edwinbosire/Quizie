@@ -3,6 +3,7 @@ import SwiftUI
 struct QuestionCard: View {
     let question: QuizQuestion
     let questionIndex: Int
+    let totalQuestions: Int
     let source: QuizQuestionSource?
     let onShowHint: (QuizQuestionSource) -> Void
 
@@ -27,7 +28,7 @@ struct QuestionCard: View {
 
 				Spacer()
 				VStack(alignment: .trailing, spacing: 2) {
-					Text("\(questionIndex + 1) / 24")
+					Text("\(questionIndex + 1) / \(totalQuestions)")
 						.appFont(.caption2.weight(.semibold))
 						.foregroundColor(.hbTextMuted)
 						.padding(.horizontal, 10)

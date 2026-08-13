@@ -10,24 +10,24 @@ struct QuizTopBar: View {
         VStack(spacing: 0) {
             HStack {
 
-                // Timer
+                // Timer or current streak
                 HStack(spacing: 6) {
-                    Image(systemName: "clock.fill")
+                    Image(systemName: engine.isStreakMode ? "flame.fill" : "clock.fill")
                         .appFont(.footnote)
-                        .foregroundColor(engine.isTimeWarning ? Color(hex: "#C0392B") : .hbTextMuted)
-                    Text(engine.formattedTime)
+                        .foregroundColor(engine.isStreakMode ? Color(hex: "#E67E22") : (engine.isTimeWarning ? Color(hex: "#C0392B") : .hbTextMuted))
+                    Text(engine.isStreakMode ? String(format: "Streak %d", engine.currentStreak) : engine.formattedTime)
                         .appFont(.footnote.weight(.semibold))
-                        .foregroundColor(engine.isTimeWarning ? Color(hex: "#C0392B") : .hbTextPrimary)
+                        .foregroundColor(engine.isStreakMode ? Color(hex: "#A04000") : (engine.isTimeWarning ? Color(hex: "#C0392B") : .hbTextPrimary))
                         .monospacedDigit()
                         .contentTransition(.numericText())
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(engine.isTimeWarning ? Color(hex: "#FDEDEC") : Color.hbSurface)
+                .background(engine.isStreakMode ? Color(hex: "#FEF0E3") : (engine.isTimeWarning ? Color(hex: "#FDEDEC") : Color.hbSurface))
                 .cornerRadius(HBRadius.sm)
                 .overlay(
                     RoundedRectangle(cornerRadius: HBRadius.sm)
-                        .stroke(engine.isTimeWarning ? Color(hex: "#F1948A") : Color.hbBorder, lineWidth: 1)
+                        .stroke(engine.isStreakMode ? Color(hex: "#F5B77B") : (engine.isTimeWarning ? Color(hex: "#F1948A") : Color.hbBorder), lineWidth: 1)
                 )
                 .animation(.easeInOut(duration: 0.3), value: engine.isTimeWarning)
 

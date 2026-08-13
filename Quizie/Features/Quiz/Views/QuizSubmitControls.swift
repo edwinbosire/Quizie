@@ -34,24 +34,39 @@ struct SubmitButton: View {
                 .cornerRadius(HBRadius.md)
                 .shadow(color: Color(hex: "#27AE60").opacity(0.3), radius: 8, x: 0, y: 4)
             } else {
-                // Incorrect answer - manual advance required
-                Button {
-                    engine.manualAdvance()
-                } label: {
+                if engine.isStreakMode {
                     HStack(spacing: 8) {
-                        Text(isLast ? "Submit Exam" : "Next Question")
-                            .appFont(.callout.weight(.semibold))
-                        Image(systemName: isLast ? "checkmark.circle.fill" : "arrow.right")
+                        Image(systemName: "flame.slash.fill")
                             .appFont(.subheadline.weight(.semibold))
+                        Text("Streak ended")
+                            .appFont(.callout.weight(.semibold))
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical)
-                    .background(Color(hex: "#E74C3C")) // Red for incorrect
+                    .background(Color(hex: "#E74C3C"))
                     .cornerRadius(HBRadius.md)
                     .shadow(color: Color(hex: "#E74C3C").opacity(0.3), radius: 8, x: 0, y: 4)
+                } else {
+                    // Incorrect answer - manual advance required
+                    Button {
+                        engine.manualAdvance()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text(isLast ? "Submit Exam" : "Next Question")
+                                .appFont(.callout.weight(.semibold))
+                            Image(systemName: isLast ? "checkmark.circle.fill" : "arrow.right")
+                                .appFont(.subheadline.weight(.semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical)
+                        .background(Color(hex: "#E74C3C")) // Red for incorrect
+                        .cornerRadius(HBRadius.md)
+                        .shadow(color: Color(hex: "#E74C3C").opacity(0.3), radius: 8, x: 0, y: 4)
+                    }
+                    .sensoryFeedback(.impact, trigger: engine.currentIndex)
                 }
-                .sensoryFeedback(.impact, trigger: engine.currentIndex)
             }
         } else if shouldShowManualSubmit {
             // Manual submit button (only for multi-select with wrong count)

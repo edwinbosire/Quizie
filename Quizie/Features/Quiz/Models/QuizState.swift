@@ -4,12 +4,14 @@ enum QuizPhase: Equatable {
     case lobby
     case question(index: Int)
     case results
+    case streakResult
 
     var id: String {
         switch self {
         case .lobby: return "lobby"
         case .question(let index): return "q\(index)"
         case .results: return "results"
+        case .streakResult: return "streak-result"
         }
     }
 }
@@ -18,6 +20,8 @@ enum QuizTransition: Equatable {
     case none
     case submitAfter(TimeInterval)
     case advanceAfter(TimeInterval)
+    case endStreakAfter(TimeInterval)
+    case streakEnded(Int)
     case completed(CompletedExam)
 }
 
@@ -60,6 +64,8 @@ struct QuizState {
 
     var totalQuestions: Int { session?.questions.count ?? 0 }
 
+    var mode: QuizMode { session?.mode ?? .practice }
+
     var progressFraction: Double {
         guard totalQuestions > 0 else { return 0 }
         return Double(currentIndex) / Double(totalQuestions)
@@ -72,9 +78,10 @@ struct QuizState {
             : !selectedIndices.isEmpty
     }
 
-    mutating func start(questions: [QuizQuestion], testID: String?, at date: Date) {
+    mutating func start(questions: [QuizQuestion], testID: String?, mode: QuizMode = .practice, at date: Date) {
         session = ExamSession(
             testID: testID,
+            mode: mode,
             configuration: configuration,
             questions: questions,
             startedAt: date
@@ -113,7 +120,10 @@ struct QuizState {
         isCurrentAnswerCorrect = isCorrect
         hasSubmittedAnswer = true
 
-        return isCorrect ? .advanceAfter(2) : .none
+        if isCorrect {
+            return .advanceAfter(2)
+        }
+        return mode == .streak ? .endStreakAfter(1.5) : .none
     }
 
     mutating func advance(at date: Date) -> QuizTransition {
@@ -125,6 +135,9 @@ struct QuizState {
         isCurrentAnswerCorrect = false
 
         if nextIndex >= totalQuestions {
+            if mode == .streak {
+                return endStreak(at: date)
+            }
             return finish(at: date, timedOut: false)
         }
 
@@ -133,7 +146,7 @@ struct QuizState {
     }
 
     mutating func tick(at date: Date) -> QuizTransition {
-        guard case .question = phase else { return .none }
+        guard case .question = phase, mode == .practice else { return .none }
 
         if timeRemaining > 1 {
             timeRemaining -= 1
@@ -145,7 +158,7 @@ struct QuizState {
     }
 
     mutating func finish(at date: Date, timedOut: Bool) -> QuizTransition {
-        guard phase != .results, var session, session.finishedAt == nil else { return .none }
+        guard phase != .results, phase != .streakResult, var session, session.finishedAt == nil else { return .none }
 
         session.finishedAt = date
         self.session = session
@@ -162,6 +175,14 @@ struct QuizState {
             elapsedSeconds: max(0, Int(date.timeIntervalSince(session.startedAt))),
             didTimeOut: timedOut
         ))
+    }
+
+    mutating func endStreak(at date: Date) -> QuizTransition {
+        guard case .question = phase, mode == .streak, var session, session.finishedAt == nil else { return .none }
+        session.finishedAt = date
+        self.session = session
+        phase = .streakResult
+        return .streakEnded(session.score)
     }
 
     mutating func acknowledgeTimeout() {

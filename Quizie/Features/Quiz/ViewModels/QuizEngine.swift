@@ -8,6 +8,7 @@ final class QuizEngine {
     private(set) var state: QuizState
     private(set) var persistenceError: Error?
     private(set) var contentError: ContentRepositoryError?
+    private(set) var bestStreak: Int
 
     private let questionRepository: any QuestionRepository
     private let clock: any QuizClock
@@ -16,6 +17,7 @@ final class QuizEngine {
     @ObservationIgnored private var timer: QuizCancellation?
     @ObservationIgnored private var pendingSubmission: QuizCancellation?
     @ObservationIgnored private var pendingAdvance: QuizCancellation?
+    @ObservationIgnored private let statisticsDefaults: UserDefaults
 
     let configuration: QuizConfiguration
 
@@ -24,7 +26,8 @@ final class QuizEngine {
         questionRepository: any QuestionRepository,
         attemptStore: (any ExamAttemptStore)? = nil,
         clock: (any QuizClock)? = nil,
-        scheduler: (any QuizScheduler)? = nil
+        scheduler: (any QuizScheduler)? = nil,
+        statisticsDefaults: UserDefaults = .standard
     ) {
         self.configuration = configuration
         self.state = QuizState(configuration: configuration)
@@ -32,6 +35,8 @@ final class QuizEngine {
         self.attemptStore = attemptStore ?? NoOpExamAttemptStore()
         self.clock = clock ?? SystemQuizClock()
         self.scheduler = scheduler ?? SystemQuizScheduler()
+        self.statisticsDefaults = statisticsDefaults
+        self.bestStreak = StudyStatistics.longestStreak(defaults: statisticsDefaults)
     }
 
     var phase: QuizPhase { state.phase }
@@ -46,6 +51,9 @@ final class QuizEngine {
     var totalQuestions: Int { state.totalQuestions }
     var progressFraction: Double { state.progressFraction }
     var canSubmit: Bool { state.canSubmit }
+    var mode: QuizMode { state.mode }
+    var isStreakMode: Bool { mode == .streak }
+    var currentStreak: Int { session?.score ?? 0 }
 
     var formattedTime: String {
         String(format: "%d:%02d", timeRemaining / 60, timeRemaining % 60)
@@ -58,10 +66,27 @@ final class QuizEngine {
     }
 
     func startExam(testID: String? = nil) {
+        start(mode: .practice, testID: testID)
+    }
+
+    func startStreak() {
+        start(mode: .streak, testID: nil)
+    }
+
+    func restartCurrentMode() {
+        if isStreakMode {
+            startStreak()
+        } else {
+            startExam(testID: session?.testID)
+        }
+    }
+
+    private func start(mode: QuizMode, testID: String?) {
         cancelScheduledWork()
         let questions: [QuizQuestion]
         do {
-            questions = try questionRepository.questions(count: configuration.questionCount, seed: testID)
+            let questionCount = mode == .streak ? Int.max : configuration.questionCount
+            questions = try questionRepository.questions(count: questionCount, seed: testID)
             contentError = nil
         } catch let repositoryError as ContentRepositoryError {
             contentError = repositoryError
@@ -70,10 +95,10 @@ final class QuizEngine {
             contentError = .invalidContent(name: "questions", reason: error.localizedDescription)
             return
         }
-        state.start(questions: questions, testID: testID, at: clock.now)
+        state.start(questions: questions, testID: testID, mode: mode, at: clock.now)
         persistenceError = nil
 
-        guard case .question = state.phase else { return }
+        guard case .question = state.phase, mode == .practice else { return }
         timer = scheduler.scheduleRepeating(every: 1) { [weak self] in
             self?.handleTick()
         }
@@ -92,7 +117,11 @@ final class QuizEngine {
     func submitAndAdvance() {
         pendingSubmission?.cancel()
         pendingSubmission = nil
-        handle(state.submitCurrentAnswer())
+        let transition = state.submitCurrentAnswer()
+        if state.mode == .streak, state.isCurrentAnswerCorrect {
+            bestStreak = StudyStatistics.recordStreak(currentStreak, defaults: statisticsDefaults)
+        }
+        handle(transition)
     }
 
     func manualAdvance() {
@@ -103,6 +132,10 @@ final class QuizEngine {
 
     func finishExam() {
         handle(state.finish(at: clock.now, timedOut: false))
+    }
+
+    func endStreak() {
+        handle(state.endStreak(at: clock.now))
     }
 
     func acknowledgeTimeout() {
@@ -138,6 +171,16 @@ final class QuizEngine {
             pendingAdvance = scheduler.schedule(after: delay) { [weak self] in
                 self?.manualAdvance()
             }
+
+        case .endStreakAfter(let delay):
+            pendingAdvance?.cancel()
+            pendingAdvance = scheduler.schedule(after: delay) { [weak self] in
+                self?.endStreak()
+            }
+
+        case .streakEnded(let streak):
+            cancelScheduledWork()
+            bestStreak = StudyStatistics.recordStreak(streak, defaults: statisticsDefaults)
 
         case .completed(let exam):
             cancelScheduledWork()

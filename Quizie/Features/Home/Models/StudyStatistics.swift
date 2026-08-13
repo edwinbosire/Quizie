@@ -6,6 +6,18 @@ enum StudyStatistics {
     static let flashcardsKnownKey = "studyStatistics.flashcardsKnown"
     static let matchRoundsKey = "studyStatistics.matchRounds"
     static let matchBestTimeKey = "studyStatistics.matchBestTime"
+    static let longestStreakKey = "studyStatistics.longestStreak"
+
+    static func longestStreak(defaults: UserDefaults = .standard) -> Int {
+        defaults.integer(forKey: longestStreakKey)
+    }
+
+    @discardableResult
+    static func recordStreak(_ streak: Int, defaults: UserDefaults = .standard) -> Int {
+        let best = max(longestStreak(defaults: defaults), streak)
+        defaults.set(best, forKey: longestStreakKey)
+        return best
+    }
 
     static func recordFlashcardChanges(
         from previous: [String: FlashcardRating],

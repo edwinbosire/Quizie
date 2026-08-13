@@ -2,6 +2,11 @@ import Foundation
 
 // MARK: - Quiz Configuration
 
+enum QuizMode: Equatable, Hashable, Sendable {
+    case practice
+    case streak
+}
+
 struct QuizConfiguration: Equatable, Hashable, Sendable {
     let questionCount: Int
     let timeLimitSeconds: Int
@@ -108,6 +113,7 @@ struct UserAnswer {
 struct ExamSession: Identifiable {
     let id = UUID()
     var testID: String?
+    let mode: QuizMode
     let configuration: QuizConfiguration
     let questions: [QuizQuestion]
     var answers: [String: UserAnswer]   // keyed by question ID
@@ -116,6 +122,7 @@ struct ExamSession: Identifiable {
 
     init(
         testID: String? = nil,
+        mode: QuizMode = .practice,
         configuration: QuizConfiguration = .practice,
         questions: [QuizQuestion],
         answers: [String: UserAnswer] = [:],
@@ -123,6 +130,7 @@ struct ExamSession: Identifiable {
         finishedAt: Date? = nil
     ) {
         self.testID = testID
+        self.mode = mode
         self.configuration = configuration
         self.questions = questions
         self.answers = answers

@@ -67,10 +67,10 @@ struct QuizQuestionView: View {
             switch alert {
             case .restart:
                 Alert(
-                    title: Text("Restart Quiz?"),
-                    message: Text("Your current progress will be lost permanently. This will reset all answers and restart the timer."),
+                    title: Text(engine.isStreakMode ? "Restart Streak?" : "Restart Quiz?"),
+                    message: Text(engine.isStreakMode ? "Your current streak will be lost and you’ll start again from zero." : "Your current progress will be lost permanently. This will reset all answers and restart the timer."),
                     primaryButton: .cancel(),
-                    secondaryButton: .destructive(Text("Restart")) { engine.startExam() }
+                    secondaryButton: .destructive(Text("Restart")) { engine.restartCurrentMode() }
                 )
             case .quit:
                 Alert(
@@ -134,7 +134,7 @@ private struct QuestionView: View {
 		ScrollView {
 			VStack(spacing: 0) {
 				// Question card
-				QuestionCard(question: question, questionIndex: questionIndex, source: source, onShowHint: onShowHint)
+				QuestionCard(question: question, questionIndex: questionIndex, totalQuestions: engine.totalQuestions, source: source, onShowHint: onShowHint)
 					.frame(minHeight: 200)
 					.padding(.horizontal, 16)
 					.padding(.vertical, 20)

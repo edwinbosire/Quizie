@@ -76,6 +76,13 @@ struct QuizRootView: View {
                             insertion: .move(edge: .trailing).combined(with: .opacity),
                             removal: .move(edge: .trailing)
                         ))
+
+                case .streakResult:
+                    StreakResultView(engine: engine, onReturnHome: returnHome)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .trailing)
+                        ))
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: engine.phase.id)

@@ -36,7 +36,7 @@ struct QuizLobbyView: View {
 						))
 				}
 
-				startExamCard
+				quickStartModes
 					.padding(.horizontal, 16)
 					.padding(.top, 20)
 
@@ -70,32 +70,63 @@ struct QuizLobbyView: View {
 		}
 	}
 
-	private var startExamCard: some View {
-		VStack(spacing: 0) {
-			Button(action: { engine.startExam() }) {
-				HStack(spacing: 10) {
-					Image(systemName: "play.fill")
-						.appFont(.subheadline.weight(.semibold))
-					Text(attempts.isEmpty ? "Start Practice Exam" : "Try Another Exam")
-						.appFont(.headline.weight(.semibold))
-				}
-				.foregroundColor(.white)
-				.frame(maxWidth: .infinity)
-				.padding(.vertical, 16)
-				.background(Color.hbAccent)
-				.cornerRadius(HBRadius.md)
-				.shadow(color: Color.hbAccent.opacity(0.35), radius: 8, x: 0, y: 4)
-			}
-			.accessibilityIdentifier("quiz.start")
-		}
-		.padding(12)
-		.background(Color.hbSurface)
-		.clipShape(RoundedRectangle(cornerRadius: HBRadius.md))
-		.overlay {
-			RoundedRectangle(cornerRadius: HBRadius.md)
-				.stroke(Color.hbBorder, lineWidth: 1)
-		}
+	private var quickStartModes: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("QUICK START")
+                .appFont(.caption2.weight(.semibold))
+                .foregroundStyle(Color.hbTextMuted)
+
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
+                QuizModePill(title: "Exam Mode", subtitle: engine.configuration.summaryLabel, icon: "checklist.checked", colors: [Color(hex: "#2855A6"), Color(hex: "#419EE8")]) {
+                    engine.startExam()
+                }
+                .accessibilityIdentifier("quiz.start")
+
+                QuizModePill(title: "Streak", subtitle: engine.bestStreak == 0 ? "All questions" : "Best: \(engine.bestStreak)", icon: "flame.fill", colors: [Color(hex: "#F06449"), Color(hex: "#F5A623")]) {
+                    engine.startStreak()
+                }
+                .accessibilityIdentifier("quiz.streak.start")
+            }
+        }
 	}
+}
+
+private struct QuizModePill: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    let colors: [Color]
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .appFont(.title3.weight(.semibold))
+                    .frame(width: 46, height: 46)
+                    .background(Color.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 12))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .appFont(.headline.weight(.semibold))
+                    Text(subtitle)
+                        .appFont(.caption)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .opacity(0.78)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, minHeight: 92)
+            .background(LinearGradient(colors: colors, startPoint: .leading, endPoint: .trailing), in: RoundedRectangle(cornerRadius: HBRadius.pill))
+            .shadow(color: colors[0].opacity(0.22), radius: 9, x: 0, y: 5)
+            .contentShape(RoundedRectangle(cornerRadius: HBRadius.pill))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(title), \(subtitle)")
+    }
 }
 
 // MARK: - Previews

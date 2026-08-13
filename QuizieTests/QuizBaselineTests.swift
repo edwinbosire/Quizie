@@ -690,6 +690,77 @@ struct QuizStateMachineTests {
 }
 
 @MainActor
+struct StreakModeTests {
+    @Test("A correct answer extends the streak and a wrong answer ends it")
+    func streakStateTransitions() {
+        var state = QuizState(configuration: .custom(questionCount: 2, timeLimitSeconds: 90, passMarkCount: 1))
+        state.start(questions: TestFixtures.questions(count: 2), testID: nil, mode: .streak, at: TestFixtures.startDate)
+
+        _ = state.toggleChoice(0)
+        #expect(state.submitCurrentAnswer() == .advanceAfter(2))
+        #expect(state.advance(at: TestFixtures.startDate) == .none)
+        #expect(state.phase == .question(index: 1))
+        #expect(state.session?.score == 1)
+
+        _ = state.toggleChoice(1)
+        #expect(state.submitCurrentAnswer() == .endStreakAfter(1.5))
+        #expect(state.endStreak(at: TestFixtures.laterDate) == .streakEnded(1))
+        #expect(state.phase == .streakResult)
+        #expect(state.session?.finishedAt == TestFixtures.laterDate)
+    }
+
+    @Test("Streak mode uses every available question and does not run the exam timer")
+    func streakLoadsAllQuestionsWithoutTimer() throws {
+        let suiteName = "StreakModeTests.allQuestions"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defaults.removePersistentDomain(forName: suiteName)
+        let scheduler = ManualQuizScheduler()
+        let engine = QuizEngine(
+            configuration: .custom(questionCount: 1, timeLimitSeconds: 90, passMarkCount: 1),
+            questionRepository: InMemoryQuestionRepository(TestFixtures.questions(count: 3)),
+            clock: MutableQuizClock(now: TestFixtures.startDate),
+            scheduler: scheduler,
+            statisticsDefaults: defaults
+        )
+
+        engine.startStreak()
+        #expect(engine.mode == .streak)
+        #expect(engine.totalQuestions == 3)
+        scheduler.fireRepeating()
+        #expect(engine.timeRemaining == 90)
+
+        engine.toggleChoice(0, isMultiSelect: false)
+        scheduler.runNextDelayed()
+        #expect(engine.bestStreak == 1)
+        #expect(defaults.integer(forKey: StudyStatistics.longestStreakKey) == 1)
+        scheduler.runNextDelayed()
+        engine.toggleChoice(1, isMultiSelect: false)
+        scheduler.runNextDelayed()
+        scheduler.runNextDelayed()
+
+        #expect(engine.phase == .streakResult)
+        #expect(engine.currentStreak == 1)
+        #expect(engine.bestStreak == 1)
+        #expect(defaults.integer(forKey: StudyStatistics.longestStreakKey) == 1)
+
+        engine.startStreak()
+        #expect(engine.currentStreak == 0)
+        #expect(engine.bestStreak == 1)
+    }
+
+    @Test("A shorter run never replaces the longest streak")
+    func longestStreakOnlyIncreases() throws {
+        let suiteName = "StreakModeTests.personalBest"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defaults.removePersistentDomain(forName: suiteName)
+
+        #expect(StudyStatistics.recordStreak(4, defaults: defaults) == 4)
+        #expect(StudyStatistics.recordStreak(2, defaults: defaults) == 4)
+        #expect(StudyStatistics.longestStreak(defaults: defaults) == 4)
+    }
+}
+
+@MainActor
 struct ContentRepositoryTests {
     @Test("In-memory repositories replace production content without feature changes")
     func inMemoryRepositoriesSupplyContent() throws {

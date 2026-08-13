@@ -427,6 +427,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
+				FLASHCARD_API_BASE_URL = "https://quizie-flashcard.fancyapps.dev";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Quizie/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -472,6 +473,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
+				FLASHCARD_API_BASE_URL = "https://quizie-flashcard.fancyapps.dev";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Quizie/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;

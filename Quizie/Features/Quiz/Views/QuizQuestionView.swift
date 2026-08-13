@@ -3,9 +3,11 @@ import SwiftUI
 struct QuizQuestionView: View {
     let engine: QuizEngine
     let questionIndex: Int
+    var questionSourceResolver: QuizQuestionSourceResolver = .empty
     var onQuit: () -> Void = {}
 
-    @State private var showOptionsSheet = false
+    @State private var presentedSheet: QuizQuestionSheet?
+    @State private var pendingHintSource: QuizQuestionSource?
     @State private var pendingAlert: QuizQuestionAlert?
     @State private var presentedAlert: QuizQuestionAlert?
     @AppStorage("bookmarkedQuestions") private var bookmarkedQuestionsData = Data()
@@ -23,6 +25,7 @@ struct QuizQuestionView: View {
     }
 
     var question: QuizQuestion? { engine.session?.questions[safe: questionIndex] }
+    var questionSource: QuizQuestionSource? { question.flatMap(questionSourceResolver.source(for:)) }
     
     var isBookmarked: Bool {
         guard let q = question else { return false }
@@ -32,25 +35,33 @@ struct QuizQuestionView: View {
     var body: some View {
 		VStack(spacing: 0) {
 			// Top bar: timer + progress + options
-			QuizTopBar(engine: engine, onOptionsPressed: { showOptionsSheet = true })
+			QuizTopBar(engine: engine, onOptionsPressed: { presentedSheet = .options })
 
 			// Progress track
 			QuizProgressBar(current: questionIndex + 1, total: engine.totalQuestions)
 
 			if let question {
-				QuestionView(engine: engine, question: question, questionIndex: questionIndex)
+				QuestionView(engine: engine, question: question, questionIndex: questionIndex, source: questionSource)
 			}
 		}
-        .sheet(isPresented: $showOptionsSheet, onDismiss: presentPendingAlert) {
-            QuizOptionsSheet(
-                question: question,
-                isBookmarked: isBookmarked,
-                onRestart: { pendingAlert = .restart },
-                onQuit: { pendingAlert = .quit },
-                onToggleBookmark: toggleBookmark
-            )
-            .presentationDetents([.height(280)])
-            .presentationDragIndicator(.visible)
+        .sheet(item: $presentedSheet, onDismiss: presentPendingPresentation) { sheet in
+            switch sheet {
+            case .options:
+                QuizOptionsSheet(
+                    source: questionSource,
+                    isBookmarked: isBookmarked,
+                    onShowHint: { pendingHintSource = $0 },
+                    onRestart: { pendingAlert = .restart },
+                    onQuit: { pendingAlert = .quit },
+                    onToggleBookmark: toggleBookmark
+                )
+                .presentationDetents([.height(questionSource?.passage == nil ? 224 : 280)])
+                .presentationDragIndicator(.visible)
+            case .hint(let source):
+                QuizHintSheet(source: source)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
         }
         .alert(item: $presentedAlert) { alert in
             switch alert {
@@ -72,7 +83,12 @@ struct QuizQuestionView: View {
         }
     }
 
-    private func presentPendingAlert() {
+    private func presentPendingPresentation() {
+        if let pendingHintSource {
+            self.pendingHintSource = nil
+            presentedSheet = .hint(pendingHintSource)
+            return
+        }
         presentedAlert = pendingAlert
         pendingAlert = nil
     }
@@ -96,15 +112,28 @@ private enum QuizQuestionAlert: String, Identifiable {
     var id: String { rawValue }
 }
 
+private enum QuizQuestionSheet: Identifiable {
+    case options
+    case hint(QuizQuestionSource)
+
+    var id: String {
+        switch self {
+        case .options: return "options"
+        case .hint(let source): return "hint-\(source.id)"
+        }
+    }
+}
+
 private struct QuestionView: View {
 	let engine: QuizEngine
 	let question: QuizQuestion
 	let questionIndex: Int
+	let source: QuizQuestionSource?
 	var body: some View {
 		ScrollView {
 			VStack(spacing: 0) {
 				// Question card
-				QuestionCard(question: question, questionIndex: questionIndex)
+				QuestionCard(question: question, questionIndex: questionIndex, source: source)
 					.frame(minHeight: 200)
 					.padding(.horizontal, 16)
 					.padding(.vertical, 20)

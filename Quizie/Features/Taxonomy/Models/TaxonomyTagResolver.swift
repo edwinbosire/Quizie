@@ -57,6 +57,21 @@ nonisolated struct TaxonomyTagResolver: Sendable {
         return ContentTaxonomyTags(primaryConceptId: fallback, conceptIds: [fallback], entityIds: matchingEntityIDs)
     }
 
+    func conceptPath(for conceptID: String) -> [TaxonomyConcept] {
+        guard let concept = conceptsByID[conceptID] else { return [] }
+        var path = [concept]
+        var parentID = concept.parentId
+        while let currentID = parentID, let parent = conceptsByID[currentID] {
+            path.append(parent)
+            parentID = parent.parentId
+        }
+        return path.reversed()
+    }
+
+    func handbookReferences(for conceptID: String) -> [TaxonomyHandbookReference] {
+        conceptsByID[conceptID]?.handbookReferences ?? []
+    }
+
     private func mostSpecific(_ values: [String]) -> [String] {
         let conceptIDs = unique(values).filter { conceptsByID[$0] != nil }
         return conceptIDs.filter { candidate in

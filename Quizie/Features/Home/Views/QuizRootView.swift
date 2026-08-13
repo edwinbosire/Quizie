@@ -61,7 +61,7 @@ struct QuizRootView: View {
                         ))
 
                 case .question(let idx):
-                    QuizQuestionView(engine: engine, questionIndex: idx, onQuit: quitQuiz)
+                    QuizQuestionView(engine: engine, questionIndex: idx, questionSourceResolver: dependencies.questionSources, onQuit: quitQuiz)
                         .id(idx)   // force view refresh on index change
                         .navigationBarBackButtonHidden(true)
                         .ignoresSafeArea(.container, edges: .bottom)

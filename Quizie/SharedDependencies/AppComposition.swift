@@ -7,6 +7,7 @@ struct QuizFeatureDependencies {
     let attempts: AttemptHistory
     let clock: any QuizClock
     let scheduler: any QuizScheduler
+    let questionSources: QuizQuestionSourceResolver
 }
 
 @MainActor
@@ -161,7 +162,8 @@ struct AppDependencies {
             questions: questions,
             attempts: persistence.attempts,
             clock: clock,
-            scheduler: scheduler
+            scheduler: scheduler,
+            questionSources: QuizQuestionSourceResolver(chapters: catalog.chapters, taxonomyTagger: taxonomyTagger)
         )
         let flashcards = FlashcardFeatureDependencies(
             catalog: FlashcardCatalog(repository: questions),

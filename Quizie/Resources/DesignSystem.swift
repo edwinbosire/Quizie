@@ -81,7 +81,7 @@ enum HBRadius {
 }
 
 extension Font {
-    static let studyPrompt = Font.system(.largeTitle, design: .serif, weight: .medium)
+    static let studyPrompt = Font.system(.title, design: .serif, weight: .medium)
 }
 
 // MARK: - Reading Theme (user-selectable page appearance)

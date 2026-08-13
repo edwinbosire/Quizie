@@ -290,6 +290,27 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testQuizShowsTaxonomyAndHandbookHint() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let startButton = app.buttons["quiz.start"]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 5))
+        startButton.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["quiz.taxonomy"].waitForExistence(timeout: 5))
+        app.buttons["Quiz options"].tap()
+
+        let showHint = app.buttons["quiz.options.hint"]
+        XCTAssertTrue(showHint.waitForExistence(timeout: 5))
+        showHint.tap()
+
+        XCTAssertTrue(app.navigationBars["Handbook Hint"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["quiz.hint.passage"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     func testQuittingPracticeTestDismissesFullScreenQuiz() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]

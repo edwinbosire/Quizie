@@ -78,25 +78,12 @@ struct SubmitButton: View {
 // MARK: - Quiz Options Sheet
 struct QuizOptionsSheet: View {
     @Environment(\.dismiss) private var dismiss
-    let question: QuizQuestion?
+    let source: QuizQuestionSource?
     let isBookmarked: Bool
+    let onShowHint: (QuizQuestionSource) -> Void
     let onRestart: () -> Void
     let onQuit: () -> Void
     let onToggleBookmark: () -> Void
-    
-    @State private var showHintAlert = false
-    
-    var hasHint: Bool {
-        guard let question = question else { return false }
-        return !question.year.isEmpty
-    }
-    
-    var hintMessage: String {
-        guard let question = question, !question.year.isEmpty else {
-            return "No hint available for this question."
-        }
-        return "Hint: This event occurred in \(question.year)."
-    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -110,14 +97,16 @@ struct QuizOptionsSheet: View {
             // Options list
             VStack(spacing: 1) {
                 // Hint option (only show if hint is available)
-                if hasHint {
+                if let source, source.passage != nil {
                     OptionRow(
                         icon: "lightbulb.fill",
                         title: "Show Hint",
                         iconColor: Color(hex: "#F39C12")
                     ) {
-                        showHintAlert = true
+                        onShowHint(source)
+                        dismiss()
                     }
+                    .accessibilityIdentifier("quiz.options.hint")
                     
                     Divider()
                         .padding(.leading, 52)
@@ -163,13 +152,6 @@ struct QuizOptionsSheet: View {
             Spacer()
         }
         .background(Color.hbBackground)
-        .alert("Hint", isPresented: $showHintAlert) {
-            Button("Got it", role: .cancel) {
-                dismiss()
-            }
-        } message: {
-            Text(hintMessage)
-        }
     }
 }
 

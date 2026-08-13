@@ -3,6 +3,7 @@ import SwiftUI
 struct QuestionCard: View {
     let question: QuizQuestion
     let questionIndex: Int
+    let source: QuizQuestionSource?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -34,6 +35,21 @@ struct QuestionCard: View {
 				}
 
 			}
+
+            if let source {
+                HStack(alignment: .top, spacing: 6) {
+                    Image(systemName: "point.3.connected.trianglepath.dotted")
+                        .appFont(.caption2.weight(.semibold))
+                        .padding(.top, 1)
+                    Text(source.taxonomyLabel)
+                        .appFont(.caption.weight(.semibold))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .foregroundColor(.hbTextMuted)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Question source: \(source.taxonomyLabel)")
+                .accessibilityIdentifier("quiz.taxonomy")
+            }
 
             Text(question.question)
                 .appFont(.studyPrompt)

@@ -24,6 +24,36 @@ struct ContentTaxonomyTaggingTests {
         }
     }
 
+    @Test("Quiz source resolves its taxonomy and handbook paragraph")
+    func quizSourceResolvesHandbookPassage() throws {
+        let taxonomy = try BundleConceptTaxonomyRepository().taxonomy()
+        let questions = try BundleQuestionRepository().questions(count: .max, seed: "taxonomy-source")
+        let chapters = try BundleHandbookRepository().document().chapters
+        let resolver = QuizQuestionSourceResolver(chapters: chapters, taxonomyTagger: TaxonomyTagResolver(taxonomy: taxonomy))
+        let question = try #require(questions.first { $0.id == "350" })
+        let source = try #require(resolver.source(for: question))
+
+        #expect(source.taxonomyPath == ["British History", "The Stuarts", "English Civil War"])
+        #expect(source.chapterNumber == "Chapter 3")
+        #expect(source.sectionTitle == "The Tudors and Stuarts")
+        #expect(source.blockID == "section_03_03_block_045")
+        #expect(source.passage?.contains("began in 1642") == true)
+    }
+
+    @Test("Every bundled question resolves a handbook source and hint")
+    func allQuizQuestionsResolveHandbookSources() throws {
+        let taxonomy = try BundleConceptTaxonomyRepository().taxonomy()
+        let questions = try BundleQuestionRepository().questions(count: .max, seed: "taxonomy-all-sources")
+        let chapters = try BundleHandbookRepository().document().chapters
+        let resolver = QuizQuestionSourceResolver(chapters: chapters, taxonomyTagger: TaxonomyTagResolver(taxonomy: taxonomy))
+
+        for question in questions {
+            let source = resolver.source(for: question)
+            #expect(source != nil, "Question \(question.id) has no handbook source")
+            #expect(source?.passage?.isEmpty == false, "Question \(question.id) has no handbook hint")
+        }
+    }
+
     @Test("Guide flashcards inherit their question taxonomy")
     func guideCardsInheritTags() throws {
         let questions = try BundleQuestionRepository().questions(count: .max, seed: "taxonomy-guide")

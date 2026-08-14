@@ -10,18 +10,10 @@ struct QuizQuestionView: View {
     @State private var pendingHintSource: QuizQuestionSource?
     @State private var pendingAlert: QuizQuestionAlert?
     @State private var presentedAlert: QuizQuestionAlert?
-    @AppStorage("bookmarkedQuestions") private var bookmarkedQuestionsData = Data()
+    @AppStorage(QuestionBookmarks.storageKey) private var bookmarkedQuestionsData = Data()
     
     private var bookmarkedQuestions: Set<String> {
-        get {
-            (try? JSONDecoder().decode(Set<String>.self, from: bookmarkedQuestionsData)) ?? []
-        }
-    }
-    
-    private func updateBookmarks(_ bookmarks: Set<String>) {
-        if let data = try? JSONEncoder().encode(bookmarks) {
-            bookmarkedQuestionsData = data
-        }
+        QuestionBookmarks.ids(from: bookmarkedQuestionsData)
     }
 
     var question: QuizQuestion? { engine.session?.questions[safe: questionIndex] }
@@ -102,7 +94,7 @@ struct QuizQuestionView: View {
         } else {
             bookmarks.insert(q.id)
         }
-        updateBookmarks(bookmarks)
+        bookmarkedQuestionsData = QuestionBookmarks.data(for: bookmarks)
     }
 }
 

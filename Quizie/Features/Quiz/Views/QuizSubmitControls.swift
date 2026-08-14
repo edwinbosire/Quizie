@@ -36,7 +36,9 @@ struct SubmitButton: View {
             } else {
                 if engine.isStreakMode {
                     HStack(spacing: 8) {
-                        Image(systemName: "flame.slash.fill")
+                        Image(systemName: "flame")
+							.symbolVariant(.slash)
+							.symbolVariant(.fill)
                             .appFont(.subheadline.weight(.semibold))
                         Text("Streak ended")
                             .appFont(.callout.weight(.semibold))

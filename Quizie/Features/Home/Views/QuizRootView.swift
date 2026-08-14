@@ -53,7 +53,8 @@ struct QuizRootView: View {
                         engine: engine,
                         attemptHistory: dependencies.attempts,
                         onOpenFlashcards: openFlashcards,
-                        onOpenMatchGame: openMatchGame
+                        onOpenMatchGame: openMatchGame,
+                        onOpenBookmarks: openBookmarks
                     )
                         .transition(.asymmetric(
                             insertion: .move(edge: .leading),
@@ -100,6 +101,8 @@ struct QuizRootView: View {
                     FlashcardsView(dependencies: flashcardDependencies)
                 case .matchGame:
                     MatchGameView()
+                case .bookmarks:
+                    BookmarkedQuestionsView(questionRepository: dependencies.questions, questionSourceResolver: dependencies.questionSources)
                 }
             }
             .flashcardNavigationDestinations(dependencies: flashcardDependencies)
@@ -137,6 +140,10 @@ struct QuizRootView: View {
         navigationPath.append(HomeNavigationDestination.matchGame)
     }
 
+    private func openBookmarks() {
+        navigationPath.append(HomeNavigationDestination.bookmarks)
+    }
+
     private func quitQuiz() {
         engine.returnToLobby()
         onQuitQuiz?()
@@ -162,4 +169,5 @@ struct QuizRootView: View {
 private enum HomeNavigationDestination: Hashable {
     case flashcards
     case matchGame
+    case bookmarks
 }

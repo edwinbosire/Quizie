@@ -6,17 +6,14 @@ struct FlashcardHomeCard: View {
     let onOpen: () -> Void
 
     var body: some View {
-        StudyActivityCard(
+        QuickStartCard(
             title: "Flashcards",
+            subtitle: reviewedCount == 0 ? "Cards ready to learn" : "\(knownPercentage)% known",
             icon: "rectangle.stack.fill",
-            accent: .hbAccent,
-            accentLight: .hbAccentLight,
-            metric: reviewedCount == 0 ? "—" : "\(knownPercentage)%",
-            metricLabel: reviewedCount == 0 ? "Start studying" : "Known",
-            detail: reviewedCount == 0 ? "Cards ready to learn" : "\(reviewedCount) reviewed",
-            accessibilityIdentifier: "flashcards.homeCard",
+            colors: [Color(hex: "#287271"), Color(hex: "#52B69A")],
             action: onOpen
         )
+        .accessibilityIdentifier("flashcards.homeCard")
     }
 
     private var knownPercentage: Int {

@@ -6,19 +6,14 @@ struct MatchGameHomeCard: View {
     let onOpen: () -> Void
 
     var body: some View {
-        StudyActivityCard(
+        QuickStartCard(
             title: "Quick Match",
+            subtitle: completedRounds == 0 ? "6 pairs ready" : "Best: \(String(format: "%.1fs", bestTime))",
             icon: "rectangle.3.group.fill",
-            accent: .ch5Accent,
-            accentLight: .ch5AccentLight,
-            metric: bestTime == 0 ? "—" : String(format: "%.1fs", bestTime),
-            metricLabel: bestTime == 0 ? "Set a time" : "Best time",
-            detail: completedRounds == 0
-                ? "6 pairs ready"
-                : "\(completedRounds) \(completedRounds == 1 ? "round" : "rounds") played",
-            accessibilityIdentifier: "matchGame.homeCard",
+            colors: [Color(hex: "#6C3FA0"), Color(hex: "#A56CC1")],
             action: onOpen
         )
+        .accessibilityIdentifier("matchGame.homeCard")
     }
 }
 

@@ -5,7 +5,10 @@ struct QuizLobbyView: View {
     let attemptHistory: AttemptHistory
     var onOpenFlashcards: () -> Void = {}
     var onOpenMatchGame: () -> Void = {}
+    var onOpenBookmarks: () -> Void = {}
+    @AppStorage(QuestionBookmarks.storageKey) private var bookmarkedQuestionsData = Data()
     private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
+    private var bookmarkCount: Int { QuestionBookmarks.ids(from: bookmarkedQuestionsData).count }
 
 	var body: some View {
 		content
@@ -40,19 +43,6 @@ struct QuizLobbyView: View {
 					.padding(.horizontal, 16)
 					.padding(.top, 20)
 
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("QUICK STUDY")
-                        .appFont(.caption2.weight(.semibold))
-                        .foregroundStyle(Color.hbTextMuted)
-
-                    HStack(alignment: .top, spacing: 12) {
-                        FlashcardHomeCard(onOpen: onOpenFlashcards)
-                        MatchGameHomeCard(onOpen: onOpenMatchGame)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 20)
-
 				// Recent Attempts (show last 3 if available)
 				if !attempts.isEmpty {
 					RecentAttemptsList(attempts: Array(attempts.prefix(3)))
@@ -77,21 +67,27 @@ struct QuizLobbyView: View {
                 .foregroundStyle(Color.hbTextMuted)
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
-                QuizModePill(title: "Exam Mode", subtitle: engine.configuration.summaryLabel, icon: "checklist.checked", colors: [Color(hex: "#2855A6"), Color(hex: "#419EE8")]) {
+                QuickStartCard(title: "Exam Mode", subtitle: engine.configuration.summaryLabel, icon: "checklist.checked", colors: [Color(hex: "#2855A6"), Color(hex: "#419EE8")]) {
                     engine.startExam()
                 }
                 .accessibilityIdentifier("quiz.start")
 
-                QuizModePill(title: "Streak", subtitle: engine.bestStreak == 0 ? "All questions" : "Best: \(engine.bestStreak)", icon: "flame.fill", colors: [Color(hex: "#F06449"), Color(hex: "#F5A623")]) {
+                QuickStartCard(title: "Streak", subtitle: engine.bestStreak == 0 ? "All questions" : "Best: \(engine.bestStreak)", icon: "flame.fill", colors: [Color(hex: "#F06449"), Color(hex: "#F5A623")]) {
                     engine.startStreak()
                 }
                 .accessibilityIdentifier("quiz.streak.start")
+
+                FlashcardHomeCard(onOpen: onOpenFlashcards)
+                MatchGameHomeCard(onOpen: onOpenMatchGame)
+
+                QuickStartCard(title: "Bookmark", subtitle: "\(bookmarkCount) saved", icon: "bookmark.fill", colors: [Color(hex: "#B62373"), Color(hex: "#F062A6")], action: onOpenBookmarks)
+                    .accessibilityIdentifier("bookmarks.homeCard")
             }
         }
 	}
 }
 
-private struct QuizModePill: View {
+struct QuickStartCard: View {
     let title: String
     let subtitle: String
     let icon: String

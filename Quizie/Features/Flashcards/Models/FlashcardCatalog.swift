@@ -51,6 +51,9 @@ struct FlashcardCatalog {
             candidates = all.filter { memory.isDue($0, at: date) }
         case .chapter(let number):
             candidates = all.filter { $0.chapter == number && memory.isAvailable($0, at: date) }
+        case .concept(let ids, _):
+            let conceptIDs = Set(ids)
+            candidates = all.filter { !conceptIDs.isDisjoint(with: $0.taxonomy.conceptIds) && memory.isAvailable($0, at: date) }
         case .dates:
             candidates = all.filter { $0.isDateCard && memory.isAvailable($0, at: date) }
         case .custom:
@@ -69,6 +72,7 @@ struct FlashcardCatalog {
         case .newCards: return all.count
         case .due: return memory.learningCount
         case .chapter(let number): return all.filter { $0.chapter == number }.count
+        case .concept(let ids, _): return all.filter { !Set(ids).isDisjoint(with: $0.taxonomy.conceptIds) }.count
         case .dates: return all.filter(\.isDateCard).count
         case .custom: return all.filter(\.isCustom).count
         }
@@ -79,11 +83,12 @@ struct FlashcardCatalog {
         let matching: [Flashcard]
         switch deck {
         case .chapter(let number): matching = all.filter { $0.chapter == number }
+        case .concept(let ids, _): matching = all.filter { !Set(ids).isDisjoint(with: $0.taxonomy.conceptIds) }
         case .dates: matching = all.filter(\.isDateCard)
         case .custom: matching = all.filter(\.isCustom)
         case .newCards, .due: matching = all
         }
-        return matching.filter { memory.review(for: $0.id)?.rating == .known }.count
+        return matching.filter { memory.review(for: $0.id)?.rating.isKnown == true }.count
     }
 
     func revisedCount(for deck: FlashcardDeck, memory: FlashcardMemory) -> Int {
@@ -91,6 +96,7 @@ struct FlashcardCatalog {
         let matching: [Flashcard]
         switch deck {
         case .chapter(let number): matching = all.filter { $0.chapter == number }
+        case .concept(let ids, _): matching = all.filter { !Set(ids).isDisjoint(with: $0.taxonomy.conceptIds) }
         case .dates: matching = all.filter(\.isDateCard)
         case .custom: matching = all.filter(\.isCustom)
         case .newCards, .due: matching = all

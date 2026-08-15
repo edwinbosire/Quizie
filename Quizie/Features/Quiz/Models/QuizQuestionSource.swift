@@ -3,6 +3,8 @@ import Foundation
 struct QuizQuestionSource: Identifiable, Equatable {
     let conceptID: String
     let taxonomyPath: [String]
+    let chapterID: String
+    let sectionID: String
     let chapterNumber: String
     let chapterTitle: String
     let sectionTitle: String
@@ -55,6 +57,8 @@ struct QuizQuestionSourceResolver {
         return QuizQuestionSource(
             conceptID: conceptID,
             taxonomyPath: path.map(\.displayName),
+            chapterID: location.0.contentID,
+            sectionID: location.1.id,
             chapterNumber: location.0.number,
             chapterTitle: location.0.title,
             sectionTitle: location.1.title,

@@ -115,6 +115,7 @@ struct ContentBlocksView: View {
                 ) {
                     blockView(block, index: idx, existingHighlights: blockHighlights)
                 }
+                .id(block.id)
                 .background(
                     GeometryReader { geo in
                         Color.clear.preference(

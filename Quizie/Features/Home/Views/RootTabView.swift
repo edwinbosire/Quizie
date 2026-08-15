@@ -48,6 +48,7 @@ struct RootTabView: View {
                         QuizRootView(
                             dependencies: dependencies.quiz,
                             flashcardDependencies: dependencies.flashcards,
+                            handbookDependencies: dependencies.handbook.reader,
                             showsMainNavigationBar: true,
                             onOpenSearch: { selectedTab = .search },
                             onOpenHandbook: { selectedTab = .handbook },

@@ -3,9 +3,13 @@ import SwiftUI
 struct QuizLobbyView: View {
     let engine: QuizEngine
     let attemptHistory: AttemptHistory
+    let performance: PerformanceReportService
     var onOpenFlashcards: () -> Void = {}
     var onOpenMatchGame: () -> Void = {}
     var onOpenBookmarks: () -> Void = {}
+    var highlightCount = 0
+    var onOpenHighlights: () -> Void = {}
+    var onOpenPerformance: () -> Void = {}
     @AppStorage(QuestionBookmarks.storageKey) private var bookmarkedQuestionsData = Data()
     private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
     private var bookmarkCount: Int { QuestionBookmarks.ids(from: bookmarkedQuestionsData).count }
@@ -80,8 +84,17 @@ struct QuizLobbyView: View {
                 FlashcardHomeCard(onOpen: onOpenFlashcards)
                 MatchGameHomeCard(onOpen: onOpenMatchGame)
 
-                QuickStartCard(title: "Bookmark", subtitle: "\(bookmarkCount) saved", icon: "bookmark.fill", colors: [Color(hex: "#B62373"), Color(hex: "#F062A6")], action: onOpenBookmarks)
-                    .accessibilityIdentifier("bookmarks.homeCard")
+                QuickStartCard(title: "Performance", subtitle: performance.report.readiness == .notEnoughData ? "Build your insights" : "View your insights", icon: "chart.bar.fill", colors: [Color(hex: "#5B3A9D"), Color(hex: "#8A64D6")], action: onOpenPerformance)
+
+                if bookmarkCount > 0 {
+                    QuickStartCard(title: "Bookmark", subtitle: "\(bookmarkCount) saved", icon: "bookmark.fill", colors: [Color(hex: "#B62373"), Color(hex: "#F062A6")], action: onOpenBookmarks)
+                        .accessibilityIdentifier("bookmarks.homeCard")
+                }
+
+                if highlightCount > 0 {
+                    QuickStartCard(title: "Highlights", subtitle: "\(highlightCount) saved", icon: "highlighter", colors: [Color(hex: "#9A6800"), Color(hex: "#D6A51D")], action: onOpenHighlights)
+                        .accessibilityIdentifier("highlights.homeCard")
+                }
             }
         }
 	}
@@ -96,11 +109,11 @@ struct QuickStartCard: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
+			HStack(alignment: .top, spacing: 8) {
                 Image(systemName: icon)
                     .appFont(.title3.weight(.semibold))
-                    .frame(width: 46, height: 46)
-                    .background(Color.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 12))
+//                    .frame(width: 46, height: 46)
+//                    .background(Color.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 12))
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
@@ -114,8 +127,9 @@ struct QuickStartCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, minHeight: 92)
+            .padding(.horizontal, 16)
+			.padding(.vertical)
+//            .frame(maxWidth: .infinity, minHeight: 92)
             .background(LinearGradient(colors: colors, startPoint: .leading, endPoint: .trailing), in: RoundedRectangle(cornerRadius: HBRadius.pill))
             .shadow(color: colors[0].opacity(0.22), radius: 9, x: 0, y: 5)
             .contentShape(RoundedRectangle(cornerRadius: HBRadius.pill))
@@ -137,7 +151,8 @@ struct QuickStartCard: View {
     NavigationStack {
         QuizLobbyView(
             engine: QuizEngine(questionRepository: InMemoryQuestionRepository([])),
-            attemptHistory: services.attempts
+            attemptHistory: services.attempts,
+            performance: PerformanceReportService(events: services.learningEvents, taxonomy: ConceptTaxonomy(schemaVersion: 1, taxonomyVersion: "preview", handbookVersion: "", generatedAt: "", concepts: [], entities: []), cache: InMemoryPerformanceSnapshotStore())
         )
     }
 }
@@ -184,7 +199,8 @@ struct QuickStartCard: View {
     NavigationStack {
         QuizLobbyView(
             engine: QuizEngine(questionRepository: InMemoryQuestionRepository([])),
-            attemptHistory: services.attempts
+            attemptHistory: services.attempts,
+            performance: PerformanceReportService(events: services.learningEvents, taxonomy: ConceptTaxonomy(schemaVersion: 1, taxonomyVersion: "preview", handbookVersion: "", generatedAt: "", concepts: [], entities: []), cache: InMemoryPerformanceSnapshotStore())
         )
     }
 }

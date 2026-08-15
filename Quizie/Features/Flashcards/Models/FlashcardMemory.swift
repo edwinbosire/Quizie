@@ -165,24 +165,26 @@ final class FlashcardMemory {
 
     private let store: any FlashcardMemoryStore
     private let issues: PersistenceIssueCenter
+    private let learningEvents: LearningEventHistory?
     private(set) var reviews: [String: FlashcardReviewSnapshot] = [:]
     private(set) var customCards: [CustomFlashcardSnapshot] = []
 
-    init(store: any FlashcardMemoryStore, issues: PersistenceIssueCenter) {
+    init(store: any FlashcardMemoryStore, issues: PersistenceIssueCenter, learningEvents: LearningEventHistory? = nil) {
         self.store = store
         self.issues = issues
+        self.learningEvents = learningEvents
         reload()
     }
 
     var learningCount: Int {
-        reviews.values.filter { $0.rating == .learning }.count
+        reviews.values.filter { $0.rating.isLearning }.count
     }
 
     func progressSummary(totalAvailable: Int) -> FlashcardProgressSummary {
         FlashcardProgressSummary(
             totalAvailable: totalAvailable,
             reviewed: reviews.count,
-            mastered: reviews.values.filter { $0.rating == .known }.count,
+            mastered: reviews.values.filter { $0.rating.isKnown }.count,
             learning: learningCount,
             totalReviews: reviews.values.reduce(0) { $0 + $1.reviewCount }
         )
@@ -192,12 +194,12 @@ final class FlashcardMemory {
 
     func isAvailable(_ card: Flashcard, at date: Date) -> Bool {
         guard let review = reviews[card.id] else { return true }
-        guard review.rating == .learning, let dueDate = review.nextReviewAt else { return false }
+        guard review.rating.isLearning, let dueDate = review.nextReviewAt else { return false }
         return dueDate <= date
     }
 
     func isDue(_ card: Flashcard, at date: Date) -> Bool {
-        guard let review = reviews[card.id], review.rating == .learning else { return false }
+        guard let review = reviews[card.id], review.rating.isLearning else { return false }
         return review.nextReviewAt.map { $0 <= date } ?? false
     }
 
@@ -207,15 +209,16 @@ final class FlashcardMemory {
             cardID: card.id,
             rating: rating,
             lastReviewedAt: date,
-            nextReviewAt: rating == .learning ? date.addingTimeInterval(Self.learningInterval) : nil,
+            nextReviewAt: rating.isLearning ? date.addingTimeInterval(rating.analyticsScoreKey == .hard ? Self.learningInterval * 6 : Self.learningInterval) : nil,
             reviewCount: (previous?.reviewCount ?? 0) + 1,
-            knownCount: (previous?.knownCount ?? 0) + (rating == .known ? 1 : 0),
-            learningCount: (previous?.learningCount ?? 0) + (rating == .learning ? 1 : 0)
+            knownCount: (previous?.knownCount ?? 0) + (rating.isKnown ? 1 : 0),
+            learningCount: (previous?.learningCount ?? 0) + (rating.isLearning ? 1 : 0)
         )
 
         do {
             try store.upsertReview(value)
             reviews[card.id] = value
+            learningEvents?.append(FlashcardReviewEventSnapshot(flashcardID: card.id, conceptIDs: card.taxonomy.conceptIds, rating: rating.analyticsScoreKey, reviewedAt: date))
         } catch {
             issues.report(error, operation: "Saving flashcard progress")
         }
@@ -255,6 +258,15 @@ final class FlashcardMemory {
             customCards = try store.fetchCustomCards()
         } catch {
             issues.report(error, operation: "Loading flashcard progress")
+        }
+    }
+
+    func importLegacyReviewEvents(for cards: [Flashcard]) {
+        guard let learningEvents else { return }
+        let cardsByID = Dictionary(cards.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        for review in reviews.values where !learningEvents.flashcardReviews.contains(where: { $0.flashcardID == review.cardID }) {
+            guard let card = cardsByID[review.cardID] else { continue }
+            learningEvents.append(FlashcardReviewEventSnapshot(flashcardID: card.id, conceptIDs: card.taxonomy.conceptIds, rating: review.rating.analyticsScoreKey, reviewedAt: review.lastReviewedAt))
         }
     }
 }

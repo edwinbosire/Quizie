@@ -5,6 +5,8 @@ import SwiftData
 struct QuizFeatureDependencies {
     let questions: any QuestionRepository
     let attempts: AttemptHistory
+    let learningEvents: LearningEventHistory
+    let performance: PerformanceReportService
     let clock: any QuizClock
     let scheduler: any QuizScheduler
     let questionSources: QuizQuestionSourceResolver
@@ -79,15 +81,18 @@ struct AppDependencies {
     let flashcards: FlashcardFeatureDependencies
     let handbook: HandbookFeatureDependencies
     let search: SearchFeatureDependencies
+    let performance: PerformanceReportService
     let persistenceIssues: PersistenceIssueCenter
 
     static func production(bundle: Bundle = .main) throws -> AppDependencies {
         let container = try AppPersistence.makeContainer()
+        let taxonomy = try BundleConceptTaxonomyRepository(bundle: bundle).taxonomy()
         return assemble(
             container: container,
             questions: BundleQuestionRepository(bundle: bundle),
             handbook: BundleHandbookRepository(bundle: bundle),
-            taxonomyTagger: TaxonomyTagResolver(taxonomy: try BundleConceptTaxonomyRepository(bundle: bundle).taxonomy()),
+            taxonomy: taxonomy,
+            taxonomyTagger: TaxonomyTagResolver(taxonomy: taxonomy),
             persistence: PersistenceServices(container: container),
             clock: SystemQuizClock(),
             scheduler: SystemQuizScheduler()
@@ -147,12 +152,15 @@ struct AppDependencies {
         container: ModelContainer,
         questions: any QuestionRepository,
         handbook handbookRepository: any HandbookRepository,
+        taxonomy: ConceptTaxonomy? = nil,
         taxonomyTagger: TaxonomyTagResolver = .empty,
         persistence: PersistenceServices,
         clock: any QuizClock,
         scheduler: any QuizScheduler
     ) -> AppDependencies {
         let catalog = HandbookCatalog(repository: handbookRepository)
+        let resolvedTaxonomy = taxonomy ?? ConceptTaxonomy(schemaVersion: 1, taxonomyVersion: "preview", handbookVersion: "preview", generatedAt: "", concepts: [], entities: [])
+        let performance = PerformanceReportService(events: persistence.learningEvents, taxonomy: resolvedTaxonomy, cache: SwiftDataPerformanceSnapshotStore(context: container.mainContext))
         if let document = catalog.document {
             persistence.progress.reconcile(document: document)
             persistence.highlights.reconcile(document: document)
@@ -161,6 +169,8 @@ struct AppDependencies {
         let quiz = QuizFeatureDependencies(
             questions: questions,
             attempts: persistence.attempts,
+            learningEvents: persistence.learningEvents,
+            performance: performance,
             clock: clock,
             scheduler: scheduler,
             questionSources: QuizQuestionSourceResolver(chapters: catalog.chapters, taxonomyTagger: taxonomyTagger)
@@ -172,6 +182,7 @@ struct AppDependencies {
             aiInference: OpenAIInferenceService(),
             taxonomyTagger: taxonomyTagger
         )
+        persistence.flashcards.importLegacyReviewEvents(for: flashcards.catalog.allCards(memory: flashcards.memory))
         let handbook = HandbookFeatureDependencies(
             catalog: catalog,
             progress: persistence.progress,
@@ -191,6 +202,7 @@ struct AppDependencies {
                 highlights: persistence.highlights,
                 flashcards: flashcards
             ),
+            performance: performance,
             persistenceIssues: persistence.issues
         )
     }

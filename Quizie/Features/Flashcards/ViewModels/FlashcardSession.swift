@@ -39,11 +39,11 @@ final class FlashcardSession {
     }
 
     var knownCount: Int {
-        ratings.values.filter { $0 == .known }.count
+        ratings.values.filter(\.isKnown).count
     }
 
     var learningCount: Int {
-        ratings.values.filter { $0 == .learning }.count
+        ratings.values.filter(\.isLearning).count
     }
 
     var positionLabel: String {
@@ -70,7 +70,7 @@ final class FlashcardSession {
         guard let currentCard else { return }
         ratings[currentCard.id] = rating
         memory?.record(rating, for: currentCard, at: clock.now)
-        if rating == .learning {
+        if rating.isLearning {
             scheduleLearningCardIfUseful(currentCard)
         }
         advance()

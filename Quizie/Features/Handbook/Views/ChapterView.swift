@@ -4,6 +4,7 @@ struct ChapterView: View {
     let dependencies: HandbookReaderDependencies
     @State private var chapter: HandbookChapter
     var initialSectionIndex: Int? = nil
+    var initialBlockID: String? = nil
     let searchHighlight: String?
     private let initialChapterID: String
     @State private var selectedSectionIndex: Int = 0
@@ -27,11 +28,13 @@ struct ChapterView: View {
         chapter: HandbookChapter,
         dependencies: HandbookReaderDependencies,
         initialSectionIndex: Int? = nil,
+        initialBlockID: String? = nil,
         searchHighlight: String? = nil
     ) {
         self._chapter = State(initialValue: chapter)
         self.dependencies = dependencies
         self.initialSectionIndex = initialSectionIndex
+        self.initialBlockID = initialBlockID
         self.searchHighlight = searchHighlight
         self.initialChapterID = chapter.contentID
         self._readerTextSizeRaw = AppStorage(
@@ -254,8 +257,20 @@ struct ChapterView: View {
         }
 
         if chapter.contentID == initialChapterID,
-           let targetIndex = initialSectionIndex,
-           chapter.sections.indices.contains(targetIndex) {
+           let initialBlockID,
+           let targetIndex = chapter.sections.firstIndex(where: { section in section.blocks.contains(where: { $0.id == initialBlockID }) }) {
+            selectedSectionIndex = targetIndex
+            do {
+                try await Task.sleep(for: .milliseconds(50))
+            } catch {
+                return
+            }
+            withAnimation(.easeInOut(duration: 0.4)) {
+                proxy.scrollTo(initialBlockID, anchor: .center)
+            }
+        } else if chapter.contentID == initialChapterID,
+                  let targetIndex = initialSectionIndex,
+                  chapter.sections.indices.contains(targetIndex) {
             selectedSectionIndex = targetIndex
             withAnimation(.easeInOut(duration: 0.4)) {
                 proxy.scrollTo(chapter.sections[targetIndex].id, anchor: .top)

@@ -11,7 +11,11 @@ enum AppPersistence {
         ReadingProgress.self,
         Highlight.self,
         FlashcardReview.self,
-        CustomFlashcard.self
+        CustomFlashcard.self,
+        QuestionAttemptRecord.self,
+        FlashcardReviewEventRecord.self,
+        LearningExamAttemptRecord.self,
+        PerformanceSnapshotRecord.self
     ])
 
     static func makeContainer(inMemory: Bool = false) throws -> ModelContainer {
@@ -296,14 +300,19 @@ struct PersistenceServices {
     let progress: ReadingProgressLibrary
     let highlights: HighlightLibrary
     let flashcards: FlashcardMemory
+    let learningEvents: LearningEventHistory
 
     init(container: ModelContainer) {
         let issues = PersistenceIssueCenter()
         self.issues = issues
-        attempts = AttemptHistory(store: SwiftDataExamAttemptStore(context: container.mainContext), issues: issues)
+        let attemptHistory = AttemptHistory(store: SwiftDataExamAttemptStore(context: container.mainContext), issues: issues)
+        attempts = attemptHistory
         progress = ReadingProgressLibrary(store: SwiftDataReadingProgressStore(context: container.mainContext), issues: issues)
         highlights = HighlightLibrary(store: SwiftDataHighlightStore(context: container.mainContext), issues: issues)
-        flashcards = FlashcardMemory(store: SwiftDataFlashcardMemoryStore(context: container.mainContext), issues: issues)
+        let eventHistory = LearningEventHistory(store: SwiftDataLearningEventStore(context: container.mainContext), issues: issues)
+        learningEvents = eventHistory
+        eventHistory.importLegacyExamAttempts(attemptHistory.attempts)
+        flashcards = FlashcardMemory(store: SwiftDataFlashcardMemoryStore(context: container.mainContext), issues: issues, learningEvents: eventHistory)
     }
 
     init(attemptStore: any ExamAttemptStore, progressStore: any ReadingProgressStore, highlightStore: any HighlightStore) {
@@ -323,9 +332,13 @@ struct PersistenceServices {
     ) {
         let issues = PersistenceIssueCenter()
         self.issues = issues
-        attempts = AttemptHistory(store: attemptStore, issues: issues)
+        let attemptHistory = AttemptHistory(store: attemptStore, issues: issues)
+        attempts = attemptHistory
+        let eventHistory = LearningEventHistory(store: InMemoryLearningEventStore(), issues: issues)
+        learningEvents = eventHistory
+        eventHistory.importLegacyExamAttempts(attemptHistory.attempts)
         progress = ReadingProgressLibrary(store: progressStore, issues: issues)
         highlights = HighlightLibrary(store: highlightStore, issues: issues)
-        flashcards = FlashcardMemory(store: flashcardStore, issues: issues)
+        flashcards = FlashcardMemory(store: flashcardStore, issues: issues, learningEvents: eventHistory)
     }
 }

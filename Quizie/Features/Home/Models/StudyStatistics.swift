@@ -35,9 +35,9 @@ enum StudyStatistics {
                 reviewed += 1
             }
 
-            if rating == .known {
+            if rating.isKnown && previousRating?.isKnown != true {
                 known += 1
-            } else if previousRating == .known {
+            } else if !rating.isKnown && previousRating?.isKnown == true {
                 known = max(0, known - 1)
             }
         }

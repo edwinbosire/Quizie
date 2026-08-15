@@ -203,6 +203,7 @@ private extension FlashcardDeck {
         case .newCards: return "flashcards.deck.new"
         case .due: return "flashcards.deck.due"
         case .chapter(let number): return "flashcards.deck.chapter.\(number)"
+        case .concept(let ids, _): return "flashcards.deck.concept.\(ids.first ?? "unknown")"
         case .dates: return "flashcards.deck.dates"
         case .custom: return "flashcards.deck.custom"
         }
@@ -397,20 +398,34 @@ private struct FlashcardStudyView: View {
     @ViewBuilder
     private var studyControls: some View {
         if session.isShowingAnswer {
-            HStack(spacing: 12) {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
                 ratingButton(
-                    title: "Still learning",
-                    icon: "arrow.trianglehead.2.clockwise.rotate.90",
+                    title: "Again",
+                    icon: "arrow.counterclockwise",
                     foreground: Color(hex: "#8A431F"),
                     background: Color(hex: "#F5E6DA")
-                ) { session.rate(.learning) }
+                ) { session.rate(.again) }
 
                 ratingButton(
-                    title: "Know it",
+                    title: "Hard",
+                    icon: "brain.head.profile",
+                    foreground: Color(hex: "#8A6500"),
+                    background: Color(hex: "#FFF1C7")
+                ) { session.rate(.hard) }
+
+                ratingButton(
+                    title: "Good",
                     icon: "checkmark",
                     foreground: Color(hex: "#145A32"),
                     background: Color(hex: "#D5F5E3")
-                ) { session.rate(.known) }
+                ) { session.rate(.good) }
+
+                ratingButton(
+                    title: "Easy",
+                    icon: "sparkles",
+                    foreground: Color(hex: "#1B4F72"),
+                    background: Color(hex: "#D6E8F5")
+                ) { session.rate(.easy) }
             }
         } else {
             Button(action: session.flip) {

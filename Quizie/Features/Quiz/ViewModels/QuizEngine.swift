@@ -14,10 +14,16 @@ final class QuizEngine {
     private let clock: any QuizClock
     private let scheduler: any QuizScheduler
     @ObservationIgnored private var attemptStore: any ExamAttemptStore
+    @ObservationIgnored private var learningEvents: LearningEventHistory?
     @ObservationIgnored private var timer: QuizCancellation?
     @ObservationIgnored private var pendingSubmission: QuizCancellation?
     @ObservationIgnored private var pendingAdvance: QuizCancellation?
     @ObservationIgnored private let statisticsDefaults: UserDefaults
+    @ObservationIgnored private var learningExam: LearningExamAttemptSnapshot?
+    @ObservationIgnored private var questionStartedAt: Date?
+    @ObservationIgnored private var activeEvidenceSource: EvidenceSource = .mockExam
+    @ObservationIgnored private var activeTargetConceptIDs: [String]?
+    @ObservationIgnored private var activeTargetQuestionCount: Int?
 
     let configuration: QuizConfiguration
 
@@ -25,6 +31,7 @@ final class QuizEngine {
         configuration: QuizConfiguration = .practice,
         questionRepository: any QuestionRepository,
         attemptStore: (any ExamAttemptStore)? = nil,
+        learningEvents: LearningEventHistory? = nil,
         clock: (any QuizClock)? = nil,
         scheduler: (any QuizScheduler)? = nil,
         statisticsDefaults: UserDefaults = .standard
@@ -33,6 +40,7 @@ final class QuizEngine {
         self.state = QuizState(configuration: configuration)
         self.questionRepository = questionRepository
         self.attemptStore = attemptStore ?? NoOpExamAttemptStore()
+        self.learningEvents = learningEvents
         self.clock = clock ?? SystemQuizClock()
         self.scheduler = scheduler ?? SystemQuizScheduler()
         self.statisticsDefaults = statisticsDefaults
@@ -66,27 +74,47 @@ final class QuizEngine {
     }
 
     func startExam(testID: String? = nil) {
-        start(mode: .practice, testID: testID)
+        start(mode: .practice, testID: testID, source: .mockExam)
     }
 
     func startStreak() {
-        start(mode: .streak, testID: nil)
+        start(mode: .streak, testID: nil, source: .practiceQuestion)
+    }
+
+    func startTargetedPractice(conceptID: String, questionCount: Int = 6) {
+        startTargetedPractice(conceptIDs: [conceptID], questionCount: questionCount)
+    }
+
+    func startTargetedPractice(conceptIDs: [String], questionCount: Int = 6) {
+        start(mode: .practice, testID: nil, source: .practiceQuestion, conceptIDs: conceptIDs, questionCount: questionCount)
     }
 
     func restartCurrentMode() {
-        if isStreakMode {
+        if let activeTargetConceptIDs {
+            startTargetedPractice(conceptIDs: activeTargetConceptIDs, questionCount: activeTargetQuestionCount ?? 6)
+        } else if isStreakMode {
             startStreak()
         } else {
             startExam(testID: session?.testID)
         }
     }
 
-    private func start(mode: QuizMode, testID: String?) {
+    private func start(mode: QuizMode, testID: String?, source: EvidenceSource, conceptIDs: [String]? = nil, questionCount: Int? = nil) {
+        abandonActiveLearningExam()
         cancelScheduledWork()
         let questions: [QuizQuestion]
         do {
-            let questionCount = mode == .streak ? Int.max : configuration.questionCount
-            questions = try questionRepository.questions(count: questionCount, seed: testID)
+            let requestedCount = questionCount ?? (mode == .streak ? Int.max : configuration.questionCount)
+            if let conceptIDs {
+                let requestedConceptIDs = Set(conceptIDs)
+                questions = Array(try questionRepository.questions(count: Int.max, seed: "concept-\(conceptIDs.sorted().joined(separator: "-"))").filter { !requestedConceptIDs.isDisjoint(with: $0.taxonomy.conceptIds) }.prefix(requestedCount))
+            } else {
+                questions = try questionRepository.questions(count: requestedCount, seed: testID)
+            }
+            if conceptIDs != nil, questions.isEmpty {
+                contentError = .invalidContent(name: "questions", reason: "No questions are mapped to this topic yet.")
+                return
+            }
             contentError = nil
         } catch let repositoryError as ContentRepositoryError {
             contentError = repositoryError
@@ -95,8 +123,18 @@ final class QuizEngine {
             contentError = .invalidContent(name: "questions", reason: error.localizedDescription)
             return
         }
-        state.start(questions: questions, testID: testID, mode: mode, at: clock.now)
+        let targetedConfiguration = conceptIDs == nil ? nil : QuizConfiguration.custom(questionCount: questions.count, timeLimitSeconds: max(5 * 60, questions.count * 90), passMarkCount: max(1, Int(ceil(Double(questions.count) * 0.75))))
+        state.start(questions: questions, testID: testID, mode: mode, sessionConfiguration: targetedConfiguration, at: clock.now)
+        activeEvidenceSource = source
+        activeTargetConceptIDs = conceptIDs
+        activeTargetQuestionCount = questionCount
         persistenceError = nil
+        questionStartedAt = clock.now
+        if mode == .practice, let session = state.session {
+            let exam = LearningExamAttemptSnapshot(id: session.id, startedAt: session.startedAt, completedAt: nil, questionAttemptIDs: [], correctCount: 0, totalCount: session.questions.count, passed: nil, duration: nil, didTimeOut: false, testID: testID)
+            learningExam = exam
+            learningEvents?.upsert(exam)
+        }
 
         guard case .question = state.phase, mode == .practice else { return }
         timer = scheduler.scheduleRepeating(every: 1) { [weak self] in
@@ -117,7 +155,13 @@ final class QuizEngine {
     func submitAndAdvance() {
         pendingSubmission?.cancel()
         pendingSubmission = nil
+        let question = state.currentQuestion
+        let selectedIndices = state.selectedIndices
+        let answeredAt = clock.now
         let transition = state.submitCurrentAnswer()
+        if state.hasSubmittedAnswer, let question {
+            capture(question: question, selectedIndices: selectedIndices, answeredAt: answeredAt)
+        }
         if state.mode == .streak, state.isCurrentAnswerCorrect {
             bestStreak = StudyStatistics.recordStreak(currentStreak, defaults: statisticsDefaults)
         }
@@ -127,7 +171,9 @@ final class QuizEngine {
     func manualAdvance() {
         pendingAdvance?.cancel()
         pendingAdvance = nil
-        handle(state.advance(at: clock.now))
+        let transition = state.advance(at: clock.now)
+        if transition == .none, case .question = state.phase { questionStartedAt = clock.now }
+        handle(transition)
     }
 
     func finishExam() {
@@ -147,6 +193,7 @@ final class QuizEngine {
     }
 
     func returnToLobby() {
+        abandonActiveLearningExam()
         cancelScheduledWork()
         state.returnToLobby()
         persistenceError = nil
@@ -184,6 +231,7 @@ final class QuizEngine {
 
         case .completed(let exam):
             cancelScheduledWork()
+            completeLearningExam(exam)
             do {
                 try attemptStore.save(exam)
             } catch {
@@ -199,6 +247,49 @@ final class QuizEngine {
         timer = nil
         pendingSubmission = nil
         pendingAdvance = nil
+    }
+
+    private func capture(question: QuizQuestion, selectedIndices: Set<Int>, answeredAt: Date) {
+        let conceptWeights = question.taxonomy.conceptIds.enumerated().map { index, conceptID in
+            ConceptEvidenceWeight(conceptID: conceptID, weight: [1.0, 0.7, 0.3][safe: index] ?? 0.3)
+        }
+        let selectedAnswers = selectedIndices.sorted().compactMap { question.choices[safe: $0] }
+        let correctAnswers = question.correctIndices.sorted().compactMap { question.choices[safe: $0] }
+        let value = QuestionAttemptSnapshot(
+            questionID: question.id,
+            examAttemptID: learningExam?.id,
+            conceptWeights: conceptWeights,
+            selectedAnswerIDs: selectedAnswers,
+            correctAnswerIDs: correctAnswers,
+            wasCorrect: selectedIndices == question.correctIndices,
+            responseTime: questionStartedAt.map { answeredAt.timeIntervalSince($0) },
+            answeredAt: answeredAt,
+            source: activeEvidenceSource
+        )
+        learningEvents?.append(value)
+        if var exam = learningExam {
+            exam.questionAttemptIDs.append(value.id)
+            exam.correctCount += value.wasCorrect ? 1 : 0
+            learningExam = exam
+            learningEvents?.upsert(exam)
+        }
+    }
+
+    private func completeLearningExam(_ completed: CompletedExam) {
+        guard var exam = learningExam, exam.id == completed.sessionID else { return }
+        exam.completedAt = completed.attemptDate
+        exam.correctCount = completed.score
+        exam.passed = completed.passed
+        exam.duration = TimeInterval(completed.elapsedSeconds)
+        exam.didTimeOut = completed.didTimeOut
+        learningEvents?.upsert(exam)
+        learningExam = nil
+    }
+
+    private func abandonActiveLearningExam() {
+        guard let exam = learningExam, exam.completedAt == nil else { return }
+        learningEvents?.upsert(exam)
+        learningExam = nil
     }
 
     func setPreviewState(

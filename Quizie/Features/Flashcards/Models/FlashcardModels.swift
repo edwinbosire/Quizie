@@ -34,14 +34,30 @@ struct Flashcard: Identifiable, Equatable, Sendable {
 }
 
 enum FlashcardRating: String, Codable, Equatable, Sendable {
+    case again
+    case hard
+    case good
+    case easy
     case learning
     case known
+
+    nonisolated var analyticsScoreKey: FlashcardRating {
+        switch self {
+        case .learning: .again
+        case .known: .good
+        default: self
+        }
+    }
+
+    nonisolated var isLearning: Bool { [.again, .hard].contains(analyticsScoreKey) }
+    nonisolated var isKnown: Bool { [.good, .easy].contains(analyticsScoreKey) }
 }
 
 enum FlashcardDeck: Hashable, Identifiable, Sendable {
     case newCards
     case due
     case chapter(Int)
+    case concept(ids: [String], title: String)
     case dates
     case custom
 
@@ -50,6 +66,7 @@ enum FlashcardDeck: Hashable, Identifiable, Sendable {
         case .newCards: return "new"
         case .due: return "due"
         case .chapter(let number): return "chapter-\(number)"
+        case .concept(let ids, _): return "concept-\(ids.joined(separator: "."))"
         case .dates: return "dates"
         case .custom: return "custom"
         }
@@ -62,6 +79,7 @@ enum FlashcardDeck: Hashable, Identifiable, Sendable {
         case .chapter(let number):
             guard let name = Self.chapterName(for: number) else { return "Chapter \(number)" }
             return "Chapter \(number): \(name)"
+        case .concept(_, let title): return title
         case .dates: return "Important dates"
         case .custom: return "My flashcards"
         }

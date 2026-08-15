@@ -5,6 +5,7 @@ struct QuizRootView: View {
     let initialTestID: String?
     private let dependencies: QuizFeatureDependencies
     private let flashcardDependencies: FlashcardFeatureDependencies
+    private let handbookDependencies: HandbookReaderDependencies?
     private let showsMainNavigationBar: Bool
     private let onOpenSearch: () -> Void
     private let onOpenHandbook: () -> Void
@@ -17,6 +18,7 @@ struct QuizRootView: View {
     init(
         dependencies: QuizFeatureDependencies,
         flashcardDependencies: FlashcardFeatureDependencies,
+        handbookDependencies: HandbookReaderDependencies? = nil,
         initialTestID: String? = nil,
         configuration: QuizConfiguration = .practice,
         showsMainNavigationBar: Bool = false,
@@ -28,6 +30,7 @@ struct QuizRootView: View {
     ) {
         self.dependencies = dependencies
         self.flashcardDependencies = flashcardDependencies
+        self.handbookDependencies = handbookDependencies
         self.initialTestID = initialTestID
         self.showsMainNavigationBar = showsMainNavigationBar
         self.onOpenSearch = onOpenSearch
@@ -39,6 +42,7 @@ struct QuizRootView: View {
             configuration: configuration,
             questionRepository: dependencies.questions,
             attemptStore: dependencies.attempts,
+            learningEvents: dependencies.learningEvents,
             clock: dependencies.clock,
             scheduler: dependencies.scheduler
         ))
@@ -52,9 +56,13 @@ struct QuizRootView: View {
                     QuizLobbyView(
                         engine: engine,
                         attemptHistory: dependencies.attempts,
+                        performance: dependencies.performance,
                         onOpenFlashcards: openFlashcards,
                         onOpenMatchGame: openMatchGame,
-                        onOpenBookmarks: openBookmarks
+                        onOpenBookmarks: openBookmarks,
+                        highlightCount: handbookDependencies?.highlights.highlights.count ?? 0,
+                        onOpenHighlights: openHighlights,
+                        onOpenPerformance: openPerformance
                     )
                         .transition(.asymmetric(
                             insertion: .move(edge: .leading),
@@ -62,7 +70,7 @@ struct QuizRootView: View {
                         ))
 
                 case .question(let idx):
-                    QuizQuestionView(engine: engine, questionIndex: idx, questionSourceResolver: dependencies.questionSources, onQuit: quitQuiz)
+                    QuizQuestionView(engine: engine, questionIndex: idx, questionSourceResolver: dependencies.questionSources, onQuit: quitQuiz, onOpenHandbook: openQuestionHandbook)
                         .id(idx)   // force view refresh on index change
                         .navigationBarBackButtonHidden(true)
                         .ignoresSafeArea(.container, edges: .bottom)
@@ -103,6 +111,16 @@ struct QuizRootView: View {
                     MatchGameView()
                 case .bookmarks:
                     BookmarkedQuestionsView(questionRepository: dependencies.questions, questionSourceResolver: dependencies.questionSources)
+                case .highlights:
+                    if let handbookDependencies {
+                        HighlightsView(dependencies: handbookDependencies)
+                    }
+                case .performance:
+                    PerformanceDashboardView(service: dependencies.performance, onAction: performRecommendation)
+                case .handbookConcept(let conceptID):
+                    handbookDestination(conceptID: conceptID)
+                case .questionHandbook(let destination):
+                    questionHandbookDestination(destination)
                 }
             }
             .flashcardNavigationDestinations(dependencies: flashcardDependencies)
@@ -144,6 +162,71 @@ struct QuizRootView: View {
         navigationPath.append(HomeNavigationDestination.bookmarks)
     }
 
+    private func openHighlights() {
+        guard handbookDependencies != nil else { return }
+        navigationPath.append(HomeNavigationDestination.highlights)
+    }
+
+    private func openPerformance() {
+        dependencies.performance.refresh()
+        navigationPath.append(HomeNavigationDestination.performance)
+    }
+
+    private func openQuestionHandbook(_ source: QuizQuestionSource) {
+        navigationPath.append(HomeNavigationDestination.questionHandbook(QuizHandbookDestination(chapterID: source.chapterID, sectionID: source.sectionID, blockID: source.blockID)))
+    }
+
+    @ViewBuilder
+    private func questionHandbookDestination(_ destination: QuizHandbookDestination) -> some View {
+        if let handbookDependencies,
+           let chapter = handbookDependencies.catalog.chapters.first(where: { $0.contentID == destination.chapterID }) {
+            let sectionIndex = chapter.sections.firstIndex { $0.id == destination.sectionID }
+            ChapterView(chapter: chapter, dependencies: handbookDependencies, initialSectionIndex: sectionIndex, initialBlockID: destination.blockID)
+        } else {
+            ContentUnavailableView("Reading unavailable", systemImage: "book.closed", description: Text("The handbook passage for this question could not be found."))
+        }
+    }
+
+    private func performRecommendation(_ action: RecommendedAction, _ concept: ConceptPerformance) {
+        switch action {
+        case .readHandbook:
+            navigationPath.append(HomeNavigationDestination.handbookConcept(concept.id))
+        case .reviewFlashcards:
+            navigationPath.append(FlashcardDeck.concept(ids: conceptIDs(for: concept), title: concept.displayName))
+        case .practiceQuestions:
+            navigationPath = NavigationPath()
+            engine.startTargetedPractice(conceptIDs: conceptIDs(for: concept), questionCount: 10)
+        case .takeMiniQuiz:
+            navigationPath = NavigationPath()
+            engine.startTargetedPractice(conceptIDs: conceptIDs(for: concept), questionCount: 6)
+        }
+    }
+
+    private func conceptIDs(for root: ConceptPerformance) -> [String] {
+        let byID = Dictionary(uniqueKeysWithValues: dependencies.performance.report.concepts.map { ($0.id, $0) })
+        var result: [String] = []
+        var pending = [root.id]
+        var seen = Set<String>()
+        while let id = pending.popLast(), seen.insert(id).inserted {
+            result.append(id)
+            pending.append(contentsOf: byID[id]?.childIDs ?? [])
+        }
+        return result
+    }
+
+    @ViewBuilder
+    private func handbookDestination(conceptID: String) -> some View {
+        if let handbookDependencies,
+           let performance = dependencies.performance.report.concepts.first(where: { $0.id == conceptID }),
+           let reference = performance.handbookReferences.first,
+           let chapter = handbookDependencies.catalog.chapters.first(where: { $0.contentID == reference.chapterId }) {
+            let sectionIndex = chapter.sections.firstIndex { $0.id == reference.sectionId }
+            ChapterView(chapter: chapter, dependencies: handbookDependencies, initialSectionIndex: sectionIndex)
+        } else {
+            ContentUnavailableView("Reading unavailable", systemImage: "book.closed", description: Text("No handbook section is mapped to this topic."))
+        }
+    }
+
     private func quitQuiz() {
         engine.returnToLobby()
         onQuitQuiz?()
@@ -170,4 +253,14 @@ private enum HomeNavigationDestination: Hashable {
     case flashcards
     case matchGame
     case bookmarks
+    case highlights
+    case performance
+    case handbookConcept(String)
+    case questionHandbook(QuizHandbookDestination)
+}
+
+private struct QuizHandbookDestination: Hashable {
+    let chapterID: String
+    let sectionID: String
+    let blockID: String?
 }

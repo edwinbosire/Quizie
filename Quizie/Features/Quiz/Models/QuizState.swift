@@ -78,16 +78,17 @@ struct QuizState {
             : !selectedIndices.isEmpty
     }
 
-    mutating func start(questions: [QuizQuestion], testID: String?, mode: QuizMode = .practice, at date: Date) {
+    mutating func start(questions: [QuizQuestion], testID: String?, mode: QuizMode = .practice, sessionConfiguration: QuizConfiguration? = nil, at date: Date) {
+        let activeConfiguration = sessionConfiguration ?? configuration
         session = ExamSession(
             testID: testID,
             mode: mode,
-            configuration: configuration,
+            configuration: activeConfiguration,
             questions: questions,
             startedAt: date
         )
         selectedIndices = []
-        timeRemaining = configuration.timeLimitSeconds
+        timeRemaining = activeConfiguration.timeLimitSeconds
         didTimeOut = false
         hasSubmittedAnswer = false
         isCurrentAnswerCorrect = false

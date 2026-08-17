@@ -39,6 +39,7 @@ nonisolated struct OpenAIInferenceService: AIInferenceService {
         let cards = result.cards.prefix(context.maxCards).filter { card in
             !card.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             !card.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            FlashcardRecallStyle.isValid(question: card.question, answer: card.answer) &&
             !card.sourceBlockIds.isEmpty &&
             card.sourceBlockIds.allSatisfy(allowedBlockIDs.contains)
         }

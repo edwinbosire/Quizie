@@ -14,6 +14,7 @@ struct ChapterView: View {
     @State private var savedProgress: Double = 0
     @State private var initialLoadComplete: Bool = false
     @State private var presentedSheet: ChapterSheet?
+    @State private var revisionPractice: HandbookRevisionPractice?
     @AppStorage(ReadingThemeStyle.storageKey) private var themeStyleRaw: String = ReadingThemeStyle.classic.rawValue
     @AppStorage(ReaderTextSize.storageKey) private var readerTextSizeRaw: String = ReaderTextSize.standard.rawValue
     @Environment(\.dismiss) private var dismiss
@@ -106,6 +107,22 @@ struct ChapterView: View {
                                             selectedSectionIndex = idx
                                         }
                                     }
+                            }
+
+                            if let revision = dependencies.revision {
+                                ChapterRevisionView(
+                                    chapter: chapter,
+                                    taxonomyTagger: dependencies.taxonomyTagger,
+                                    performance: revision.performance,
+                                    readingTheme: readingTheme,
+                                    theme: theme,
+                                    onPractice: startRevisionPractice,
+                                    onCreateFlashcards: createRevisionFlashcards
+                                )
+                                .id("chapter-revision")
+                                .padding(.horizontal, 20)
+                                .frame(maxWidth: 820)
+                                .frame(maxWidth: .infinity)
                             }
                         }
                         .padding(.top, 28)
@@ -217,6 +234,23 @@ struct ChapterView: View {
                 )
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
+            case .revisionFlashcards(let presentation):
+                GeneratedFlashcardPreviewView(presentation: presentation, aiInference: dependencies.aiInference, memory: dependencies.flashcardMemory)
+            }
+        }
+        .fullScreenCover(item: $revisionPractice, onDismiss: refreshRevisionPerformance) { practice in
+            if let revision = dependencies.revision {
+                QuizRootView(
+                    dependencies: revision.quiz,
+                    flashcardDependencies: revision.flashcards,
+                    handbookDependencies: dependencies,
+                    initialTargetConceptIDs: practice.conceptIDs,
+                    initialTargetSectionID: practice.sectionID,
+                    initialTargetQuestionCount: 10,
+                    configuration: .practice,
+                    onReturnHome: closeRevisionPractice,
+                    onQuitQuiz: closeRevisionPractice
+                )
             }
         }
     }
@@ -226,6 +260,17 @@ struct ChapterView: View {
         let progress = progressLibrary.progress(for: chapter.contentID)
         proxy.scrollTo("scrollAnchor", anchor: .top)
         await Task.yield()
+
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-uiTestChapterRevision"), dependencies.revision != nil {
+            selectedSectionIndex = max(chapter.sections.count - 1, 0)
+            proxy.scrollTo("chapter-revision", anchor: .top)
+            initialLoadComplete = true
+            await Task.yield()
+            _ = progressLibrary.start(chapterID: chapter.contentID)
+            return
+        }
+        #endif
 
         if chapter.contentID == initialChapterID,
            let initialBlockID,
@@ -265,6 +310,26 @@ struct ChapterView: View {
                 }
             }
         )
+    }
+
+    private func startRevisionPractice(_ revision: HandbookSectionRevision) {
+        guard !revision.conceptIDs.isEmpty else { return }
+        revisionPractice = HandbookRevisionPractice(sectionID: revision.id, conceptIDs: revision.conceptIDs)
+    }
+
+    private func createRevisionFlashcards(_ section: HandbookSection) {
+        guard let lastBlockIndex = section.blocks.indices.last,
+              let context = FlashcardGenerationContextBuilder.make(chapter: chapter, section: section, selectedBlockRange: 0...lastBlockIndex, taxonomyTagger: dependencies.taxonomyTagger) else { return }
+        presentedSheet = .revisionFlashcards(FlashcardGenerationPresentation(context: context, chapterNumber: chapter.id + 1))
+    }
+
+    private func closeRevisionPractice() {
+        refreshRevisionPerformance()
+        revisionPractice = nil
+    }
+
+    private func refreshRevisionPerformance() {
+        dependencies.revision?.performance.refresh(force: true)
     }
     
     private func updateReadingProgress() {
@@ -351,11 +416,25 @@ private final class ChapterScrollMetrics {
     }
 }
 
-private enum ChapterSheet: String, Identifiable {
+private enum ChapterSheet: Identifiable {
     case readerSettings
     case chapterPicker
+    case revisionFlashcards(FlashcardGenerationPresentation)
 
-    var id: String { rawValue }
+    var id: String {
+        switch self {
+        case .readerSettings: "reader-settings"
+        case .chapterPicker: "chapter-picker"
+        case .revisionFlashcards(let presentation): "revision-flashcards-\(presentation.id)"
+        }
+    }
+}
+
+private struct HandbookRevisionPractice: Identifiable {
+    let sectionID: String
+    let conceptIDs: [String]
+
+    var id: String { sectionID }
 }
 
 // MARK: - Continue Reading Banner

@@ -189,6 +189,26 @@ struct LearningAnalyticsTests {
         #expect(history.examAttempts.first?.questionAttemptIDs.count == 1)
     }
 
+    @Test("Section practice summaries exclude mock exams and unrelated concepts")
+    func practiceSummaryUsesOnlyTargetedEvidence() {
+        let store = InMemoryLearningEventStore(questionAttempts: [
+            question(id: "practice-correct", correct: true, source: .sectionPractice),
+            question(id: "practice-wrong", correct: false, source: .sectionPractice),
+            question(id: "mock", correct: false, source: .mockExam),
+            question(id: "other", correct: false, conceptID: "leaf-b", source: .sectionPractice),
+            question(id: "general-practice", correct: false, source: .practiceQuestion)
+        ])
+        let history = LearningEventHistory(store: store, issues: PersistenceIssueCenter())
+        let service = PerformanceReportService(events: history, taxonomy: fixtureTaxonomy(), cache: InMemoryPerformanceSnapshotStore(), referenceDate: now)
+
+        let summary = service.practiceSummary(conceptIDs: ["leaf-a"])
+
+        #expect(summary.answeredCount == 2)
+        #expect(summary.correctCount == 1)
+        #expect(summary.accuracy == 0.5)
+        #expect(summary.trend == .unknown)
+    }
+
     @Test("Abandoning a quiz retains completed answers without completing the exam")
     func partialQuizCapture() {
         let store = InMemoryLearningEventStore()
@@ -236,8 +256,8 @@ struct LearningAnalyticsTests {
         report.concepts.first { $0.id == id }!
     }
 
-    private func question(id: String, correct: Bool, conceptID: String = "leaf-a", difficulty: QuestionDifficulty = .medium, secondsAgo: Double = 0) -> QuestionAttemptSnapshot {
-        QuestionAttemptSnapshot(questionID: id, examAttemptID: nil, conceptWeights: [ConceptEvidenceWeight(conceptID: conceptID, weight: 1)], selectedAnswerIDs: [correct ? "right" : "wrong"], correctAnswerIDs: ["right"], wasCorrect: correct, difficulty: difficulty, responseTime: 10, answeredAt: now.addingTimeInterval(-secondsAgo), source: .mockExam)
+    private func question(id: String, correct: Bool, conceptID: String = "leaf-a", difficulty: QuestionDifficulty = .medium, secondsAgo: Double = 0, source: EvidenceSource = .mockExam) -> QuestionAttemptSnapshot {
+        QuestionAttemptSnapshot(questionID: id, examAttemptID: nil, conceptWeights: [ConceptEvidenceWeight(conceptID: conceptID, weight: 1)], selectedAnswerIDs: [correct ? "right" : "wrong"], correctAnswerIDs: ["right"], wasCorrect: correct, difficulty: difficulty, responseTime: 10, answeredAt: now.addingTimeInterval(-secondsAgo), source: source)
     }
 
     private func reviews(cardPrefix: String, ratings: [FlashcardRating]) -> [FlashcardReviewEventSnapshot] {

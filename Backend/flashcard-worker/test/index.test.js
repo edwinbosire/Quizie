@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { SYSTEM_INSTRUCTIONS, createOpenAIRequest, flashcardSchema, validateGeneratedResult, validateRequest } from "../src/flashcards.js";
+import { SYSTEM_INSTRUCTIONS, createOpenAIRequest, flashcardSchema, isSingleSentence, validateGeneratedResult, validateRequest } from "../src/flashcards.js";
 import { createWorker } from "../src/index.js";
 
 const validRequest = {
@@ -26,6 +26,20 @@ test("constrains output count and source block IDs", () => {
 test("prohibits external knowledge", () => {
   assert.match(SYSTEM_INSTRUCTIONS, /strictly from the supplied handbook context/);
   assert.match(SYSTEM_INSTRUCTIONS, /Do not introduce external knowledge/);
+});
+
+test("requires single-sentence cards with concise answers", () => {
+  assert.match(SYSTEM_INSTRUCTIONS, /never exceed 12 words/);
+  assert.equal(isSingleSentence("Who signed Magna Carta?"), true);
+  assert.equal(isSingleSentence("Who signed it? Why was it signed?"), false);
+
+  const concise = { cards: [{ question: "Who signed Magna Carta?", answer: "King John.", sourceBlockIds: ["block-1"] }] };
+  const multipleSentences = { cards: [{ question: "Who signed it? Why?", answer: "King John.", sourceBlockIds: ["block-1"] }] };
+  const verboseAnswer = { cards: [{ question: "Who signed Magna Carta?", answer: "King John signed it after a prolonged dispute with powerful English barons at Runnymede.", sourceBlockIds: ["block-1"] }] };
+
+  assert.equal(validateGeneratedResult(concise, validRequest), true);
+  assert.equal(validateGeneratedResult(multipleSentences, validRequest), false);
+  assert.equal(validateGeneratedResult(verboseAnswer, validRequest), false);
 });
 
 test("forces file search against the configured handbook vector store", () => {

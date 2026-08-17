@@ -88,7 +88,32 @@ nonisolated struct FlashcardDraft: Identifiable, Equatable, Sendable {
     }
 
     var isValid: Bool {
-        !question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        FlashcardRecallStyle.isValid(question: question, answer: answer)
+    }
+}
+
+nonisolated enum FlashcardRecallStyle {
+    static let maximumAnswerWordCount = 12
+
+    static func isValid(question: String, answer: String) -> Bool {
+        isSingleSentence(question) && isSingleSentence(answer) && wordCount(answer) <= maximumAnswerWordCount
+    }
+
+    static func isSingleSentence(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !trimmed.contains(where: \.isNewline) else { return false }
+        var terminatorGroups = 0
+        var previousWasTerminator = false
+        for character in trimmed {
+            let isTerminator = ".!?".contains(character)
+            if isTerminator, !previousWasTerminator { terminatorGroups += 1 }
+            previousWasTerminator = isTerminator
+        }
+        return terminatorGroups <= 1
+    }
+
+    static func wordCount(_ value: String) -> Int {
+        value.split(whereSeparator: \.isWhitespace).count
     }
 }
 

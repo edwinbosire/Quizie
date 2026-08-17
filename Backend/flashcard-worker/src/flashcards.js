@@ -4,7 +4,11 @@ export const SYSTEM_INSTRUCTIONS = `Generate flashcards strictly from the suppli
 
 You must search the configured handbook vector store before generating cards. Use retrieved handbook content to verify the selected text, but generate cards only for facts contained in the user's selection and supplied context blocks.
 
-Identify the distinct, testable facts contained in the user's selected text. Use surrounding and adjacent blocks only to resolve meaning and wording. Do not create filler cards and do not force the maximum number of cards. A short single-fact selection should normally produce one card; longer selections may produce several cards grouped by semantic unit. Every answer must be fully supported by the supplied context. Every card must include sourceBlockIds, and every sourceBlockIds entry must identify a supplied block that directly supports that card.`;
+Identify the distinct, testable facts contained in the user's selected text. Use surrounding and adjacent blocks only to resolve meaning and wording. Do not create filler cards and do not force the maximum number of cards. A short single-fact selection should normally produce one card; longer selections may produce several cards grouped by semantic unit.
+
+Each question and answer must contain only one sentence. Phrase questions plainly around one recall target. Make every answer as short as possible: prefer a name, date, place, or brief phrase, never exceed 12 words, and omit explanations already implied by the question.
+
+Every answer must be fully supported by the supplied context. Every card must include sourceBlockIds, and every sourceBlockIds entry must identify a supplied block that directly supports that card.`;
 
 export function createOpenAIRequest(input, env, activeIndex) {
   const allowedBlockIds = [...new Set(input.blocks.map(block => block.id))];
@@ -36,6 +40,7 @@ export function validateGeneratedResult(result, input) {
   return result.cards.every(card =>
     typeof card.question === "string" && card.question.trim() &&
     typeof card.answer === "string" && card.answer.trim() &&
+    isSingleSentence(card.question) && isSingleSentence(card.answer) && wordCount(card.answer) <= 12 &&
     Array.isArray(card.sourceBlockIds) && card.sourceBlockIds.length > 0 &&
     card.sourceBlockIds.every(blockId => allowedBlockIds.has(blockId))
   );
@@ -52,8 +57,8 @@ export function flashcardSchema(maxCards, allowedBlockIds) {
         items: {
           type: "object",
           properties: {
-            question: { type: "string", minLength: 1 },
-            answer: { type: "string", minLength: 1 },
+            question: { type: "string", minLength: 1, maxLength: 180 },
+            answer: { type: "string", minLength: 1, maxLength: 120 },
             sourceBlockIds: {
               type: "array",
               minItems: 1,
@@ -68,6 +73,16 @@ export function flashcardSchema(maxCards, allowedBlockIds) {
     required: ["cards"],
     additionalProperties: false
   };
+}
+
+export function isSingleSentence(value) {
+  const trimmed = value.trim();
+  if (!trimmed || /[\r\n]/.test(trimmed)) return false;
+  return (trimmed.match(/[.!?]+/g) || []).length <= 1;
+}
+
+function wordCount(value) {
+  return value.trim().split(/\s+/).filter(Boolean).length;
 }
 
 export function validateRequest(input) {

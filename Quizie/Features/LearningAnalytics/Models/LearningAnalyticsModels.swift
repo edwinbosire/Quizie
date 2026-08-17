@@ -34,7 +34,7 @@ nonisolated struct AnalyticsConfiguration: Sendable {
     func sourceWeight(_ source: EvidenceSource) -> Double {
         switch source {
         case .mockExam: mockExamWeight
-        case .practiceQuestion: practiceQuestionWeight
+        case .practiceQuestion, .sectionPractice: practiceQuestionWeight
         case .flashcard: flashcardWeight
         }
     }
@@ -169,6 +169,15 @@ nonisolated struct FlashcardAnalytics: Codable, Sendable {
     let reviewCount: Int
     let uniqueCardCount: Int
     let recentAverage: Double?
+}
+
+nonisolated struct PracticePerformanceSummary: Equatable, Sendable {
+    let answeredCount: Int
+    let correctCount: Int
+    let accuracy: Double?
+    let trend: PerformanceTrend
+
+    static let empty = PracticePerformanceSummary(answeredCount: 0, correctCount: 0, accuracy: nil, trend: .unknown)
 }
 
 nonisolated enum ExamReadiness: String, Codable, Sendable {

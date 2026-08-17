@@ -26,6 +26,7 @@ struct QuizHintBlock: Identifiable, Equatable {
         switch content {
         case .paragraph(let text), .blockquote(let text): return text
         case .bulletList(let items): return items.joined(separator: " ")
+        case .dataTable(let headers, let rows): return (headers + rows.flatMap { $0 }).joined(separator: " ")
         }
     }
 }
@@ -34,6 +35,7 @@ enum QuizHintBlockContent: Equatable {
     case paragraph(String)
     case bulletList([String])
     case blockquote(String)
+    case dataTable(headers: [String], rows: [[String]])
 }
 
 struct QuizQuestionSourceResolver {
@@ -104,7 +106,9 @@ struct QuizQuestionSourceResolver {
             return QuizHintBlock(id: block.id, content: .blockquote(text))
         case .bulletList(let items):
             return QuizHintBlock(id: block.id, content: .bulletList(items.map { $0.text.raw.strippingMarkdownBold }))
-        case .subheading, .subheading2, .checkUnderstand, .dataTable:
+        case .dataTable(let headers, let rows):
+            return QuizHintBlock(id: block.id, content: .dataTable(headers: headers, rows: rows))
+        case .subheading, .subheading2, .checkUnderstand:
             return nil
         }
     }
@@ -120,9 +124,9 @@ struct QuizQuestionSourceResolver {
 
     private func isPassage(_ block: ContentBlock) -> Bool {
         switch block.content {
-        case .paragraph, .blockquote, .bulletList:
+        case .paragraph, .blockquote, .bulletList, .dataTable:
             return true
-        case .subheading, .subheading2, .checkUnderstand, .dataTable:
+        case .subheading, .subheading2, .checkUnderstand:
             return false
         }
     }

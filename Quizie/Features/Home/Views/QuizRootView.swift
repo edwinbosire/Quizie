@@ -3,6 +3,9 @@ import SwiftUI
 /// Root view that coordinates all quiz phases via QuizEngine
 struct QuizRootView: View {
     let initialTestID: String?
+    private let initialTargetConceptIDs: [String]
+    private let initialTargetSectionID: String?
+    private let initialTargetQuestionCount: Int
     private let dependencies: QuizFeatureDependencies
     private let flashcardDependencies: FlashcardFeatureDependencies
     private let handbookDependencies: HandbookReaderDependencies?
@@ -15,12 +18,16 @@ struct QuizRootView: View {
     @State private var engine: QuizEngine
     @State private var navigationPath = NavigationPath()
     @State private var presentedHandbook: HandbookModalDestination?
+    @State private var didStartInitialSession = false
 
     init(
         dependencies: QuizFeatureDependencies,
         flashcardDependencies: FlashcardFeatureDependencies,
         handbookDependencies: HandbookReaderDependencies? = nil,
         initialTestID: String? = nil,
+        initialTargetConceptIDs: [String] = [],
+        initialTargetSectionID: String? = nil,
+        initialTargetQuestionCount: Int = 10,
         configuration: QuizConfiguration = .practice,
         showsMainNavigationBar: Bool = false,
         onOpenSearch: @escaping () -> Void = {},
@@ -33,6 +40,9 @@ struct QuizRootView: View {
         self.flashcardDependencies = flashcardDependencies
         self.handbookDependencies = handbookDependencies
         self.initialTestID = initialTestID
+        self.initialTargetConceptIDs = initialTargetConceptIDs
+        self.initialTargetSectionID = initialTargetSectionID
+        self.initialTargetQuestionCount = initialTargetQuestionCount
         self.showsMainNavigationBar = showsMainNavigationBar
         self.onOpenSearch = onOpenSearch
         self.onOpenHandbook = onOpenHandbook
@@ -44,6 +54,7 @@ struct QuizRootView: View {
             questionRepository: dependencies.questions,
             attemptStore: dependencies.attempts,
             learningEvents: dependencies.learningEvents,
+            questionSourceResolver: dependencies.questionSources,
             clock: dependencies.clock,
             scheduler: dependencies.scheduler
         ))
@@ -146,9 +157,17 @@ struct QuizRootView: View {
             Text(engine.contentError?.localizedDescription ?? "The question content could not be loaded.")
         }
         .onAppear {
-            if let initialTestID, case .lobby = engine.phase {
-                engine.startExam(testID: initialTestID)
-            }
+            startInitialSessionIfNeeded()
+        }
+    }
+
+    private func startInitialSessionIfNeeded() {
+        guard !didStartInitialSession, case .lobby = engine.phase else { return }
+        didStartInitialSession = true
+        if !initialTargetConceptIDs.isEmpty {
+            engine.startTargetedPractice(conceptIDs: initialTargetConceptIDs, sectionID: initialTargetSectionID, questionCount: initialTargetQuestionCount)
+        } else if let initialTestID {
+            engine.startExam(testID: initialTestID)
         }
     }
 

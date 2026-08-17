@@ -23,7 +23,9 @@ final class QuizEngine {
     @ObservationIgnored private var questionStartedAt: Date?
     @ObservationIgnored private var activeEvidenceSource: EvidenceSource = .mockExam
     @ObservationIgnored private var activeTargetConceptIDs: [String]?
+    @ObservationIgnored private var activeTargetSectionID: String?
     @ObservationIgnored private var activeTargetQuestionCount: Int?
+    @ObservationIgnored private let questionSourceResolver: QuizQuestionSourceResolver?
 
     let configuration: QuizConfiguration
 
@@ -32,6 +34,7 @@ final class QuizEngine {
         questionRepository: any QuestionRepository,
         attemptStore: (any ExamAttemptStore)? = nil,
         learningEvents: LearningEventHistory? = nil,
+        questionSourceResolver: QuizQuestionSourceResolver? = nil,
         clock: (any QuizClock)? = nil,
         scheduler: (any QuizScheduler)? = nil,
         statisticsDefaults: UserDefaults = .standard
@@ -41,6 +44,7 @@ final class QuizEngine {
         self.questionRepository = questionRepository
         self.attemptStore = attemptStore ?? NoOpExamAttemptStore()
         self.learningEvents = learningEvents
+        self.questionSourceResolver = questionSourceResolver
         self.clock = clock ?? SystemQuizClock()
         self.scheduler = scheduler ?? SystemQuizScheduler()
         self.statisticsDefaults = statisticsDefaults
@@ -89,13 +93,13 @@ final class QuizEngine {
         startTargetedPractice(conceptIDs: [conceptID], questionCount: questionCount)
     }
 
-    func startTargetedPractice(conceptIDs: [String], questionCount: Int = 6) {
-        start(mode: .practice, testID: nil, source: .practiceQuestion, conceptIDs: conceptIDs, questionCount: questionCount)
+    func startTargetedPractice(conceptIDs: [String], sectionID: String? = nil, questionCount: Int = 6) {
+        start(mode: .practice, testID: nil, source: sectionID == nil ? .practiceQuestion : .sectionPractice, conceptIDs: conceptIDs, targetSectionID: sectionID, questionCount: questionCount)
     }
 
     func restartCurrentMode() {
         if let activeTargetConceptIDs {
-            startTargetedPractice(conceptIDs: activeTargetConceptIDs, questionCount: activeTargetQuestionCount ?? 6)
+            startTargetedPractice(conceptIDs: activeTargetConceptIDs, sectionID: activeTargetSectionID, questionCount: activeTargetQuestionCount ?? 6)
         } else if isStreakMode {
             startStreak()
         } else {
@@ -103,7 +107,7 @@ final class QuizEngine {
         }
     }
 
-    private func start(mode: QuizMode, testID: String?, source: EvidenceSource, conceptIDs: [String]? = nil, questionCount: Int? = nil) {
+    private func start(mode: QuizMode, testID: String?, source: EvidenceSource, conceptIDs: [String]? = nil, targetSectionID: String? = nil, questionCount: Int? = nil) {
         abandonActiveLearningExam()
         cancelScheduledWork()
         let questions: [QuizQuestion]
@@ -111,7 +115,11 @@ final class QuizEngine {
             let requestedCount = questionCount ?? (mode == .streak ? Int.max : configuration.questionCount)
             if let conceptIDs {
                 let requestedConceptIDs = Set(conceptIDs)
-                questions = Array(try questionRepository.questions(count: Int.max, seed: "concept-\(conceptIDs.sorted().joined(separator: "-"))").filter { !requestedConceptIDs.isDisjoint(with: $0.taxonomy.conceptIds) }.prefix(requestedCount))
+                questions = Array(try questionRepository.questions(count: Int.max, seed: "concept-\(conceptIDs.sorted().joined(separator: "-"))").filter { question in
+                    guard !requestedConceptIDs.isDisjoint(with: question.taxonomy.conceptIds) else { return false }
+                    guard let targetSectionID else { return true }
+                    return questionSourceResolver?.source(for: question)?.sectionID == targetSectionID
+                }.prefix(requestedCount))
             } else {
                 questions = try questionRepository.questions(count: requestedCount, seed: testID)
             }
@@ -131,6 +139,7 @@ final class QuizEngine {
         state.start(questions: questions, testID: testID, mode: mode, sessionConfiguration: targetedConfiguration, at: clock.now)
         activeEvidenceSource = source
         activeTargetConceptIDs = conceptIDs
+        activeTargetSectionID = targetSectionID
         activeTargetQuestionCount = questionCount
         persistenceError = nil
         questionStartedAt = clock.now

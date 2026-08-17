@@ -108,6 +108,8 @@ nonisolated private struct ContentItemJSON: Codable {
     let text: String?
     let level: Int?
     let items: [String]?
+    let headers: [String]?
+    let rows: [[String]]?
 }
 
 // MARK: - Handbook document decoding
@@ -189,6 +191,12 @@ nonisolated enum HandbookDocumentDecoder {
                     blocks.append(ContentBlock(id: item.id, content: .subheading2(headingText)))
                 } else {
                     blocks.append(ContentBlock(id: item.id, content: .subheading(headingText)))
+                }
+
+            case "table":
+                let rows = (item.rows ?? []).filter { !$0.isEmpty }
+                if !rows.isEmpty {
+                    blocks.append(ContentBlock(id: item.id, content: .dataTable(headers: item.headers ?? [], rows: rows)))
                 }
 
             default:

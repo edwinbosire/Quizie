@@ -97,6 +97,18 @@ struct QuizHintSheet: View {
                 }
             }
             .accessibilityIdentifier("quiz.hint.list")
+        case .dataTable(let headers, let rows):
+            VStack(alignment: .leading, spacing: 7) {
+                if !headers.isEmpty {
+                    Text(headers.joined(separator: " · "))
+                        .fontWeight(.semibold)
+                }
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    Text(row.joined(separator: " · "))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .accessibilityIdentifier("quiz.hint.table")
         }
     }
 

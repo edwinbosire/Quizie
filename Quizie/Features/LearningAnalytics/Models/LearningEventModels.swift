@@ -20,6 +20,7 @@ nonisolated struct ConceptEvidenceWeight: Codable, Hashable, Sendable {
 nonisolated enum EvidenceSource: String, Codable, CaseIterable, Sendable {
     case mockExam
     case practiceQuestion
+    case sectionPractice
     case flashcard
 }
 

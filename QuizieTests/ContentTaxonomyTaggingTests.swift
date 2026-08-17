@@ -108,6 +108,44 @@ struct ContentTaxonomyTaggingTests {
         #expect(context.taxonomy(for: [blockID]).conceptIds.contains("history.middle-ages.magna-carta"))
     }
 
+    @Test("Every handbook section maps to targetable practice questions")
+    func handbookSectionsMapToQuestions() throws {
+        let taxonomy = try BundleConceptTaxonomyRepository().taxonomy()
+        let tagger = TaxonomyTagResolver(taxonomy: taxonomy)
+        let questions = try BundleQuestionRepository().questions(count: .max, seed: "section-revision")
+        let chapters = try BundleHandbookRepository().document().chapters
+        let sourceResolver = QuizQuestionSourceResolver(chapters: chapters, taxonomyTagger: tagger)
+        let questionsBySection = Dictionary(grouping: questions.compactMap { question in sourceResolver.source(for: question).map { ($0.sectionID, question) } }, by: \.0)
+
+        for section in chapters.flatMap(\.sections) {
+            let conceptIDs = tagger.conceptIDs(forSectionID: section.id)
+            #expect(!conceptIDs.isEmpty, "Section \(section.id) has no revision concepts")
+            #expect(questionsBySection[section.id]?.isEmpty == false, "Section \(section.id) has no targeted practice questions")
+        }
+    }
+
+    @Test("Section practice excludes questions sourced from other handbook sections")
+    func sectionPracticeUsesExactSourceSection() throws {
+        let taxonomy = try BundleConceptTaxonomyRepository().taxonomy()
+        let tagger = TaxonomyTagResolver(taxonomy: taxonomy)
+        let chapters = try BundleHandbookRepository().document().chapters
+        let resolver = QuizQuestionSourceResolver(chapters: chapters, taxonomyTagger: tagger)
+        let sectionID = "section_01_03"
+        let history = LearningEventHistory(store: InMemoryLearningEventStore(), issues: PersistenceIssueCenter())
+        let engine = QuizEngine(questionRepository: BundleQuestionRepository(), learningEvents: history, questionSourceResolver: resolver)
+
+        engine.startTargetedPractice(conceptIDs: tagger.conceptIDs(forSectionID: sectionID), sectionID: sectionID, questionCount: 10)
+
+        let questions = try #require(engine.session?.questions)
+        #expect(!questions.isEmpty)
+        #expect(questions.allSatisfy { resolver.source(for: $0)?.sectionID == sectionID })
+        let question = try #require(engine.currentQuestion)
+        engine.toggleChoice(0, isMultiSelect: question.isMultiSelect)
+        engine.submitAndAdvance()
+        #expect(history.questionAttempts.first?.source == .sectionPractice)
+        engine.stopTimer()
+    }
+
     @Test("Saved custom flashcards retain taxonomy")
     func savedCardsRetainTags() {
         let memory = FlashcardMemory(store: InMemoryFlashcardMemoryStore(), issues: PersistenceIssueCenter())

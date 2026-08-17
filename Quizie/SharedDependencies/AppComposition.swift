@@ -28,6 +28,14 @@ struct FlashcardFeatureDependencies {
 }
 
 @MainActor
+struct HandbookRevisionDependencies {
+    let quiz: QuizFeatureDependencies
+    let flashcards: FlashcardFeatureDependencies
+
+    var performance: PerformanceReportService { quiz.performance }
+}
+
+@MainActor
 struct HandbookReaderDependencies {
     let catalog: HandbookCatalog
     let progress: ReadingProgressLibrary
@@ -35,6 +43,7 @@ struct HandbookReaderDependencies {
     let aiInference: any AIInferenceService
     let flashcardMemory: FlashcardMemory
     var taxonomyTagger: TaxonomyTagResolver = .empty
+    var revision: HandbookRevisionDependencies? = nil
 }
 
 @MainActor
@@ -45,8 +54,8 @@ struct HandbookFeatureDependencies {
     var progress: ReadingProgressLibrary { reader.progress }
     var highlights: HighlightLibrary { reader.highlights }
 
-    init(catalog: HandbookCatalog, progress: ReadingProgressLibrary, highlights: HighlightLibrary, flashcards: FlashcardFeatureDependencies) {
-        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory, taxonomyTagger: flashcards.taxonomyTagger)
+    init(catalog: HandbookCatalog, progress: ReadingProgressLibrary, highlights: HighlightLibrary, flashcards: FlashcardFeatureDependencies, revision: HandbookRevisionDependencies? = nil) {
+        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory, taxonomyTagger: flashcards.taxonomyTagger, revision: revision)
     }
 }
 
@@ -64,10 +73,11 @@ struct SearchFeatureDependencies {
         catalog: HandbookCatalog,
         progress: ReadingProgressLibrary,
         highlights: HighlightLibrary,
-        flashcards: FlashcardFeatureDependencies
+        flashcards: FlashcardFeatureDependencies,
+        revision: HandbookRevisionDependencies? = nil
     ) {
         self.service = service
-        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory, taxonomyTagger: flashcards.taxonomyTagger)
+        reader = HandbookReaderDependencies(catalog: catalog, progress: progress, highlights: highlights, aiInference: flashcards.aiInference, flashcardMemory: flashcards.memory, taxonomyTagger: flashcards.taxonomyTagger, revision: revision)
     }
 }
 
@@ -182,12 +192,14 @@ struct AppDependencies {
             aiInference: OpenAIInferenceService(),
             taxonomyTagger: taxonomyTagger
         )
+        let revision = HandbookRevisionDependencies(quiz: quiz, flashcards: flashcards)
         persistence.flashcards.importLegacyReviewEvents(for: flashcards.catalog.allCards(memory: flashcards.memory))
         let handbook = HandbookFeatureDependencies(
             catalog: catalog,
             progress: persistence.progress,
             highlights: persistence.highlights,
-            flashcards: flashcards
+            flashcards: flashcards,
+            revision: revision
         )
         return AppDependencies(
             modelContainer: container,
@@ -200,7 +212,8 @@ struct AppDependencies {
                 catalog: catalog,
                 progress: persistence.progress,
                 highlights: persistence.highlights,
-                flashcards: flashcards
+                flashcards: flashcards,
+                revision: revision
             ),
             performance: performance,
             persistenceIssues: persistence.issues

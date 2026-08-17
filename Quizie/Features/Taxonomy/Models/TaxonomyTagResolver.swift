@@ -7,6 +7,7 @@ nonisolated struct TaxonomyTagResolver: Sendable {
     private let conceptsByID: [String: TaxonomyConcept]
     private let entitiesByID: [String: TaxonomyEntity]
     private let conceptIDsByBlockID: [String: [String]]
+    private let conceptIDsBySectionID: [String: [String]]
     private let entityIDsByBlockID: [String: [String]]
 
     init() {
@@ -14,6 +15,7 @@ nonisolated struct TaxonomyTagResolver: Sendable {
         conceptsByID = [:]
         entitiesByID = [:]
         conceptIDsByBlockID = [:]
+        conceptIDsBySectionID = [:]
         entityIDsByBlockID = [:]
     }
 
@@ -22,20 +24,18 @@ nonisolated struct TaxonomyTagResolver: Sendable {
         conceptsByID = taxonomy.conceptsByID
         entitiesByID = taxonomy.entitiesByID
         conceptIDsByBlockID = Self.referencesByBlock(taxonomy.concepts)
+        conceptIDsBySectionID = Self.referencesBySection(taxonomy.concepts)
         entityIDsByBlockID = Self.referencesByBlock(taxonomy.entities)
     }
 
     func tags(forBlockIDs blockIDs: [String]) -> ContentTaxonomyTags {
-        let conceptIDs = mostSpecific(blockIDs.flatMap { conceptIDsByBlockID[$0] ?? [] })
-            .sorted { left, right in
-                let leftConcept = conceptsByID[left]
-                let rightConcept = conceptsByID[right]
-                if leftConcept?.importance.weight != rightConcept?.importance.weight { return leftConcept?.importance.weight ?? 0 > rightConcept?.importance.weight ?? 0 }
-                if left.count != right.count { return left.count > right.count }
-                return left < right
-            }
+        let conceptIDs = orderedConceptIDs(mostSpecific(blockIDs.flatMap { conceptIDsByBlockID[$0] ?? [] }))
         let entityIDs = unique(blockIDs.flatMap { entityIDsByBlockID[$0] ?? [] })
         return ContentTaxonomyTags(primaryConceptId: conceptIDs.first, conceptIds: Array(conceptIDs.prefix(3)), entityIds: entityIDs)
+    }
+
+    func conceptIDs(forSectionID sectionID: String) -> [String] {
+        orderedConceptIDs(unique(conceptIDsBySectionID[sectionID] ?? []))
     }
 
     func tags(for text: String, chapter: Int?) -> ContentTaxonomyTags {
@@ -88,6 +88,16 @@ nonisolated struct TaxonomyTagResolver: Sendable {
         return false
     }
 
+    private func orderedConceptIDs(_ values: [String]) -> [String] {
+        values.sorted { left, right in
+            let leftConcept = conceptsByID[left]
+            let rightConcept = conceptsByID[right]
+            if leftConcept?.importance.weight != rightConcept?.importance.weight { return leftConcept?.importance.weight ?? 0 > rightConcept?.importance.weight ?? 0 }
+            if left.count != right.count { return left.count > right.count }
+            return left < right
+        }
+    }
+
     private func unique(_ values: [String]) -> [String] {
         var seen = Set<String>()
         return values.filter { seen.insert($0).inserted }
@@ -98,6 +108,16 @@ nonisolated struct TaxonomyTagResolver: Sendable {
         for value in values {
             for blockID in value.handbookReferences.flatMap(\.blockIds) {
                 result[blockID, default: []].append(value.id)
+            }
+        }
+        return result
+    }
+
+    private static func referencesBySection<T>(_ values: [T]) -> [String: [String]] where T: TaxonomyReferencing {
+        var result: [String: [String]] = [:]
+        for value in values {
+            for reference in value.handbookReferences {
+                result[reference.sectionId, default: []].append(value.id)
             }
         }
         return result

@@ -103,6 +103,13 @@ struct FlashcardGenerationContextTests {
         #expect(memory.customCards.first?.taxonomy.isEmpty == true)
     }
 
+    @Test("Recall cards stay single-sentence with short answers")
+    func recallCardStyleIsConcise() {
+        #expect(FlashcardRecallStyle.isValid(question: "Who agreed Magna Carta?", answer: "King John."))
+        #expect(!FlashcardRecallStyle.isValid(question: "Who agreed it? Why?", answer: "King John."))
+        #expect(!FlashcardRecallStyle.isValid(question: "Who agreed Magna Carta?", answer: "King John agreed it after a prolonged dispute with powerful English barons at Runnymede."))
+    }
+
     private func makeSection(_ values: [(String, String)]) -> HandbookSection {
         HandbookSection(id: "section_01", title: "British values", blocks: values.map { ContentBlock(id: $0.0, content: .paragraph($0.1)) })
     }
@@ -497,6 +504,27 @@ struct QuizAssistancePolicyTests {
         engine.toggleChoice(0, isMultiSelect: false)
         scheduler.runNextDelayed()
         #expect(engine.hasAnsweredCurrentQuestion)
+    }
+
+    @Test("Section practice loads only matching questions and records practice evidence")
+    func sectionPracticeTargetsConcepts() {
+        let issues = PersistenceIssueCenter()
+        let history = LearningEventHistory(store: InMemoryLearningEventStore(), issues: issues)
+        let questions = [
+            QuizQuestion(id: "a-1", question: "A?", choices: ["Right", "Wrong"], correctIndices: [0], isMultiSelect: false, year: "", category: 1, explanationLink: "", taxonomy: ContentTaxonomyTags(conceptIds: ["section-a"])),
+            QuizQuestion(id: "b-1", question: "B?", choices: ["Right", "Wrong"], correctIndices: [0], isMultiSelect: false, year: "", category: 1, explanationLink: "", taxonomy: ContentTaxonomyTags(conceptIds: ["section-b"]))
+        ]
+        let engine = QuizEngine(questionRepository: InMemoryQuestionRepository(questions), learningEvents: history, clock: MutableQuizClock(now: TestFixtures.startDate), scheduler: ManualQuizScheduler())
+
+        engine.startTargetedPractice(conceptIDs: ["section-a"], questionCount: 10)
+
+        #expect(engine.mode == .practice)
+        #expect(engine.session?.questions.map(\.id) == ["a-1"])
+        engine.toggleChoice(0, isMultiSelect: false)
+        engine.submitAndAdvance()
+        #expect(history.questionAttempts.first?.source == .practiceQuestion)
+        #expect(history.questionAttempts.first?.conceptWeights.map(\.conceptID) == ["section-a"])
+        engine.stopTimer()
     }
 }
 
@@ -1055,6 +1083,7 @@ struct AppCompositionTests {
         #expect(dependencies.quiz.clock.now == TestFixtures.startDate)
         #expect(dependencies.quiz.attempts === dependencies.tests.quiz.attempts)
         #expect(dependencies.handbook.catalog.chapters.map(\.contentID) == ["chapter_42"])
+        #expect(dependencies.handbook.reader.revision != nil)
     }
 
     @Test("Preview composition uses independently constructed in-memory state")

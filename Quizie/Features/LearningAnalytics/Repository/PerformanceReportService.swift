@@ -111,4 +111,26 @@ final class PerformanceReportService {
             lastError = error
         }
     }
+
+    func practiceSummary(conceptIDs: [String]) -> PracticePerformanceSummary {
+        let requested = Set(conceptIDs)
+        guard !requested.isEmpty else { return .empty }
+        let attempts = events.questionAttempts.filter { attempt in
+            attempt.source == .sectionPractice && attempt.conceptWeights.contains { requested.contains($0.conceptID) }
+        }
+        guard !attempts.isEmpty else { return .empty }
+        let correctCount = attempts.count(where: \.wasCorrect)
+        let accuracy = Double(correctCount) / Double(attempts.count)
+        let recent = attempts.suffix(5)
+        let earlier = attempts.dropLast(recent.count).suffix(5)
+        let trend: PerformanceTrend
+        if earlier.count >= 2, recent.count >= 2 {
+            let recentAccuracy = Double(recent.count(where: \.wasCorrect)) / Double(recent.count)
+            let earlierAccuracy = Double(earlier.count(where: \.wasCorrect)) / Double(earlier.count)
+            trend = recentAccuracy - earlierAccuracy >= 0.10 ? .improving : earlierAccuracy - recentAccuracy >= 0.10 ? .declining : .stable
+        } else {
+            trend = .unknown
+        }
+        return PracticePerformanceSummary(answeredCount: attempts.count, correctCount: correctCount, accuracy: accuracy, trend: trend)
+    }
 }

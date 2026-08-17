@@ -135,6 +135,33 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testChapterRevisionCreatesFlashcardsAndStartsSectionPractice() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES", "-uiTestChapterRevision"]
+        app.launch()
+
+        app.tabBars.buttons["Handbook"].tap()
+        let firstChapter = app.staticTexts["The values and principles of the UK"].firstMatch
+        XCTAssertTrue(firstChapter.waitForExistence(timeout: 5))
+        firstChapter.tap()
+
+        XCTAssertTrue(app.staticTexts["handbook.chapterRevision.heading"].waitForExistence(timeout: 5))
+        let flashcards = app.buttons["handbook.revision.flashcards.section_01_01"]
+        XCTAssertTrue(flashcards.waitForExistence(timeout: 5))
+        flashcards.tap()
+        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 5))
+        app.buttons["Cancel"].tap()
+
+        let practice = app.buttons["handbook.revision.practice.section_01_01"]
+        XCTAssertTrue(practice.waitForExistence(timeout: 5))
+        practice.tap()
+
+        XCTAssertTrue(app.buttons["Quiz options"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["quiz.taxonomy"].exists)
+        XCTAssertFalse(app.tabBars.firstMatch.exists)
+    }
+
+    @MainActor
     func testMainNavigationBarRoutesAndHidesCurrentDestination() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]

@@ -81,7 +81,7 @@ struct GeneratedFlashcardPreviewView: View {
     private var cardEditor: some View {
         Form {
             Section {
-                Text("Review and edit these drafts. Nothing is added to your revision deck until you save.")
+                Text("Review and edit these drafts. Keep each card to one sentence and each answer to \(FlashcardRecallStyle.maximumAnswerWordCount) words or fewer. Nothing is added to your revision deck until you save.")
                     .appFont(.footnote)
                     .foregroundStyle(Color.hbTextSecondary)
             }
@@ -89,9 +89,9 @@ struct GeneratedFlashcardPreviewView: View {
             ForEach($cards) { $card in
                 Section {
                     TextField("Question", text: $card.question, axis: .vertical)
-                        .lineLimit(2...6)
+                        .lineLimit(2...4)
                     TextField("Answer", text: $card.answer, axis: .vertical)
-                        .lineLimit(3...10)
+                        .lineLimit(1...3)
 
                     HStack {
                         Label("\(card.sourceBlockIds.count) source block\(card.sourceBlockIds.count == 1 ? "" : "s")", systemImage: "text.quote")

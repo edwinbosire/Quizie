@@ -134,6 +134,9 @@ struct LearningAnalyticsTests {
         let weakCards = reviews(cardPrefix: "weak", ratings: [.again, .again, .again, .again])
         let jointlyWeak = try #require(analyze(questions: weakExam, flashcards: weakCards).recommendations.first { $0.conceptID == "leaf-a" })
         #expect(jointlyWeak.actions == [.readHandbook, .reviewFlashcards, .practiceQuestions])
+        let insufficient = try #require(analyze(questions: [question(id: "single", correct: true)]).recommendations.first { $0.conceptID == "leaf-a" })
+        #expect(insufficient.reason == .insufficientCoverage)
+        #expect(insufficient.actions == [.readHandbook, .practiceQuestions, .takeMiniQuiz])
     }
 
     @Test("Duplicate and out-of-order events do not change the report")

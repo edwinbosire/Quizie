@@ -6,7 +6,6 @@ struct QuestionCard: View {
     let totalQuestions: Int
     let source: QuizQuestionSource?
     let onShowHint: (QuizQuestionSource) -> Void
-    var onOpenHandbook: (QuizQuestionSource) -> Void = { _ in }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -66,28 +65,6 @@ struct QuestionCard: View {
                 .appFont(.studyPrompt)
                 .foregroundColor(.hbTextPrimary)
 
-            if let source {
-                Button {
-                    onOpenHandbook(source)
-                } label: {
-                    HStack(spacing: 9) {
-                        Image(systemName: "book.closed.fill")
-                        Text("Read in Handbook")
-                            .appFont(.callout.weight(.semibold))
-                        Spacer()
-                        Image(systemName: "arrow.right")
-                            .appFont(.caption.weight(.bold))
-                    }
-                    .foregroundStyle(Color.hbAccent)
-                    .padding(.horizontal, 13)
-                    .padding(.vertical, 11)
-                    .background(Color.hbAccentLight, in: RoundedRectangle(cornerRadius: HBRadius.sm))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Read this topic in the handbook")
-                .accessibilityHint("Opens \(source.handbookLocation), \(source.sectionTitle), at the relevant passage")
-                .accessibilityIdentifier("quiz.handbook.open")
-            }
 
             // Year hint
 //            if !question.year.isEmpty {

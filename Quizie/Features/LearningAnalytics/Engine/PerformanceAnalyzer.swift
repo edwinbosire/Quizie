@@ -93,7 +93,7 @@ nonisolated struct RevisionRecommendationEngine: Sendable {
             if concept.confidence < configuration.sufficientConfidence {
                 guard concept.evidenceCount > 0 else { return nil }
                 reason = .insufficientCoverage
-                actions = [.practiceQuestions, .takeMiniQuiz]
+                actions = [.readHandbook, .practiceQuestions, .takeMiniQuiz]
             } else if concept.mismatch == .examWeakFlashcardStrong {
                 reason = .examFlashcardMismatch
                 actions = [.practiceQuestions, .takeMiniQuiz]

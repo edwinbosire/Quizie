@@ -5,7 +5,6 @@ struct QuizQuestionView: View {
     let questionIndex: Int
     var questionSourceResolver: QuizQuestionSourceResolver = .empty
     var onQuit: () -> Void = {}
-    var onOpenHandbook: (QuizQuestionSource) -> Void = { _ in }
 
     @State private var presentedSheet: QuizQuestionSheet?
     @State private var pendingHintSource: QuizQuestionSource?
@@ -36,7 +35,7 @@ struct QuizQuestionView: View {
 			}
 
 			if let question {
-                QuestionView(engine: engine, question: question, questionIndex: questionIndex, source: questionSource, onShowHint: { presentedSheet = .hint($0) }, onOpenHandbook: onOpenHandbook)
+                QuestionView(engine: engine, question: question, questionIndex: questionIndex, source: questionSource, onShowHint: { presentedSheet = .hint($0) })
 			}
 		}
         .sheet(item: $presentedSheet, onDismiss: presentPendingPresentation) { sheet in
@@ -124,12 +123,11 @@ private struct QuestionView: View {
 	let questionIndex: Int
 	let source: QuizQuestionSource?
 	let onShowHint: (QuizQuestionSource) -> Void
-	let onOpenHandbook: (QuizQuestionSource) -> Void
 	var body: some View {
 		ScrollView {
 			VStack(spacing: 0) {
 				// Question card
-				QuestionCard(question: question, questionIndex: questionIndex, totalQuestions: engine.totalQuestions, source: source, onShowHint: onShowHint, onOpenHandbook: onOpenHandbook)
+				QuestionCard(question: question, questionIndex: questionIndex, totalQuestions: engine.totalQuestions, source: source, onShowHint: onShowHint)
 					.frame(minHeight: 200)
 					.padding(.horizontal, 16)
 					.padding(.vertical, 20)

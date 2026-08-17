@@ -92,16 +92,16 @@ struct ContentBlocksView: View {
     @State private var nativeTextSelection: NativeTextSelection?
     @State private var isNativeHighlightPickerPresented = false
     @State private var flashcardPresentation: FlashcardGenerationPresentation?
-    @State private var blockFrames: [Int: CGRect] = [:]
-
     private var rt: ReadingThemeStyle { readingTheme.style }
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let highlightsByBlock = Dictionary(grouping: highlights, by: \.blockID)
+
+        LazyVStack(alignment: .leading, spacing: 0) {
             ForEach(Array(blocks.enumerated()), id: \.element.id) { idx, block in
-                let blockHighlights = highlights.filter { $0.blockID == block.id }
+                let blockHighlights = highlightsByBlock[block.id] ?? []
                 let existing = blockHighlights.first
-                let prev = idx > 0 ? highlights.first { $0.blockID == blocks[idx - 1].id } : nil
-                let next = idx + 1 < blocks.count ? highlights.first { $0.blockID == blocks[idx + 1].id } : nil
+                let prev = idx > 0 ? highlightsByBlock[blocks[idx - 1].id]?.first : nil
+                let next = idx + 1 < blocks.count ? highlightsByBlock[blocks[idx + 1].id]?.first : nil
                 let usesInlineHighlight = isParagraph(block)
 
                 HighlightableBlock(
@@ -116,14 +116,6 @@ struct ContentBlocksView: View {
                     blockView(block, index: idx, existingHighlights: blockHighlights)
                 }
                 .id(block.id)
-                .background(
-                    GeometryReader { geo in
-                        Color.clear.preference(
-                            key: BlockFramePreferenceKey.self,
-                            value: [idx: geo.frame(in: .named("blockContent"))]
-                        )
-                    }
-                )
                 .overlay(alignment: .topLeading) {
                     if isNativeHighlightPickerPresented,
                        let nativeTextSelection,
@@ -160,10 +152,6 @@ struct ContentBlocksView: View {
                         .transition(.scale(scale: 0.9).combined(with: .opacity))
                 }
             }
-        }
-        .coordinateSpace(name: "blockContent")
-        .onPreferenceChange(BlockFramePreferenceKey.self) { frames in
-            blockFrames = frames
         }
         .sheet(item: $flashcardPresentation) { presentation in
             GeneratedFlashcardPreviewView(
@@ -309,59 +297,6 @@ struct ContentBlocksView: View {
             )
             isNativeHighlightPickerPresented = true
         }
-    }
-
-    // MARK: - Selection Gesture
-
-    private func blockSelectionGesture(for blockIdx: Int) -> some Gesture {
-        LongPressGesture(minimumDuration: 0.5)
-            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .named("blockContent")))
-            .onChanged { value in
-                switch value {
-                case .first(true):
-                    break
-                case .second(true, let drag):
-                    if let drag {
-                        if selection == nil {
-                            isNativeHighlightPickerPresented = false
-                            nativeTextSelection = nil
-                            selection = BlockSelection(
-                                anchorIndex: blockIdx,
-                                currentIndex: blockIdx,
-                                isDragging: true
-                            )
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        }
-                        if selection?.isDragging == true {
-                            let newIndex = resolveBlockIndex(at: drag.location)
-                            if newIndex != selection?.currentIndex {
-                                selection?.currentIndex = newIndex
-                                UISelectionFeedbackGenerator().selectionChanged()
-                            }
-                        }
-                    }
-                default:
-                    break
-                }
-            }
-            .onEnded { _ in
-                withAnimation(.easeOut(duration: 0.2)) {
-                    selection?.isDragging = false
-                }
-            }
-    }
-
-    private func resolveBlockIndex(at point: CGPoint) -> Int {
-        let sorted = blockFrames.sorted { $0.key < $1.key }
-        if let first = sorted.first, point.y < first.value.minY {
-            return first.key
-        }
-        for (index, frame) in sorted {
-            if point.y >= frame.minY && point.y <= frame.maxY {
-                return index
-            }
-        }
-        return sorted.last?.key ?? 0
     }
 
     // MARK: - Selection Toolbar

@@ -147,7 +147,7 @@ struct QuizState {
     }
 
     mutating func tick(at date: Date) -> QuizTransition {
-        guard case .question = phase, mode == .practice else { return .none }
+        guard case .question = phase, mode != .streak else { return .none }
 
         if timeRemaining > 1 {
             timeRemaining -= 1

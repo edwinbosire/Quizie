@@ -6,13 +6,12 @@ struct ChapterView: View {
     var initialSectionIndex: Int? = nil
     var initialBlockID: String? = nil
     let searchHighlight: String?
+    let isPresentedModally: Bool
     private let initialChapterID: String
     @State private var selectedSectionIndex: Int = 0
-    @State private var scrollOffset: CGFloat = 0
-    @State private var contentHeight: CGFloat = 0
-    @State private var viewportHeight: CGFloat = 0
+    @State private var scrollMetrics = ChapterScrollMetrics()
     @State private var showContinueReading: Bool = false
-    @State private var savedScrollOffset: CGFloat = 0
+    @State private var savedProgress: Double = 0
     @State private var initialLoadComplete: Bool = false
     @State private var presentedSheet: ChapterSheet?
     @AppStorage(ReadingThemeStyle.storageKey) private var themeStyleRaw: String = ReadingThemeStyle.classic.rawValue
@@ -22,20 +21,20 @@ struct ChapterView: View {
     private var progressLibrary: ReadingProgressLibrary { dependencies.progress }
     private var highlightLibrary: HighlightLibrary { dependencies.highlights }
 
-    private var highlights: [HighlightSnapshot] { highlightLibrary.forChapter(chapter.contentID) }
-
     init(
         chapter: HandbookChapter,
         dependencies: HandbookReaderDependencies,
         initialSectionIndex: Int? = nil,
         initialBlockID: String? = nil,
-        searchHighlight: String? = nil
+        searchHighlight: String? = nil,
+        isPresentedModally: Bool = false
     ) {
         self._chapter = State(initialValue: chapter)
         self.dependencies = dependencies
         self.initialSectionIndex = initialSectionIndex
         self.initialBlockID = initialBlockID
         self.searchHighlight = searchHighlight
+        self.isPresentedModally = isPresentedModally
         self.initialChapterID = chapter.contentID
         self._readerTextSizeRaw = AppStorage(
             wrappedValue: ReaderTextSize.loadAndMigrate().rawValue,
@@ -63,8 +62,9 @@ struct ChapterView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollViewReader { proxy in
+        let highlightsBySection = Dictionary(grouping: highlightLibrary.forChapter(chapter.contentID), by: \.sectionID)
+
+        ScrollViewReader { proxy in
                 ZStack(alignment: .top) {
                     ScrollView {
                         VStack(spacing: 0) {
@@ -82,7 +82,7 @@ struct ChapterView: View {
                             Color.clear.frame(height: 0).id("top")
 
                         // Section content
-                        VStack(spacing: 24) {
+                        LazyVStack(spacing: 24) {
                             ForEach(Array(chapter.sections.enumerated()), id: \.element.id) { idx, section in
                                 ReaderSection(
                                     chapter: chapter,
@@ -90,7 +90,7 @@ struct ChapterView: View {
                                     sectionIndex: idx,
                                     theme: theme,
                                     chapterID: chapter.contentID,
-                                    highlights: highlights.filter { $0.sectionID == section.id },
+                                    highlights: highlightsBySection[section.id] ?? [],
                                     highlightLibrary: highlightLibrary,
                                     aiInference: dependencies.aiInference,
                                     flashcardMemory: dependencies.flashcardMemory,
@@ -114,33 +114,20 @@ struct ChapterView: View {
                 }
                 .background(readingThemeStyle.background)
                 .ignoresSafeArea(edges: .bottom)
-                .onScrollGeometryChange(for: CGFloat.self) { geometry in
-                    geometry.contentOffset.y
-                } action: { oldValue, newValue in
-                    // contentOffset.y is negative when scrolling down, so negate it to get positive offset
-                    let newScrollOffset = abs(newValue)
-                    scrollOffset = newScrollOffset
-                    
-                    // Hide continue reading banner if user scrolls at all (>50px from top)
-                    if showContinueReading && newScrollOffset > 50 {
+                .onScrollGeometryChange(for: ChapterScrollGeometry.self) { geometry in
+                    ChapterScrollGeometry(scrollOffset: abs(geometry.contentOffset.y), contentHeight: geometry.contentSize.height, viewportHeight: geometry.containerSize.height)
+                } action: { _, newValue in
+                    scrollMetrics.current = newValue
+                }
+                .onScrollPhaseChange { _, newPhase in
+                    if newPhase != .idle, showContinueReading {
                         withAnimation {
                             showContinueReading = false
                         }
                     }
-                }
-                .onScrollGeometryChange(for: CGFloat.self) { geometry in
-                    geometry.contentSize.height
-                } action: { oldValue, newValue in
-                    contentHeight = newValue
-                }
-                .onChange(of: scrollOffset) { oldValue, newValue in
-                    updateReadingProgress()
-                }
-                .onChange(of: contentHeight) { oldValue, newValue in
-                    updateReadingProgress()
-                }
-                .onChange(of: geometry.size.height) { oldValue, newValue in
-                    viewportHeight = newValue
+                    if newPhase == .idle {
+                        updateReadingProgress()
+                    }
                 }
                 // Section tab bar pinned above content
                 .safeAreaInset(edge: .top, spacing: 0) {
@@ -150,21 +137,17 @@ struct ChapterView: View {
                             currentChapter: chapter,
                             dismiss: dismiss,
                             onChooseChapter: { presentedSheet = .chapterPicker },
-                            readingTheme: readingTheme
+                            readingTheme: readingTheme,
+                            isPresentedModally: isPresentedModally
                         )
 
                         // Scrollable section tabs
                         SectionTabBar(
                             sections: chapter.sections,
-                            selectedIndex: $selectedSectionIndex,
+                            selectedIndex: sectionSelection(proxy: proxy),
                             theme: theme,
                             readingTheme: readingTheme
                         )
-                        .onChange(of: selectedSectionIndex) { _, newIdx in
-                            withAnimation(.easeInOut(duration: 0.35)) {
-                                proxy.scrollTo(chapter.sections[newIdx].id, anchor: .top)
-                            }
-                        }
 
                         Divider().background(readingThemeStyle.border)
                     }
@@ -175,7 +158,7 @@ struct ChapterView: View {
                     // Continue Reading Banner
                     if showContinueReading {
                         ContinueReadingBanner(
-                            progress: savedScrollOffset / max(contentHeight - viewportHeight, 1),
+                            progress: savedProgress,
                             onContinue: {
                                 withAnimation(.easeInOut(duration: 0.5)) {
                                     showContinueReading = false
@@ -202,7 +185,6 @@ struct ChapterView: View {
                     // End reading session when leaving the chapter
                     progressLibrary.end(chapterID: chapter.contentID)
                 }
-            }
         }
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
@@ -241,62 +223,53 @@ struct ChapterView: View {
 
     private func prepareChapter(proxy: ScrollViewProxy) async {
         initialLoadComplete = false
-        let progress = progressLibrary.start(chapterID: chapter.contentID)
-
-        do {
-            try await Task.sleep(for: .milliseconds(50))
-        } catch {
-            return
-        }
+        let progress = progressLibrary.progress(for: chapter.contentID)
         proxy.scrollTo("scrollAnchor", anchor: .top)
-
-        do {
-            try await Task.sleep(for: .milliseconds(250))
-        } catch {
-            return
-        }
+        await Task.yield()
 
         if chapter.contentID == initialChapterID,
            let initialBlockID,
            let targetIndex = chapter.sections.firstIndex(where: { section in section.blocks.contains(where: { $0.id == initialBlockID }) }) {
             selectedSectionIndex = targetIndex
-            do {
-                try await Task.sleep(for: .milliseconds(50))
-            } catch {
-                return
-            }
-            withAnimation(.easeInOut(duration: 0.4)) {
-                proxy.scrollTo(initialBlockID, anchor: .center)
-            }
+            proxy.scrollTo(chapter.sections[targetIndex].id, anchor: .top)
+            await Task.yield()
+            proxy.scrollTo(initialBlockID, anchor: .center)
         } else if chapter.contentID == initialChapterID,
                   let targetIndex = initialSectionIndex,
                   chapter.sections.indices.contains(targetIndex) {
             selectedSectionIndex = targetIndex
-            withAnimation(.easeInOut(duration: 0.4)) {
-                proxy.scrollTo(chapter.sections[targetIndex].id, anchor: .top)
-            }
+            proxy.scrollTo(chapter.sections[targetIndex].id, anchor: .top)
         } else if let progress,
                   progress.isStarted,
                   !progress.isCompleted,
                   progress.scrollOffset > 100 {
-            savedScrollOffset = progress.scrollOffset
+            savedProgress = progress.progress
             withAnimation {
                 showContinueReading = true
             }
         }
 
-        do {
-            try await Task.sleep(for: .milliseconds(200))
-        } catch {
-            return
-        }
         initialLoadComplete = true
+        await Task.yield()
+        _ = progressLibrary.start(chapterID: chapter.contentID)
+    }
+
+    private func sectionSelection(proxy: ScrollViewProxy) -> Binding<Int> {
+        Binding(
+            get: { selectedSectionIndex },
+            set: { index in
+                guard chapter.sections.indices.contains(index) else { return }
+                selectedSectionIndex = index
+                withAnimation(.easeInOut(duration: 0.35)) {
+                    proxy.scrollTo(chapter.sections[index].id, anchor: .top)
+                }
+            }
+        )
     }
     
     private func updateReadingProgress() {
-        guard contentHeight > 0, viewportHeight > 0 else { 
-            return 
-        }
+        let metrics = scrollMetrics.current
+        guard metrics.contentHeight > 0, metrics.viewportHeight > 0 else { return }
         
         // Don't update progress until initial load is complete to avoid overwriting saved progress
         guard initialLoadComplete else {
@@ -307,8 +280,8 @@ struct ChapterView: View {
         
         // Only update if we have meaningful scroll data (>10px) or if progress already exists
         // This prevents overwriting saved progress with 0 on initial load
-        if scrollOffset > 10 || (progress?.scrollOffset ?? 0) > 0 {
-            progressLibrary.update(chapterID: chapter.contentID, scrollOffset: scrollOffset, contentHeight: contentHeight, viewportHeight: viewportHeight)
+        if metrics.scrollOffset > 10 || (progress?.scrollOffset ?? 0) > 0 {
+            progressLibrary.update(chapterID: chapter.contentID, scrollOffset: metrics.scrollOffset, contentHeight: metrics.contentHeight, viewportHeight: metrics.viewportHeight)
         }
     }
     
@@ -343,16 +316,28 @@ struct ChapterView: View {
 
         // Reset state for new chapter
         selectedSectionIndex = 0
-        scrollOffset = 0
-        contentHeight = 0
+        scrollMetrics.reset()
         showContinueReading = false
-        savedScrollOffset = 0
+        savedProgress = 0
         initialLoadComplete = false
 
         // Changing the task ID cancels the old preparation work and starts the
         // new chapter's lifecycle-bound setup.
         chapter = newChapter
     }
+}
+
+private struct ChapterScrollGeometry: Equatable {
+    let scrollOffset: CGFloat
+    let contentHeight: CGFloat
+    let viewportHeight: CGFloat
+
+    static let zero = ChapterScrollGeometry(scrollOffset: 0, contentHeight: 0, viewportHeight: 0)
+}
+
+private final class ChapterScrollMetrics {
+    var current = ChapterScrollGeometry.zero
+    func reset() { current = .zero }
 }
 
 #Preview("Chapter Reader") {

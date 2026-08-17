@@ -53,6 +53,10 @@ final class QuizEngine {
     var timeRemaining: Int { state.timeRemaining }
     var didTimeOut: Bool { state.didTimeOut }
     var hasSubmittedAnswer: Bool { state.hasSubmittedAnswer }
+    var hasAnsweredCurrentQuestion: Bool {
+        guard let currentQuestion else { return false }
+        return session?.answers[currentQuestion.id] != nil
+    }
     var isCurrentAnswerCorrect: Bool { state.isCurrentAnswerCorrect }
     var currentIndex: Int { state.currentIndex }
     var currentQuestion: QuizQuestion? { state.currentQuestion }
@@ -74,7 +78,7 @@ final class QuizEngine {
     }
 
     func startExam(testID: String? = nil) {
-        start(mode: .practice, testID: testID, source: .mockExam)
+        start(mode: .exam, testID: testID, source: .mockExam)
     }
 
     func startStreak() {
@@ -130,13 +134,13 @@ final class QuizEngine {
         activeTargetQuestionCount = questionCount
         persistenceError = nil
         questionStartedAt = clock.now
-        if mode == .practice, let session = state.session {
+        if mode != .streak, let session = state.session {
             let exam = LearningExamAttemptSnapshot(id: session.id, startedAt: session.startedAt, completedAt: nil, questionAttemptIDs: [], correctCount: 0, totalCount: session.questions.count, passed: nil, duration: nil, didTimeOut: false, testID: testID)
             learningExam = exam
             learningEvents?.upsert(exam)
         }
 
-        guard case .question = state.phase, mode == .practice else { return }
+        guard case .question = state.phase, mode != .streak else { return }
         timer = scheduler.scheduleRepeating(every: 1) { [weak self] in
             self?.handleTick()
         }

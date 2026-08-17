@@ -3,12 +3,37 @@ import SwiftUI
 struct QuizHintSheet: View {
     @Environment(\.dismiss) private var dismiss
     let source: QuizQuestionSource
+    var showsOpenHandbook = false
+    var onOpenHandbook: (QuizQuestionSource) -> Void = { _ in }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     sourceHeader
+
+                    if showsOpenHandbook {
+                        Button {
+                            onOpenHandbook(source)
+                            dismiss()
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "book.closed.fill")
+                                Text("Show in Handbook")
+                                    .appFont(.callout.weight(.semibold))
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .appFont(.caption.weight(.bold))
+                            }
+                            .foregroundStyle(Color.hbAccent)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                            .background(Color.hbAccentLight, in: RoundedRectangle(cornerRadius: HBRadius.sm))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("Opens the full handbook at this passage")
+                        .accessibilityIdentifier("quiz.hint.openHandbook")
+                    }
 
                     if source.hasHint {
                         VStack(alignment: .leading, spacing: 10) {

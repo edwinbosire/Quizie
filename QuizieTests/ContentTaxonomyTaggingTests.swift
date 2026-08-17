@@ -34,6 +34,8 @@ struct ContentTaxonomyTaggingTests {
         let source = try #require(resolver.source(for: question))
 
         #expect(source.taxonomyPath == ["British History", "The Stuarts", "English Civil War"])
+        #expect(source.chapterID == "chapter_03")
+        #expect(source.sectionID == "section_03_03")
         #expect(source.chapterNumber == "Chapter 3")
         #expect(source.sectionTitle == "The Tudors and Stuarts")
         #expect(source.blockID == "section_03_03_block_045")

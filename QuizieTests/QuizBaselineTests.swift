@@ -464,6 +464,43 @@ struct QuizConfigurationTests {
 }
 
 @MainActor
+struct QuizAssistancePolicyTests {
+    @Test("Exam help is locked until the current response is captured")
+    func examHintPolicy() {
+        #expect(!QuizMode.exam.allowsHints(hasAnsweredQuestion: false))
+        #expect(QuizMode.exam.allowsHints(hasAnsweredQuestion: true))
+        #expect(!QuizMode.exam.allowsBookAccess)
+    }
+
+    @Test("Non-exam modes retain hints and book access")
+    func nonExamHelpPolicy() {
+        for mode in [QuizMode.practice, .streak] {
+            #expect(mode.allowsHints(hasAnsweredQuestion: false))
+            #expect(mode.allowsBookAccess)
+        }
+    }
+
+    @Test("Starting an exam records its mode separately from practice")
+    func engineStartsExamMode() {
+        let scheduler = ManualQuizScheduler()
+        let engine = QuizEngine(
+            configuration: .custom(questionCount: 1, timeLimitSeconds: 90, passMarkCount: 1),
+            questionRepository: InMemoryQuestionRepository(TestFixtures.questions(count: 1)),
+            clock: MutableQuizClock(now: TestFixtures.startDate),
+            scheduler: scheduler
+        )
+
+        engine.startExam()
+        #expect(engine.mode == .exam)
+        #expect(!engine.hasAnsweredCurrentQuestion)
+
+        engine.toggleChoice(0, isMultiSelect: false)
+        scheduler.runNextDelayed()
+        #expect(engine.hasAnsweredCurrentQuestion)
+    }
+}
+
+@MainActor
 struct ReaderTextSizeTests {
     @Test("Reader presets use the documented scale factors")
     func scaleFactors() {

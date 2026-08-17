@@ -290,7 +290,7 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
-    func testQuizShowsTaxonomyAndHandbookHint() throws {
+    func testExamHidesTaxonomyAndLocksHelpBeforeAnswering() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]
         app.launch()
@@ -299,12 +299,54 @@ final class HandbookReaderQuizUITests: XCTestCase {
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         startButton.tap()
 
+        XCTAssertFalse(app.buttons["quiz.taxonomy"].exists)
+
+        let optionsButton = app.buttons["Quiz options"]
+        XCTAssertTrue(optionsButton.waitForExistence(timeout: 5))
+        optionsButton.tap()
+
+        let hint = app.buttons["quiz.options.hint"]
+        XCTAssertTrue(hint.waitForExistence(timeout: 5))
+        XCTAssertFalse(hint.isEnabled)
+        XCTAssertFalse(app.buttons["quiz.options.readInBook"].exists)
+    }
+
+    @MainActor
+    func testReadInBookPresentsHandbookModally() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        let streakButton = app.buttons["quiz.streak.start"]
+        XCTAssertTrue(streakButton.waitForExistence(timeout: 5))
+        streakButton.tap()
+
         let taxonomy = app.buttons["quiz.taxonomy"]
         XCTAssertTrue(taxonomy.waitForExistence(timeout: 5))
         taxonomy.tap()
 
-        XCTAssertTrue(app.navigationBars["Handbook Hint"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.descendants(matching: .any)["quiz.hint.content"].waitForExistence(timeout: 5))
+        let hintNavigationBar = app.navigationBars["Handbook Hint"]
+        XCTAssertTrue(hintNavigationBar.waitForExistence(timeout: 5))
+
+        let showInHandbook = app.buttons["quiz.hint.openHandbook"]
+        XCTAssertTrue(showInHandbook.waitForExistence(timeout: 5))
+        showInHandbook.tap()
+
+        let closeHandbook = app.buttons["Close handbook"]
+        XCTAssertTrue(closeHandbook.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Back to handbook contents"].exists)
+        closeHandbook.tap()
+
+        let optionsButton = app.buttons["Quiz options"]
+        XCTAssertTrue(optionsButton.waitForExistence(timeout: 5))
+        optionsButton.tap()
+
+        let readInBook = app.buttons["quiz.options.readInBook"]
+        XCTAssertTrue(readInBook.waitForExistence(timeout: 5))
+        readInBook.tap()
+
+        XCTAssertTrue(app.buttons["Close handbook"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Back to handbook contents"].exists)
     }
 
     @MainActor

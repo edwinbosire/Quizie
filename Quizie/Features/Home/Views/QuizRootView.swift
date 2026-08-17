@@ -14,6 +14,7 @@ struct QuizRootView: View {
     private let onQuitQuiz: (() -> Void)?
     @State private var engine: QuizEngine
     @State private var navigationPath = NavigationPath()
+    @State private var presentedHandbook: HandbookModalDestination?
 
     init(
         dependencies: QuizFeatureDependencies,
@@ -70,7 +71,7 @@ struct QuizRootView: View {
                         ))
 
                 case .question(let idx):
-                    QuizQuestionView(engine: engine, questionIndex: idx, questionSourceResolver: dependencies.questionSources, onQuit: quitQuiz)
+                    QuizQuestionView(engine: engine, questionIndex: idx, questionSourceResolver: dependencies.questionSources, onQuit: quitQuiz, onOpenHandbook: openQuestionHandbook)
                         .id(idx)   // force view refresh on index change
                         .navigationBarBackButtonHidden(true)
                         .ignoresSafeArea(.container, edges: .bottom)
@@ -117,14 +118,17 @@ struct QuizRootView: View {
                     }
                 case .performance:
                     PerformanceDashboardView(service: dependencies.performance, onAction: performRecommendation)
-                case .handbookConcept(let conceptID):
-                    handbookDestination(conceptID: conceptID)
                 }
             }
             .flashcardNavigationDestinations(dependencies: flashcardDependencies)
         }
         .toolbar(shouldShowTabBar ? .visible : .hidden, for: .tabBar)
         .toolbar(isShowingQuestion ? .hidden : .visible, for: .navigationBar)
+        .sheet(item: $presentedHandbook) { destination in
+            handbookModal(destination)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
         .alert("Time's Up!", isPresented: Binding(
             get: { engine.didTimeOut },
             set: { if !$0 { engine.acknowledgeTimeout() } }
@@ -170,10 +174,38 @@ struct QuizRootView: View {
         navigationPath.append(HomeNavigationDestination.performance)
     }
 
+    private func openQuestionHandbook(_ source: QuizQuestionSource) {
+        presentedHandbook = .passage(chapterID: source.chapterID, sectionID: source.sectionID, blockID: source.blockID)
+    }
+
+    @ViewBuilder
+    private func handbookModal(_ destination: HandbookModalDestination) -> some View {
+        switch destination {
+        case .passage(let chapterID, let sectionID, let blockID):
+            if let handbookDependencies,
+               let chapter = handbookDependencies.catalog.chapters.first(where: { $0.contentID == chapterID }) {
+                let sectionIndex = chapter.sections.firstIndex { $0.id == sectionID }
+                ChapterView(chapter: chapter, dependencies: handbookDependencies, initialSectionIndex: sectionIndex, initialBlockID: blockID, isPresentedModally: true)
+            } else {
+                ContentUnavailableView("Reading unavailable", systemImage: "book.closed", description: Text("The handbook passage could not be found."))
+            }
+        case .concept(let conceptID):
+            if let handbookDependencies,
+               let performance = dependencies.performance.report.concepts.first(where: { $0.id == conceptID }),
+               let reference = performance.handbookReferences.first,
+               let chapter = handbookDependencies.catalog.chapters.first(where: { $0.contentID == reference.chapterId }) {
+                let sectionIndex = chapter.sections.firstIndex { $0.id == reference.sectionId }
+                ChapterView(chapter: chapter, dependencies: handbookDependencies, initialSectionIndex: sectionIndex, initialBlockID: reference.blockIds.first, isPresentedModally: true)
+            } else {
+                ContentUnavailableView("Reading unavailable", systemImage: "book.closed", description: Text("No handbook section is mapped to this topic."))
+            }
+        }
+    }
+
     private func performRecommendation(_ action: RecommendedAction, _ concept: ConceptPerformance) {
         switch action {
         case .readHandbook:
-            navigationPath.append(HomeNavigationDestination.handbookConcept(concept.id))
+            presentedHandbook = .concept(concept.id)
         case .reviewFlashcards:
             navigationPath.append(FlashcardDeck.concept(ids: conceptIDs(for: concept), title: concept.displayName))
         case .practiceQuestions:
@@ -195,19 +227,6 @@ struct QuizRootView: View {
             pending.append(contentsOf: byID[id]?.childIDs ?? [])
         }
         return result
-    }
-
-    @ViewBuilder
-    private func handbookDestination(conceptID: String) -> some View {
-        if let handbookDependencies,
-           let performance = dependencies.performance.report.concepts.first(where: { $0.id == conceptID }),
-           let reference = performance.handbookReferences.first,
-           let chapter = handbookDependencies.catalog.chapters.first(where: { $0.contentID == reference.chapterId }) {
-            let sectionIndex = chapter.sections.firstIndex { $0.id == reference.sectionId }
-            ChapterView(chapter: chapter, dependencies: handbookDependencies, initialSectionIndex: sectionIndex, initialBlockID: reference.blockIds.first)
-        } else {
-            ContentUnavailableView("Reading unavailable", systemImage: "book.closed", description: Text("No handbook section is mapped to this topic."))
-        }
     }
 
     private func quitQuiz() {
@@ -238,5 +257,16 @@ private enum HomeNavigationDestination: Hashable {
     case bookmarks
     case highlights
     case performance
-    case handbookConcept(String)
+}
+
+private enum HandbookModalDestination: Identifiable, Hashable {
+    case passage(chapterID: String, sectionID: String, blockID: String?)
+    case concept(String)
+
+    var id: String {
+        switch self {
+        case .passage(let chapterID, let sectionID, let blockID): "passage-\(chapterID)-\(sectionID)-\(blockID ?? "source")"
+        case .concept(let conceptID): "concept-\(conceptID)"
+        }
+    }
 }

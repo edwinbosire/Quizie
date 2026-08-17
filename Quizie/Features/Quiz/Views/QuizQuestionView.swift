@@ -5,9 +5,11 @@ struct QuizQuestionView: View {
     let questionIndex: Int
     var questionSourceResolver: QuizQuestionSourceResolver = .empty
     var onQuit: () -> Void = {}
+    var onOpenHandbook: (QuizQuestionSource) -> Void = { _ in }
 
     @State private var presentedSheet: QuizQuestionSheet?
     @State private var pendingHintSource: QuizQuestionSource?
+    @State private var pendingHandbookSource: QuizQuestionSource?
     @State private var pendingAlert: QuizQuestionAlert?
     @State private var presentedAlert: QuizQuestionAlert?
     @AppStorage(QuestionBookmarks.storageKey) private var bookmarkedQuestionsData = Data()
@@ -32,10 +34,10 @@ struct QuizQuestionView: View {
 			// Progress track
 			if let session = engine.session {
 				QuizProgressBar(questions: session.questions, answers: session.answers, currentIndex: questionIndex)
-			}
+            }
 
-			if let question {
-                QuestionView(engine: engine, question: question, questionIndex: questionIndex, source: questionSource, onShowHint: { presentedSheet = .hint($0) })
+            if let question {
+                QuestionView(engine: engine, question: question, questionIndex: questionIndex, source: engine.mode.isExam ? nil : questionSource, onShowHint: { presentedSheet = .hint($0) })
 			}
 		}
         .sheet(item: $presentedSheet, onDismiss: presentPendingPresentation) { sheet in
@@ -44,14 +46,17 @@ struct QuizQuestionView: View {
                 QuizOptionsSheet(
                     source: questionSource,
                     isBookmarked: isBookmarked,
+                    canShowHint: engine.mode.allowsHints(hasAnsweredQuestion: engine.hasAnsweredCurrentQuestion),
+                    showsReadInBook: engine.mode.allowsBookAccess,
                     onShowHint: { pendingHintSource = $0 },
+                    onReadInBook: { pendingHandbookSource = $0 },
                     onRestart: { pendingAlert = .restart },
                     onToggleBookmark: toggleBookmark
                 )
-                .presentationDetents([.height(224)])
+                .presentationDetents([.height(engine.mode.allowsBookAccess && questionSource != nil ? 280 : 224)])
                 .presentationDragIndicator(.visible)
             case .hint(let source):
-                QuizHintSheet(source: source)
+                QuizHintSheet(source: source, showsOpenHandbook: engine.mode.allowsBookAccess, onOpenHandbook: { pendingHandbookSource = $0 })
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }
@@ -80,6 +85,11 @@ struct QuizQuestionView: View {
         if let pendingHintSource {
             self.pendingHintSource = nil
             presentedSheet = .hint(pendingHintSource)
+            return
+        }
+        if let pendingHandbookSource {
+            self.pendingHandbookSource = nil
+            onOpenHandbook(pendingHandbookSource)
             return
         }
         presentedAlert = pendingAlert

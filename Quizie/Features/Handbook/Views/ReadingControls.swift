@@ -97,6 +97,7 @@ struct ChapterNavBar: View {
     let dismiss: DismissAction
     let onChooseChapter: () -> Void
     let readingTheme: ReadingTheme
+    let isPresentedModally: Bool
 
     private var rt: ReadingThemeStyle { readingTheme.style }
 
@@ -105,16 +106,23 @@ struct ChapterNavBar: View {
             Button {
                 dismiss()
             } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "chevron.left")
-                        .appFont(.body.weight(.medium))
-                    Text("Contents")
-                        .appFont(.subheadline.weight(.medium))
+                Group {
+                    if isPresentedModally {
+                        Image(systemName: "xmark")
+                            .appFont(.body.weight(.semibold))
+                    } else {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                                .appFont(.body.weight(.medium))
+                            Text("Contents")
+                                .appFont(.subheadline.weight(.medium))
+                        }
+                    }
                 }
                 .foregroundStyle(rt == .night ? .white : Color.hbAccent)
             }
             .buttonStyle(ReaderNavigationButtonStyle(theme: rt))
-            .accessibilityLabel("Back to handbook contents")
+            .accessibilityLabel(isPresentedModally ? "Close handbook" : "Back to handbook contents")
 
             Spacer()
 

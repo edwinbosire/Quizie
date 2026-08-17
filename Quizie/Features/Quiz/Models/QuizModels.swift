@@ -3,8 +3,17 @@ import Foundation
 // MARK: - Quiz Configuration
 
 enum QuizMode: Equatable, Hashable, Sendable {
+    case exam
     case practice
     case streak
+
+    var isExam: Bool { self == .exam }
+
+    func allowsHints(hasAnsweredQuestion: Bool) -> Bool {
+        !isExam || hasAnsweredQuestion
+    }
+
+    var allowsBookAccess: Bool { !isExam }
 }
 
 struct QuizConfiguration: Equatable, Hashable, Sendable {

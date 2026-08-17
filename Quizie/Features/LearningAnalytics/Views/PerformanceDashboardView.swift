@@ -204,6 +204,7 @@ private struct RecommendationCard: View {
                     Button(action.label) { onAction(action, concept) }
                         .buttonStyle(.borderedProminent)
                         .tint(Color.hbAccent)
+                        .accessibilityIdentifier("performance.recommendation.\(action.rawValue)")
                 }
             }
         }

@@ -1,14 +1,5 @@
 import SwiftUI
 
-// MARK: - Block Frame Preference Key
-
-struct BlockFramePreferenceKey: PreferenceKey {
-    static var defaultValue: [Int: CGRect] = [:]
-    static func reduce(value: inout [Int: CGRect], nextValue: () -> [Int: CGRect]) {
-        value.merge(nextValue()) { _, new in new }
-    }
-}
-
 // MARK: - Block Selection State
 
 struct BlockSelection: Equatable {

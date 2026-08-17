@@ -97,11 +97,15 @@ struct QuizOptionsSheet: View {
     @Environment(\.dismiss) private var dismiss
     let source: QuizQuestionSource?
     let isBookmarked: Bool
+    let canShowHint: Bool
+    let showsReadInBook: Bool
     let onShowHint: (QuizQuestionSource) -> Void
+    let onReadInBook: (QuizQuestionSource) -> Void
     let onRestart: () -> Void
     let onToggleBookmark: () -> Void
 
     private var hasHint: Bool { source?.hasHint == true }
+    private var isHintEnabled: Bool { hasHint && canShowHint }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -124,10 +128,26 @@ struct QuizOptionsSheet: View {
                         dismiss()
                     }
                 }
-                .disabled(!hasHint)
-                .opacity(hasHint ? 1 : 0.45)
+                .disabled(!isHintEnabled)
+                .opacity(isHintEnabled ? 1 : 0.45)
                 .accessibilityIdentifier("quiz.options.hint")
-                .accessibilityHint(hasHint ? "Opens the handbook hint" : "No hint is available for this question")
+                .accessibilityHint(hintAccessibilityHint)
+
+                if showsReadInBook, let source {
+                    Divider()
+                        .padding(.leading, 52)
+
+                    OptionRow(
+                        icon: "book.closed.fill",
+                        title: "Read in Book",
+                        iconColor: Color.hbAccent
+                    ) {
+                        onReadInBook(source)
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("quiz.options.readInBook")
+                    .accessibilityHint("Opens \(source.handbookLocation), \(source.sectionTitle), at the relevant passage")
+                }
 
                 Divider()
                     .padding(.leading, 52)
@@ -160,6 +180,11 @@ struct QuizOptionsSheet: View {
             Spacer()
         }
         .background(Color.hbBackground)
+    }
+
+    private var hintAccessibilityHint: String {
+        if !hasHint { return "No hint is available for this question" }
+        return canShowHint ? "Opens the handbook hint" : "Answer the question before viewing the hint"
     }
 }
 

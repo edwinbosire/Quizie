@@ -10,6 +10,7 @@ struct QuizLobbyView: View {
     var highlightCount = 0
     var onOpenHighlights: () -> Void = {}
     var onOpenPerformance: () -> Void = {}
+    var onStartExam: (() -> Void)?
     @AppStorage(QuestionBookmarks.storageKey) private var bookmarkedQuestionsData = Data()
     private var attempts: [ExamAttemptSnapshot] { attemptHistory.attempts }
     private var bookmarkCount: Int { QuestionBookmarks.ids(from: bookmarkedQuestionsData).count }
@@ -54,10 +55,6 @@ struct QuizLobbyView: View {
 						.padding(.top, 20)
 				}
 
-				// Rules card
-				RulesCard(engine: engine)
-					.padding(.horizontal, 16)
-					.padding(.top, 20)
 			}
 			.padding(.bottom, 20)
 			.background(Color.hbBackground)
@@ -72,7 +69,11 @@ struct QuizLobbyView: View {
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
                 QuickStartCard(title: "Exam Mode", subtitle: engine.configuration.summaryLabel, icon: "checklist.checked", colors: [Color(hex: "#2855A6"), Color(hex: "#419EE8")]) {
-                    engine.startExam()
+                    if let onStartExam {
+                        onStartExam()
+                    } else {
+                        engine.startExam()
+                    }
                 }
                 .accessibilityIdentifier("quiz.start")
 

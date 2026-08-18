@@ -299,12 +299,20 @@ final class HandbookReaderQuizUITests: XCTestCase {
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         startButton.tap()
 
+        let instructionsStartButton = app.buttons["quiz.instructions.start"]
+        if instructionsStartButton.waitForExistence(timeout: 2) {
+            instructionsStartButton.tap()
+        }
+
         let optionsButton = app.buttons["Quiz options"]
         XCTAssertTrue(optionsButton.waitForExistence(timeout: 5))
         XCTAssertFalse(app.tabBars.firstMatch.exists)
         optionsButton.tap()
 
         let quitQuizButton = app.buttons["Quit Quiz"]
+        if !quitQuizButton.waitForExistence(timeout: 2) {
+            app.swipeUp()
+        }
         XCTAssertTrue(quitQuizButton.waitForExistence(timeout: 5))
         quitQuizButton.tap()
 
@@ -325,6 +333,11 @@ final class HandbookReaderQuizUITests: XCTestCase {
         let startButton = app.buttons["quiz.start"]
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         startButton.tap()
+
+        let instructionsStartButton = app.buttons["quiz.instructions.start"]
+        if instructionsStartButton.waitForExistence(timeout: 2) {
+            instructionsStartButton.tap()
+        }
 
         XCTAssertFalse(app.buttons["quiz.taxonomy"].exists)
 

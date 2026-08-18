@@ -103,15 +103,75 @@ struct FlashcardGenerationContextTests {
         #expect(memory.customCards.first?.taxonomy.isEmpty == true)
     }
 
-    @Test("Recall cards stay single-sentence with short answers")
+    @Test("Recall cards contain one clear target and one minimal answer")
     func recallCardStyleIsConcise() {
         #expect(FlashcardRecallStyle.isValid(question: "Who agreed Magna Carta?", answer: "King John."))
         #expect(!FlashcardRecallStyle.isValid(question: "Who agreed it? Why?", answer: "King John."))
         #expect(!FlashcardRecallStyle.isValid(question: "Who agreed Magna Carta?", answer: "King John agreed it after a prolonged dispute with powerful English barons at Runnymede."))
+        #expect(!FlashcardRecallStyle.isValid(question: "Which TWO people agreed Magna Carta?", answer: "King John."))
+        #expect(!FlashcardRecallStyle.isValid(question: "Which of these statements is correct?", answer: "Magna Carta was agreed in 1215."))
+        #expect(!FlashcardRecallStyle.isValid(question: "Who agreed it?", answer: "King John."))
+        #expect(!FlashcardRecallStyle.isValid(question: "Who agreed Magna Carta and when?", answer: "King John"))
+        #expect(!FlashcardRecallStyle.isValid(question: "Who agreed Magna Carta?", answer: "King John and the barons"))
+        #expect(!FlashcardRecallStyle.isValid(question: "Who was John Constable?", answer: "A landscape painter"))
+        #expect(!FlashcardRecallStyle.isValid(question: "Who is Sir Edward Elgar (1857–1934)?", answer: "A musician"))
+        #expect(!FlashcardRecallStyle.isValid(question: "Was Magna Carta agreed in 1215?", answer: "True"))
+        #expect(!FlashcardRecallStyle.isValid(question: "What is another name for EU laws?", answer: "All of these"))
+        #expect(!FlashcardRecallStyle.isValid(question: "Which was Churchill's famous speech?", answer: "All of the these"))
+        #expect(!FlashcardRecallStyle.isValid(question: "What happens after an MP resigns?", answer: "A by-election is held"))
+        #expect(FlashcardRecallStyle.isValid(question: "When was Magna Carta agreed?", answer: "1215"))
+        #expect(FlashcardRecallStyle.isValid(question: "Who developed the World Wide Web?", answer: "Sir Tim Berners-Lee"))
     }
 
     private func makeSection(_ values: [(String, String)]) -> HandbookSection {
         HandbookSection(id: "section_01", title: "British values", blocks: values.map { ContentBlock(id: $0.0, content: .paragraph($0.1)) })
+    }
+}
+
+struct BundledFlashcardConverterTests {
+    @Test("Direct recall questions remain concise guide cards")
+    func directRecallQuestion() throws {
+        let conversion = BundledFlashcardConverter.convert(question(id: "direct", prompt: "When was Magna Carta agreed?", choices: ["1215", "1066"], correctIndices: [0]))
+        let card = try #require(conversion.card)
+
+        #expect(card.prompt == "When was Magna Carta agreed?")
+        #expect(card.answer == "1215")
+        #expect(conversion.auditEntry == nil)
+    }
+
+    @Test("Safe multiple-choice scaffolding is removed")
+    func repairsChoiceDependentPrompt() throws {
+        let conversion = BundledFlashcardConverter.convert(question(id: "venue", prompt: "Which of these venues is located in Scotland?", choices: ["The SECC", "The O2"], correctIndices: [0]))
+        let card = try #require(conversion.card)
+
+        #expect(card.prompt == "Where is the SECC located?")
+        #expect(card.answer == "Scotland")
+        #expect(conversion.auditEntry?.outcome == .repaired)
+        #expect(conversion.auditEntry?.issues.contains(.nonAtomicPrompt) == true)
+    }
+
+    @Test("Biographical paragraphs are inverted to recall the person's name")
+    func repairsBiographicalAnswer() throws {
+        let conversion = BundledFlashcardConverter.convert(question(id: "constable", prompt: "Who was John Constable?", choices: ["A landscape painter famous for views of Dedham Vale", "A scientist"], correctIndices: [0]))
+        let card = try #require(conversion.card)
+
+        #expect(card.prompt == "Who was a landscape painter famous for views of Dedham Vale?")
+        #expect(card.answer == "John Constable")
+        #expect(conversion.auditEntry?.outcome == .repaired)
+    }
+
+    @Test("Multi-answer quiz questions are flagged and excluded")
+    func excludesMultiAnswerQuestion() {
+        let conversion = BundledFlashcardConverter.convert(question(id: "territories", prompt: "Which TWO are British Overseas Territories?", choices: ["The Falkland Islands", "St Helena", "Ireland"], correctIndices: [0, 1]))
+
+        #expect(conversion.card == nil)
+        #expect(conversion.auditEntry?.outcome == .excluded)
+        #expect(conversion.auditEntry?.issues.contains(.multipleAnswers) == true)
+        #expect(conversion.auditEntry?.issues.contains(.nonMinimalAnswer) == true)
+    }
+
+    private func question(id: String, prompt: String, choices: [String], correctIndices: Set<Int>) -> QuizQuestion {
+        QuizQuestion(id: id, question: prompt, choices: choices, correctIndices: correctIndices, isMultiSelect: correctIndices.count > 1, year: "", category: 3, explanationLink: "", taxonomy: ContentTaxonomyTags(conceptIds: ["history"]))
     }
 }
 
@@ -649,6 +709,25 @@ struct ProgressTests {
         #expect(!untouched.hasReadingActivity)
         #expect(scrolled.hasReadingActivity)
         #expect(timed.hasReadingActivity)
+    }
+}
+
+struct MockExamInstructionsTests {
+    @Test("Instructions are limited to the first three mock exam starts")
+    func firstThreeMockExams() {
+        let practiceAttempt = attempt(testID: "test-1")
+        let firstTwoMockAttempts = [attempt(), attempt()]
+        let firstThreeMockAttempts = firstTwoMockAttempts + [attempt()]
+
+        #expect([practiceAttempt].shouldShowMockExamInstructions(presentationCount: 0))
+        #expect(([practiceAttempt] + firstTwoMockAttempts).shouldShowMockExamInstructions(presentationCount: 0))
+        #expect(!([practiceAttempt] + firstThreeMockAttempts).shouldShowMockExamInstructions(presentationCount: 0))
+        #expect(![practiceAttempt].shouldShowMockExamInstructions(presentationCount: 3))
+        #expect([practiceAttempt].nextMockExamInstructionPresentationCount(currentCount: 2) == 3)
+    }
+
+    private func attempt(testID: String? = nil) -> ExamAttemptSnapshot {
+        ExamAttemptSnapshot(id: UUID(), attemptDate: Date(), score: 18, totalQuestions: 24, passed: true, elapsedSeconds: 1_200, didTimeOut: false, testID: testID)
     }
 }
 

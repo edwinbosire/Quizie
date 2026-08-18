@@ -15,10 +15,12 @@ struct QuizRootView: View {
     private let onOpenSettings: () -> Void
     private let onReturnHome: (() -> Void)?
     private let onQuitQuiz: (() -> Void)?
+    @AppStorage("mockExamInstructionsShownCount") private var mockExamInstructionsShownCount = 0
     @State private var engine: QuizEngine
     @State private var navigationPath = NavigationPath()
     @State private var presentedHandbook: HandbookModalDestination?
     @State private var didStartInitialSession = false
+    @State private var isShowingMockExamInstructions = false
 
     init(
         dependencies: QuizFeatureDependencies,
@@ -63,54 +65,64 @@ struct QuizRootView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             Group {
-                switch engine.phase {
-                case .lobby:
-                    QuizLobbyView(
-                        engine: engine,
-                        attemptHistory: dependencies.attempts,
-                        performance: dependencies.performance,
-                        onOpenFlashcards: openFlashcards,
-                        onOpenMatchGame: openMatchGame,
-                        onOpenBookmarks: openBookmarks,
-                        highlightCount: handbookDependencies?.highlights.highlights.count ?? 0,
-                        onOpenHighlights: openHighlights,
-                        onOpenPerformance: openPerformance
-                    )
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .leading),
-                            removal: .move(edge: .leading)
-                        ))
-
-                case .question(let idx):
-                    QuizQuestionView(engine: engine, questionIndex: idx, questionSourceResolver: dependencies.questionSources, onQuit: quitQuiz, onOpenHandbook: openQuestionHandbook)
-                        .id(idx)   // force view refresh on index change
-                        .navigationBarBackButtonHidden(true)
-                        .ignoresSafeArea(.container, edges: .bottom)
+                if isShowingMockExamInstructions {
+                    MockExamInstructionsView(configuration: engine.configuration, onStart: startMockExam, onCancel: dismissMockExamInstructions)
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
+                            removal: .move(edge: .trailing).combined(with: .opacity)
                         ))
+                } else {
+                    switch engine.phase {
+                    case .lobby:
+                        QuizLobbyView(
+                            engine: engine,
+                            attemptHistory: dependencies.attempts,
+                            performance: dependencies.performance,
+                            onOpenFlashcards: openFlashcards,
+                            onOpenMatchGame: openMatchGame,
+                            onOpenBookmarks: openBookmarks,
+                            highlightCount: handbookDependencies?.highlights.highlights.count ?? 0,
+                            onOpenHighlights: openHighlights,
+                            onOpenPerformance: openPerformance,
+                            onStartExam: beginMockExam
+                        )
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .leading),
+                                removal: .move(edge: .leading)
+                            ))
 
-                case .results:
-                    QuizResultsView(engine: engine, onReturnHome: returnHome)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .trailing)
-                        ))
+                    case .question(let idx):
+                        QuizQuestionView(engine: engine, questionIndex: idx, questionSourceResolver: dependencies.questionSources, onQuit: quitQuiz, onOpenHandbook: openQuestionHandbook)
+                            .id(idx)   // force view refresh on index change
+                            .navigationBarBackButtonHidden(true)
+                            .ignoresSafeArea(.container, edges: .bottom)
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .leading).combined(with: .opacity)
+                            ))
 
-                case .streakResult:
-                    StreakResultView(engine: engine, onReturnHome: returnHome)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .trailing)
-                        ))
+                    case .results:
+                        QuizResultsView(engine: engine, onReturnHome: returnHome)
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .trailing)
+                            ))
+
+                    case .streakResult:
+                        StreakResultView(engine: engine, onReturnHome: returnHome)
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .trailing)
+                            ))
+                    }
                 }
             }
+            .animation(.easeInOut(duration: 0.3), value: isShowingMockExamInstructions)
             .animation(.easeInOut(duration: 0.3), value: engine.phase.id)
             .mainNavigationBar(
                 title: "Life in the UK",
                 tab: .home,
-                isVisible: showsMainNavigationBar && engine.phase == .lobby,
+                isVisible: showsMainNavigationBar && engine.phase == .lobby && !isShowingMockExamInstructions,
                 onOpenSearch: onOpenSearch,
                 onOpenHandbook: onOpenHandbook,
                 onOpenSettings: onOpenSettings
@@ -134,7 +146,7 @@ struct QuizRootView: View {
             .flashcardNavigationDestinations(dependencies: flashcardDependencies)
         }
         .toolbar(shouldShowTabBar ? .visible : .hidden, for: .tabBar)
-        .toolbar(isShowingQuestion ? .hidden : .visible, for: .navigationBar)
+        .toolbar(isShowingQuestion || isShowingMockExamInstructions ? .hidden : .visible, for: .navigationBar)
         .sheet(item: $presentedHandbook) { destination in
             handbookModal(destination)
                 .presentationDetents([.large])
@@ -169,6 +181,24 @@ struct QuizRootView: View {
         } else if let initialTestID {
             engine.startExam(testID: initialTestID)
         }
+    }
+
+    private func beginMockExam() {
+        if dependencies.attempts.attempts.shouldShowMockExamInstructions(presentationCount: mockExamInstructionsShownCount) {
+            isShowingMockExamInstructions = true
+        } else {
+            engine.startExam()
+        }
+    }
+
+    private func startMockExam() {
+        mockExamInstructionsShownCount = dependencies.attempts.attempts.nextMockExamInstructionPresentationCount(currentCount: mockExamInstructionsShownCount)
+        isShowingMockExamInstructions = false
+        engine.startExam()
+    }
+
+    private func dismissMockExamInstructions() {
+        isShowingMockExamInstructions = false
     }
 
     private func openFlashcards() {
@@ -266,7 +296,7 @@ struct QuizRootView: View {
     }
 
     private var shouldShowTabBar: Bool {
-        engine.phase == .lobby && navigationPath.isEmpty
+        engine.phase == .lobby && navigationPath.isEmpty && !isShowingMockExamInstructions
     }
 }
 

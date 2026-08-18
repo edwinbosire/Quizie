@@ -77,15 +77,19 @@ struct ContentTaxonomyTaggingTests {
     @Test("Guide flashcards inherit their question taxonomy")
     func guideCardsInheritTags() throws {
         let questions = try BundleQuestionRepository().questions(count: .max, seed: "taxonomy-guide")
-        let cards = questions.map(Flashcard.init(question:))
+        let catalog = FlashcardCatalog(repository: InMemoryQuestionRepository(questions))
+        let cards = catalog.guideCards
 
-        #expect(cards.count == 1_014)
-        for (question, card) in zip(questions, cards) {
-            #expect(card.taxonomy == question.taxonomy)
+        #expect(cards.count == 582)
+        #expect(catalog.repairedGuideCardCount == 11)
+        #expect(catalog.excludedGuideCardCount == 432)
+        #expect(cards.count + catalog.excludedGuideCardCount == questions.count)
+        for card in cards {
+            #expect(FlashcardRecallStyle.isValid(question: card.prompt, answer: card.answer), "Invalid guide card \(card.id): \(card.prompt) → \(card.answer)")
             #expect(!card.taxonomy.conceptIds.isEmpty)
         }
-        let overseasCard = try #require(cards.first { $0.id == "guide-1" })
-        #expect(overseasCard.taxonomy.primaryConceptId == "uk-identity-and-geography.british-overseas-territories")
+        let nationalTrustCard = try #require(cards.first { $0.id == "guide-4" })
+        #expect(nationalTrustCard.taxonomy.primaryConceptId == "community-and-civic-participation.how-you-can-support-your-community.other-ways-to-volunteer")
     }
 
     @Test("Generated flashcards resolve taxonomy from cited blocks")

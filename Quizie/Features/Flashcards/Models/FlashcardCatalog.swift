@@ -5,24 +5,30 @@ struct FlashcardCatalog {
     static let newSessionLimit = 20
 
     let guideCards: [Flashcard]
+    let guideCardAudit: [BundledFlashcardAuditEntry]
     let contentError: String?
 
     init(repository: any QuestionRepository) {
         do {
-            guideCards = try repository
-                .questions(count: Int.max, seed: "flashcard-guide-catalog-v1")
-                .map(Flashcard.init(question:))
+            let conversions = try repository.questions(count: Int.max, seed: "flashcard-guide-catalog-v2").map(BundledFlashcardConverter.convert)
+            guideCards = conversions.compactMap(\.card)
+            guideCardAudit = conversions.compactMap(\.auditEntry)
             contentError = nil
         } catch {
             guideCards = []
+            guideCardAudit = []
             contentError = error.localizedDescription
         }
     }
 
     init(cards: [Flashcard]) {
         guideCards = cards
+        guideCardAudit = []
         contentError = nil
     }
+
+    var excludedGuideCardCount: Int { guideCardAudit.count { $0.outcome == .excluded } }
+    var repairedGuideCardCount: Int { guideCardAudit.count { $0.outcome == .repaired } }
 
     var chapterNumbers: [Int] {
         Array(Set(guideCards.compactMap(\.chapter))).sorted()

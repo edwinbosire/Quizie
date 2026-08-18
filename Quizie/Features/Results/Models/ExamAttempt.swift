@@ -100,6 +100,18 @@ final class ExamAttempt {
 
 /// Extension to calculate performance statistics
 extension Array where Element == ExamAttemptSnapshot {
+    private var completedMockExamCount: Int {
+        filter { $0.testID == nil }.count
+    }
+
+    func shouldShowMockExamInstructions(presentationCount: Int) -> Bool {
+        Swift.max(completedMockExamCount, presentationCount) < 3
+    }
+
+    func nextMockExamInstructionPresentationCount(currentCount: Int) -> Int {
+        Swift.min(Swift.max(completedMockExamCount, currentCount) + 1, 3)
+    }
+
     var averageScore: Double {
         guard !isEmpty else { return 0 }
         let total = reduce(0) { $0 + $1.score }

@@ -58,7 +58,7 @@ struct PerformanceDashboardView: View {
     private func metric(title: String, value: String, detail: String, color: Color) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(title).appFont(.caption2.weight(.semibold)).foregroundStyle(Color.hbTextMuted)
-            Text(value).appFont(.title2.weight(.bold)).foregroundStyle(color).minimumScaleFactor(0.75).lineLimit(2)
+            Text(value).appFont(.title2.weight(.bold)).foregroundStyle(color).minimumScaleFactor(0.75).lineLimit(1)
             Text(detail).appFont(.caption).foregroundStyle(Color.hbTextSecondary).lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { SYSTEM_INSTRUCTIONS, createOpenAIRequest, flashcardSchema, isSingleSentence, validateGeneratedResult, validateRequest } from "../src/flashcards.js";
+import { SYSTEM_INSTRUCTIONS, createOpenAIRequest, flashcardSchema, isAtomicQuestion, isMinimalAnswer, isSingleSentence, validateGeneratedResult, validateRequest } from "../src/flashcards.js";
 import { createWorker } from "../src/index.js";
 
 const validRequest = {
@@ -29,7 +29,10 @@ test("prohibits external knowledge", () => {
 });
 
 test("requires single-sentence cards with concise answers", () => {
-  assert.match(SYSTEM_INSTRUCTIONS, /never exceed 12 words/);
+  assert.match(SYSTEM_INSTRUCTIONS, /tests exactly one relationship/);
+  assert.match(SYSTEM_INSTRUCTIONS, /Prefer one word, a date or year, a person's name, a place name/);
+  assert.match(SYSTEM_INSTRUCTIONS, /never exceed eight/);
+  assert.match(SYSTEM_INSTRUCTIONS, /Do not copy or lightly reformat quiz questions/);
   assert.equal(isSingleSentence("Who signed Magna Carta?"), true);
   assert.equal(isSingleSentence("Who signed it? Why was it signed?"), false);
 
@@ -40,6 +43,29 @@ test("requires single-sentence cards with concise answers", () => {
   assert.equal(validateGeneratedResult(concise, validRequest), true);
   assert.equal(validateGeneratedResult(multipleSentences, validRequest), false);
   assert.equal(validateGeneratedResult(verboseAnswer, validRequest), false);
+});
+
+test("requires one self-contained recall target and one minimal answer", () => {
+  assert.equal(isAtomicQuestion("When was Magna Carta agreed?"), true);
+  assert.equal(isAtomicQuestion("Who developed the World Wide Web?"), true);
+  assert.equal(isAtomicQuestion("Which TWO people signed it?"), false);
+  assert.equal(isAtomicQuestion("Which of these statements is correct?"), false);
+  assert.equal(isAtomicQuestion("Who signed it?"), false);
+  assert.equal(isAtomicQuestion("Who signed Magna Carta and when?"), false);
+  assert.equal(isAtomicQuestion("Magna Carta was agreed in 1215."), false);
+  assert.equal(isAtomicQuestion("Who was John Constable?"), false);
+  assert.equal(isAtomicQuestion("Who is Sir Edward Elgar (1857–1934)?"), false);
+
+  assert.equal(isMinimalAnswer("1215"), true);
+  assert.equal(isMinimalAnswer("Sir Tim Berners-Lee"), true);
+  assert.equal(isMinimalAnswer("England and Wales"), false);
+  assert.equal(isMinimalAnswer("A scientist who developed the World Wide Web"), false);
+  assert.equal(isMinimalAnswer("True"), false);
+  assert.equal(isMinimalAnswer("All of these"), false);
+  assert.equal(isMinimalAnswer("All of the these"), false);
+  assert.equal(isMinimalAnswer("A by-election is held"), false);
+  assert.equal(isMinimalAnswer("Cnut, also called Canute"), false);
+  assert.equal(isMinimalAnswer("DWP (Department for Work and Pensions)"), false);
 });
 
 test("forces file search against the configured handbook vector store", () => {

@@ -93,10 +93,25 @@ nonisolated struct FlashcardDraft: Identifiable, Equatable, Sendable {
 }
 
 nonisolated enum FlashcardRecallStyle {
-    static let maximumAnswerWordCount = 12
+    static let maximumAnswerWordCount = 8
+    static let maximumQuestionWordCount = 24
 
     static func isValid(question: String, answer: String) -> Bool {
-        isSingleSentence(question) && isSingleSentence(answer) && wordCount(answer) <= maximumAnswerWordCount
+        isAtomicQuestion(question) && isMinimalAnswer(answer)
+    }
+
+    static func isAtomicQuestion(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasSuffix("?"), isSingleSentence(trimmed), wordCount(trimmed) <= maximumQuestionWordCount else { return false }
+        guard trimmed.range(of: #"^Who (?:was|is) (?:[A-Z][\p{L}'’-]*|[A-Z])(?:\s+(?:of|the|de|van|[A-Z][\p{L}'’-]*|[A-Z]))+(?:\s*\([^)]*\))?\?$"#, options: .regularExpression) == nil else { return false }
+        return !questionAntiPatterns.contains { trimmed.range(of: $0, options: [.regularExpression, .caseInsensitive]) != nil }
+    }
+
+    static func isMinimalAnswer(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard isSingleSentence(trimmed), wordCount(trimmed) <= maximumAnswerWordCount else { return false }
+        let withoutTerminator = trimmed.replacingOccurrences(of: "[.!?]+$", with: "", options: .regularExpression)
+        return !answerAntiPatterns.contains { withoutTerminator.range(of: $0, options: [.regularExpression, .caseInsensitive]) != nil }
     }
 
     static func isSingleSentence(_ value: String) -> Bool {
@@ -115,6 +130,22 @@ nonisolated enum FlashcardRecallStyle {
     static func wordCount(_ value: String) -> Int {
         value.split(whereSeparator: \.isWhitespace).count
     }
+
+    private static let questionAntiPatterns = [
+        #"\b(?:which\s+(?:one|two|three)|which\s+of\s+(?:these|the\s+following)|what\s+(?:one|two|three)|select|choose|true\s+or\s+false)\b"#,
+        #"\b(?:not|never|except)\b"#,
+        #"\b(?:statement|statements|option|options)\b.*\b(?:correct|true|false)\b"#,
+        #"\b(?:and|or)\s+(?:who|what|when|where|which|why|how)\b"#,
+        #"\b(?:it|they|them|these|those|this|he|she|former|latter)\b"#,
+        #"_{2,}|\.{3}"#
+    ]
+    private static let answerAntiPatterns = [
+        #"[,;()\n•]"#,
+        #"\b(?:and|or|who|which|that|where|because|is|are|was|were|has|have|can|should|must|will|would)\b"#,
+        #"\balso\b"#,
+        #"^(?:yes|no|true|false|all|none|both|either|neither)\b"#,
+        #"^(?:he|she|it|they|there)\b"#
+    ]
 }
 
 @MainActor

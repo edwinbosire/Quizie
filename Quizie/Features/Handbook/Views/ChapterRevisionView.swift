@@ -49,7 +49,7 @@ struct ChapterRevisionView: View {
                 )
             }
         }
-        .padding(20)
+        .padding()
         .background(readingTheme.style.surface2, in: RoundedRectangle(cornerRadius: 24))
         .overlay { RoundedRectangle(cornerRadius: 24).stroke(readingTheme.style.border) }
         .onAppear { performance.refresh() }

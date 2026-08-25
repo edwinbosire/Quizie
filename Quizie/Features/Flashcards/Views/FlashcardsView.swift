@@ -344,6 +344,8 @@ private struct FlashcardPracticeView: View {
 
 private struct FlashcardStudyView: View {
     let session: FlashcardSession
+    @AppStorage(ContentReviewSettings.storageKey) private var contentReviewModeEnabled = false
+    @State private var reportedContent: ContentReportContent?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -369,6 +371,9 @@ private struct FlashcardStudyView: View {
                 .padding(.vertical, 18)
         }
         .animation(.easeInOut(duration: 0.25), value: session.currentIndex)
+        .sheet(item: $reportedContent) { content in
+            ContentIssueReportView(content: content)
+        }
         .accessibilityIdentifier("flashcards.study")
     }
 
@@ -390,6 +395,19 @@ private struct FlashcardStudyView: View {
 
             ProgressView(value: session.progress)
                 .tint(Color.hbAccent)
+
+            if contentReviewModeEnabled, let card = session.currentCard, !card.isCustom {
+                Button {
+                    reportedContent = .flashcard(card)
+                } label: {
+                    Label("Report an issue", systemImage: "exclamationmark.bubble")
+                        .appFont(.footnote.weight(.semibold))
+                        .foregroundStyle(Color(hex: "#B42318"))
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("flashcards.reportIssue")
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)

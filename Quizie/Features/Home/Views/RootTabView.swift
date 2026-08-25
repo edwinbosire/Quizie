@@ -5,12 +5,20 @@ struct RootTabView: View {
     @AppStorage(ReadingThemeStyle.storageKey) private var readingThemeStyleRaw = ReadingThemeStyle.classic.rawValue
     @AppStorage(ReaderTextSize.storageKey) private var readerTextSizeRaw = ReaderTextSize.standard.rawValue
     private let dependencies: AppDependencies
+    private let qualityAnalysis: ContentQualityAnalysis
     @State private var isShowingSettings = false
     @State private var selectedTab: MainTab
     @State private var flashcardPath: [FlashcardDeck]
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
+        let questions = (try? dependencies.quiz.questions.questions(count: Int.max, seed: "content-quality-analysis")) ?? []
+        qualityAnalysis = ContentQualityAnalyzer.analyze(
+            questions: questions,
+            guideCards: dependencies.flashcards.catalog.guideCards,
+            flashcardAudit: dependencies.flashcards.catalog.guideCardAudit,
+            chapters: dependencies.handbook.catalog.chapters
+        )
         let arguments = ProcessInfo.processInfo.arguments
         let requestedTab: MainTab? = arguments.firstIndex(of: "-initialMainTab").flatMap { index in
             guard arguments.indices.contains(index + 1) else { return nil }
@@ -122,7 +130,8 @@ struct RootTabView: View {
                         textSize: Binding(
                             get: { ReaderTextSize(rawValue: readerTextSizeRaw) ?? .standard },
                             set: { readerTextSizeRaw = $0.rawValue }
-                        )
+                        ),
+                        qualityAnalysis: qualityAnalysis
                     )
                 }
             } else {

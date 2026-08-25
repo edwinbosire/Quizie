@@ -103,6 +103,8 @@ struct QuizOptionsSheet: View {
     let onReadInBook: (QuizQuestionSource) -> Void
     let onRestart: () -> Void
     let onToggleBookmark: () -> Void
+    let showsReportIssue: Bool
+    let onReportIssue: () -> Void
 
     private var hasHint: Bool { source?.hasHint == true }
     private var isHintEnabled: Bool { hasHint && canShowHint }
@@ -171,6 +173,21 @@ struct QuizOptionsSheet: View {
                 ) {
                     onToggleBookmark()
                     dismiss()
+                }
+
+                if showsReportIssue {
+                    Divider()
+                        .padding(.leading, 52)
+
+                    OptionRow(
+                        icon: "exclamationmark.bubble",
+                        title: "Report an Issue",
+                        iconColor: Color(hex: "#B42318")
+                    ) {
+                        onReportIssue()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("quiz.options.reportIssue")
                 }
             }
             .background(Color.hbSurface)

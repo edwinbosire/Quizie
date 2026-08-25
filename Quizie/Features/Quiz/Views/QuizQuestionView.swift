@@ -10,9 +10,11 @@ struct QuizQuestionView: View {
     @State private var presentedSheet: QuizQuestionSheet?
     @State private var pendingHintSource: QuizQuestionSource?
     @State private var pendingHandbookSource: QuizQuestionSource?
+    @State private var pendingReportContent: ContentReportContent?
     @State private var pendingAlert: QuizQuestionAlert?
     @State private var presentedAlert: QuizQuestionAlert?
     @AppStorage(QuestionBookmarks.storageKey) private var bookmarkedQuestionsData = Data()
+    @AppStorage(ContentReviewSettings.storageKey) private var contentReviewModeEnabled = false
     
     private var bookmarkedQuestions: Set<String> {
         QuestionBookmarks.ids(from: bookmarkedQuestionsData)
@@ -51,14 +53,18 @@ struct QuizQuestionView: View {
                     onShowHint: { pendingHintSource = $0 },
                     onReadInBook: { pendingHandbookSource = $0 },
                     onRestart: { pendingAlert = .restart },
-                    onToggleBookmark: toggleBookmark
+                    onToggleBookmark: toggleBookmark,
+                    showsReportIssue: contentReviewModeEnabled && question != nil,
+                    onReportIssue: { if let question { pendingReportContent = .question(question) } }
                 )
-                .presentationDetents([.height(engine.mode.allowsBookAccess && questionSource != nil ? 280 : 224)])
+                .presentationDetents([.height(optionsSheetHeight)])
                 .presentationDragIndicator(.visible)
             case .hint(let source):
                 QuizHintSheet(source: source, showsOpenHandbook: engine.mode.allowsBookAccess, onOpenHandbook: { pendingHandbookSource = $0 })
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
+            case .report(let content):
+                ContentIssueReportView(content: content)
             }
         }
         .alert(item: $presentedAlert) { alert in
@@ -92,8 +98,18 @@ struct QuizQuestionView: View {
             onOpenHandbook(pendingHandbookSource)
             return
         }
+        if let pendingReportContent {
+            self.pendingReportContent = nil
+            presentedSheet = .report(pendingReportContent)
+            return
+        }
         presentedAlert = pendingAlert
         pendingAlert = nil
+    }
+
+    private var optionsSheetHeight: CGFloat {
+        let baseHeight: CGFloat = engine.mode.allowsBookAccess && questionSource != nil ? 280 : 224
+        return baseHeight + (contentReviewModeEnabled ? 56 : 0)
     }
     
     private func toggleBookmark() {
@@ -118,11 +134,13 @@ private enum QuizQuestionAlert: String, Identifiable {
 private enum QuizQuestionSheet: Identifiable {
     case options
     case hint(QuizQuestionSource)
+    case report(ContentReportContent)
 
     var id: String {
         switch self {
         case .options: return "options"
         case .hint(let source): return "hint-\(source.id)"
+        case .report(let content): return "report-\(content.id)"
         }
     }
 }

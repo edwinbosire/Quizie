@@ -192,6 +192,33 @@ final class HandbookReaderQuizUITests: XCTestCase {
     }
 
     @MainActor
+    func testContentReviewModeOpensQualityAnalysis() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES", "-contentReviewModeEnabled", "YES"]
+        app.launch()
+
+        let settingsButton = app.buttons["mainNavigation.settings"]
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: 5))
+        settingsButton.tap()
+
+        let settings = app.scrollViews["reader.settings"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        let analysisButton = app.descendants(matching: .any)["settings.contentQualityAnalysis"]
+        for _ in 0..<3 where !analysisButton.isHittable {
+            settings.swipeUp()
+        }
+        XCTAssertTrue(analysisButton.waitForExistence(timeout: 5))
+        analysisButton.tap()
+
+        XCTAssertTrue(app.navigationBars["Quality analysis"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["contentQuality.dashboard"].exists)
+        XCTAssertTrue(app.buttons["contentQuality.email"].exists)
+        XCTAssertTrue(app.staticTexts["Questions"].exists)
+        XCTAssertTrue(app.staticTexts["Flashcards"].exists)
+        XCTAssertTrue(app.staticTexts["Handbook"].exists)
+    }
+
+    @MainActor
     func testReaderTextSizePresetPersists() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-hasCompletedOnboarding", "YES"]

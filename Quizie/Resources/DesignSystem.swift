@@ -65,15 +65,7 @@ extension Color {
     }
 }
 
-// MARK: - Spacing & Radius
-enum HBSpacing {
-    static let xs: CGFloat = 4
-    static let sm: CGFloat = 8
-    static let md: CGFloat = 16
-    static let lg: CGFloat = 24
-    static let xl: CGFloat = 32
-}
-
+// MARK: - Radius
 enum HBRadius {
     static let sm: CGFloat = 10
     static let md: CGFloat = 16

@@ -42,6 +42,17 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				PROJECT_STRUCTURE.md,
+				Resources/Documentation/FLASHCARD_QUALITY.md,
+				Resources/Documentation/Handbook/ANALYTICS_UI_PREVIEW.md,
+				Resources/Documentation/Handbook/CONCEPT_TAXONOMY.md,
+				Resources/Documentation/Handbook/PROGRESS_ANALYTICS_SUMMARY.md,
+				Resources/Documentation/Handbook/QUICK_REFERENCE.md,
+				Resources/Documentation/Handbook/Typography.md,
+				Resources/Documentation/Quiz/QUIZ_LOBBY_INFO_CARDS_UPDATE.md,
+				Resources/Documentation/Quiz/QUIZ_UPDATE_QUICK_SUMMARY.md,
+				Resources/Documentation/Quiz/README.md,
+				Resources/Documentation/Quiz/VISUAL_COMPARISON.md,
 			);
 			target = 64C37B602F78206E009C85F1 /* Quizie */;
 		};

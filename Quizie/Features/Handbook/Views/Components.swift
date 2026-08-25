@@ -18,22 +18,6 @@ func applySearchHighlight(to attributed: inout AttributedString, term: String?) 
     }
 }
 
-// MARK: - Chapter Badge (pill label at top of chapter)
-struct ChapterBadge: View {
-    let text: String
-    let theme: ChapterTheme
-
-    var body: some View {
-        Text(text.uppercased())
-            .appFont(.caption2.weight(.semibold))
-            .foregroundColor(theme.accent)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(theme.accentLight)
-            .clipShape(Capsule())
-    }
-}
-
 // MARK: - Section Tab Pill
 struct SectionTabPill: View {
     let title: String

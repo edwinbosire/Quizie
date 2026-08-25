@@ -61,10 +61,10 @@ struct ChapterView: View {
     var theme: ChapterTheme {
         ChapterTheme.forChapter(chapter.id)
     }
-
+	var highlightsBySection: [String: [HighlightSnapshot]] {
+		Dictionary(grouping: highlightLibrary.forChapter(chapter.contentID), by: \.sectionID)
+	}
     var body: some View {
-        let highlightsBySection = Dictionary(grouping: highlightLibrary.forChapter(chapter.contentID), by: \.sectionID)
-
         ScrollViewReader { proxy in
                 ZStack(alignment: .top) {
                     ScrollView {

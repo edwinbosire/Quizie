@@ -31,11 +31,3 @@ struct BundleConceptTaxonomyRepository: ConceptTaxonomyRepository {
         }
     }
 }
-
-struct InMemoryConceptTaxonomyRepository: ConceptTaxonomyRepository {
-    let value: ConceptTaxonomy
-
-    nonisolated func taxonomy() throws -> ConceptTaxonomy {
-        value
-    }
-}

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { activateIndex, handleHandbookAdminRequest, isAuthorized, startIndexing, uploadChunks } from "../src/handbook-ingestion.js";
+import { isAuthorized } from "../src/auth.js";
+import { activateIndex, handleHandbookAdminRequest, startIndexing, uploadChunks } from "../src/handbook-ingestion.js";
 
 const sourceHash = "a".repeat(64);
 const generationID = `v2-${sourceHash.slice(0, 12)}`;

@@ -27,7 +27,7 @@ nonisolated enum AIInferenceError: Error, Equatable, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "AI inference is not configured. Set FLASHCARD_API_BASE_URL to your secure backend URL."
+            return "AI inference is not configured. Set FLASHCARD_API_BASE_URL and FLASHCARD_APP_TOKEN to reach your secure backend."
         case .invalidResponse:
             return "The AI inference service returned an invalid response."
         case .provider(_, let message):

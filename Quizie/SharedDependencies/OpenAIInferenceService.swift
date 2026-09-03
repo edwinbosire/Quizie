@@ -4,26 +4,36 @@ import Foundation
 /// OpenAI credentials and API calls never live in the app process.
 nonisolated struct OpenAIInferenceService: AIInferenceService {
     let baseURL: URL?
+    private let appToken: String?
     private let session: URLSession
 
-    init(baseURL: URL?, session: URLSession = .shared) {
+    init(baseURL: URL?, appToken: String? = nil, session: URLSession = .shared) {
         self.baseURL = baseURL
+        self.appToken = appToken
         self.session = session
     }
 
     init(bundle: Bundle = .main, session: URLSession = .shared) {
-        let environmentValue = ProcessInfo.processInfo.environment["FLASHCARD_API_BASE_URL"]
-        let bundleValue = bundle.object(forInfoDictionaryKey: "FlashcardAPIBaseURL") as? String
-        let configuredValue = environmentValue?.nilIfPlaceholder ?? bundleValue?.nilIfPlaceholder
-        self.init(baseURL: configuredValue.flatMap(URL.init(string:)), session: session)
+        self.init(
+            baseURL: Self.configuredValue(key: "FLASHCARD_API_BASE_URL", infoKey: "FlashcardAPIBaseURL", bundle: bundle).flatMap(URL.init(string:)),
+            appToken: Self.configuredValue(key: "FLASHCARD_APP_TOKEN", infoKey: "FlashcardAPIToken", bundle: bundle),
+            session: session
+        )
+    }
+
+    private static func configuredValue(key: String, infoKey: String, bundle: Bundle) -> String? {
+        let environmentValue = ProcessInfo.processInfo.environment[key]
+        let bundleValue = bundle.object(forInfoDictionaryKey: infoKey) as? String
+        return environmentValue?.nilIfPlaceholder ?? bundleValue?.nilIfPlaceholder
     }
 
     func generateFlashcards(from context: FlashcardGenerationContext) async throws -> [GeneratedFlashcard] {
-        guard let baseURL else { throw AIInferenceError.notConfigured }
+        guard let baseURL, let appToken else { throw AIInferenceError.notConfigured }
         let endpoint = baseURL.appending(path: "flashcards/generate")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(appToken)", forHTTPHeaderField: "Authorization")
         request.timeoutInterval = 60
         request.httpBody = try JSONEncoder().encode(context)
 

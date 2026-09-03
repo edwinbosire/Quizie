@@ -133,16 +133,39 @@ function wordCount(value) {
   return value.trim().split(/\s+/).filter(Boolean).length;
 }
 
+// Bounds sized against the real handbook: the largest section holds 104 blocks
+// and ~24k characters, and the longest single block is ~1.2k characters. These
+// caps leave generous headroom while keeping OpenAI input cost bounded.
+export const REQUEST_LIMITS = {
+  title: 200,
+  selection: 40_000,
+  context: 60_000,
+  blocks: 200,
+  blockID: 128,
+  blockText: 4_000,
+  totalText: 150_000
+};
+
 export function validateRequest(input) {
   if (!input || typeof input !== "object") return "A request body is required.";
   for (const field of ["chapter", "section", "selection", "context"]) {
     if (typeof input[field] !== "string" || !input[field].trim()) return `${field} is required.`;
   }
+  for (const field of ["chapter", "section"]) {
+    if (input[field].length > REQUEST_LIMITS.title) return `${field} must be at most ${REQUEST_LIMITS.title} characters.`;
+  }
+  if (input.selection.length > REQUEST_LIMITS.selection) return `selection must be at most ${REQUEST_LIMITS.selection} characters.`;
+  if (input.context.length > REQUEST_LIMITS.context) return `context must be at most ${REQUEST_LIMITS.context} characters.`;
   if (!Array.isArray(input.blocks) || !input.blocks.length) return "At least one context block is required.";
+  if (input.blocks.length > REQUEST_LIMITS.blocks) return `blocks must contain at most ${REQUEST_LIMITS.blocks} items.`;
   if (!input.blocks.every(block => typeof block.id === "string" && block.id && typeof block.text === "string" && typeof block.isSelected === "boolean")) {
     return "Every context block must include id, text, and isSelected.";
   }
+  if (!input.blocks.every(block => block.id.length <= REQUEST_LIMITS.blockID)) return `Every block id must be at most ${REQUEST_LIMITS.blockID} characters.`;
+  if (!input.blocks.every(block => block.text.length <= REQUEST_LIMITS.blockText)) return `Every block text must be at most ${REQUEST_LIMITS.blockText} characters.`;
   if (!input.blocks.some(block => block.isSelected)) return "At least one context block must be selected.";
   if (!Number.isInteger(input.maxCards) || input.maxCards < 1 || input.maxCards > 8) return "maxCards must be between 1 and 8.";
+  const totalText = input.selection.length + input.context.length + input.blocks.reduce((sum, block) => sum + block.text.length, 0);
+  if (totalText > REQUEST_LIMITS.totalText) return `The request text must total at most ${REQUEST_LIMITS.totalText} characters.`;
   return null;
 }

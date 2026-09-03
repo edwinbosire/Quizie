@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { SYSTEM_INSTRUCTIONS, createOpenAIRequest, flashcardSchema, isAtomicQuestion, isMinimalAnswer, isSingleSentence, validateGeneratedResult, validateRequest } from "../src/flashcards.js";
+import { REQUEST_LIMITS, SYSTEM_INSTRUCTIONS, createOpenAIRequest, flashcardSchema, isAtomicQuestion, isMinimalAnswer, isSingleSentence, validateGeneratedResult, validateRequest } from "../src/flashcards.js";
 import { createWorker } from "../src/index.js";
+
+const APP_TOKEN = "test-app-token";
 
 const validRequest = {
   chapter: "Chapter 1: Values",
@@ -98,10 +100,11 @@ test("requires an active index before generating flashcards", async () => {
   const worker = createWorker({ fetchImpl: async () => assert.fail("OpenAI should not be called") });
   const response = await worker.fetch(new Request("https://example.com/flashcards/generate", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${APP_TOKEN}` },
     body: JSON.stringify(validRequest)
   }), {
     OPENAI_API_KEY: "key",
+    FLASHCARD_APP_TOKEN: APP_TOKEN,
     HANDBOOK_VECTOR_STORE_ID: "vs_test",
     HANDBOOK_INDEX_STATE: new MemoryKV()
   });
@@ -126,9 +129,9 @@ test("accepts flashcards only when retrieval overlaps a selected block", async (
   const state = new MemoryKV({ "handbook:index:active": { generationID: "v1-abc123" } });
   const response = await worker.fetch(new Request("https://example.com/flashcards/generate", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${APP_TOKEN}` },
     body: JSON.stringify(validRequest)
-  }), { OPENAI_API_KEY: "key", HANDBOOK_VECTOR_STORE_ID: "vs_test", HANDBOOK_INDEX_STATE: state });
+  }), { OPENAI_API_KEY: "key", FLASHCARD_APP_TOKEN: APP_TOKEN, HANDBOOK_VECTOR_STORE_ID: "vs_test", HANDBOOK_INDEX_STATE: state });
 
   assert.equal(response.status, 200);
   assert.equal(openAIRequest.tools[0].max_num_results, 6);
@@ -147,13 +150,93 @@ test("rejects retrieval results from a stale generation", async () => {
   const state = new MemoryKV({ "handbook:index:active": { generationID: "v1-abc123" } });
   const response = await worker.fetch(new Request("https://example.com/flashcards/generate", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${APP_TOKEN}` },
     body: JSON.stringify(validRequest)
-  }), { OPENAI_API_KEY: "key", HANDBOOK_VECTOR_STORE_ID: "vs_test", HANDBOOK_INDEX_STATE: state });
+  }), { OPENAI_API_KEY: "key", FLASHCARD_APP_TOKEN: APP_TOKEN, HANDBOOK_VECTOR_STORE_ID: "vs_test", HANDBOOK_INDEX_STATE: state });
 
   assert.equal(response.status, 502);
   assert.match((await response.json()).error, /did not verify/);
 });
+
+test("rejects callers without the app token", async () => {
+  const worker = createWorker({ fetchImpl: async () => assert.fail("OpenAI should not be called") });
+  const env = { OPENAI_API_KEY: "key", FLASHCARD_APP_TOKEN: APP_TOKEN, HANDBOOK_VECTOR_STORE_ID: "vs_test", HANDBOOK_INDEX_STATE: new MemoryKV() };
+
+  for (const headers of [{}, { Authorization: "Bearer wrong-token" }, { Authorization: APP_TOKEN }]) {
+    const response = await worker.fetch(generateRequest({ headers }), env);
+    assert.equal(response.status, 401);
+    assert.match((await response.json()).error, /Unauthorized/);
+  }
+});
+
+test("refuses to serve generation when no app token is configured", async () => {
+  const worker = createWorker({ fetchImpl: async () => assert.fail("OpenAI should not be called") });
+  const response = await worker.fetch(generateRequest(), {
+    OPENAI_API_KEY: "key",
+    HANDBOOK_VECTOR_STORE_ID: "vs_test",
+    HANDBOOK_INDEX_STATE: new MemoryKV()
+  });
+
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /not configured/);
+});
+
+test("rate limits authenticated callers", async () => {
+  const worker = createWorker({ fetchImpl: async () => assert.fail("OpenAI should not be called") });
+  const response = await worker.fetch(generateRequest(), {
+    OPENAI_API_KEY: "key",
+    FLASHCARD_APP_TOKEN: APP_TOKEN,
+    HANDBOOK_VECTOR_STORE_ID: "vs_test",
+    HANDBOOK_INDEX_STATE: new MemoryKV(),
+    FLASHCARD_RATE_LIMIT: { limit: async () => ({ success: false }) }
+  });
+
+  assert.equal(response.status, 429);
+  assert.match((await response.json()).error, /Too many/);
+});
+
+test("rejects oversized bodies before parsing them", async () => {
+  const worker = createWorker({ fetchImpl: async () => assert.fail("OpenAI should not be called") });
+  const oversized = { ...validRequest, selection: "x".repeat(300_000) };
+  const response = await worker.fetch(generateRequest({ body: oversized }), {
+    OPENAI_API_KEY: "key",
+    FLASHCARD_APP_TOKEN: APP_TOKEN,
+    HANDBOOK_VECTOR_STORE_ID: "vs_test",
+    HANDBOOK_INDEX_STATE: new MemoryKV({ "handbook:index:active": { generationID: "v1-abc123" } })
+  });
+
+  assert.equal(response.status, 413);
+});
+
+test("bounds every free-text field so input cost stays capped", () => {
+  const block = (text, id = "block-1") => ({ id, text, isSelected: true });
+
+  assert.match(validateRequest({ ...validRequest, chapter: "c".repeat(REQUEST_LIMITS.title + 1) }), /chapter must be at most/);
+  assert.match(validateRequest({ ...validRequest, selection: "s".repeat(REQUEST_LIMITS.selection + 1) }), /selection must be at most/);
+  assert.match(validateRequest({ ...validRequest, context: "c".repeat(REQUEST_LIMITS.context + 1) }), /context must be at most/);
+  assert.match(validateRequest({ ...validRequest, blocks: Array.from({ length: REQUEST_LIMITS.blocks + 1 }, (_, index) => block("text", `block-${index}`)) }), /blocks must contain at most/);
+  assert.match(validateRequest({ ...validRequest, blocks: [block("t", "b".repeat(REQUEST_LIMITS.blockID + 1))] }), /block id must be at most/);
+  assert.match(validateRequest({ ...validRequest, blocks: [block("t".repeat(REQUEST_LIMITS.blockText + 1))] }), /block text must be at most/);
+
+  const wideSpread = Array.from({ length: 50 }, (_, index) => block("t".repeat(REQUEST_LIMITS.blockText), `block-${index}`));
+  assert.match(validateRequest({ ...validRequest, blocks: wideSpread }), /must total at most/);
+});
+
+test("accepts the largest real handbook section", () => {
+  // The biggest section in handbook.json: 104 blocks and ~24k characters.
+  const blocks = Array.from({ length: 104 }, (_, index) => ({ id: `section_01_01_block_${index}`, text: "t".repeat(232), isSelected: true }));
+  const oversizedSection = { ...validRequest, selection: "s".repeat(24_171), context: "c".repeat(26_000), blocks, maxCards: 8 };
+
+  assert.equal(validateRequest(oversizedSection), null);
+});
+
+function generateRequest({ headers = { Authorization: `Bearer ${APP_TOKEN}` }, body = validRequest } = {}) {
+  return new Request("https://example.com/flashcards/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...headers },
+    body: JSON.stringify(body)
+  });
+}
 
 class MemoryKV {
   constructor(values = {}) {

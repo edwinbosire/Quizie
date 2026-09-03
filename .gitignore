@@ -15,3 +15,9 @@ Secrets.xcconfig
 node_modules/
 .wrangler/
 Backend/flashcard-worker/.handbook-index/
+
+# Local scratch documents
+tmp/pdfs/
+build/
+tmp/
+DerivedData/

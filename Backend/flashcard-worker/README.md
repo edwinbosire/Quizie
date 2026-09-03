@@ -44,9 +44,9 @@ All indexing routes require `Authorization: Bearer <HANDBOOK_INGEST_TOKEN>`:
 ## Local development
 
 1. Install dependencies with `npm install`.
-2. Copy `.dev.vars.example` to `.dev.vars` and add a restricted development project key plus a long random ingest token. `.dev.vars` is ignored by Git.
+2. Copy `.dev.vars.example` to `.dev.vars` and add a restricted development project key, a long random ingest token, and a long random app token. `.dev.vars` is ignored by Git.
 3. Run `npm run dev`.
-4. Set the Quizie scheme environment variable `FLASHCARD_API_BASE_URL` to the worker URL printed by Wrangler.
+4. Set the Quizie scheme environment variables `FLASHCARD_API_BASE_URL` to the worker URL printed by Wrangler and `FLASHCARD_APP_TOKEN` to the same value as `.dev.vars`.
 
 Local Wrangler uses local KV state. To index the deployed service, point `HANDBOOK_API_BASE_URL` at its HTTPS origin rather than the local development URL.
 
@@ -55,8 +55,20 @@ Local Wrangler uses local KV state. To index the deployed service, point `HANDBO
 1. Authenticate Wrangler for the intended Cloudflare account.
 2. Store the key with `npx wrangler secret put OPENAI_API_KEY`.
 3. Store a separate long random token with `npx wrangler secret put HANDBOOK_INGEST_TOKEN`.
-4. Deploy with `npm run deploy`. Wrangler provisions the `HANDBOOK_INDEX_STATE` KV namespace declared in `wrangler.jsonc` when it is not already bound.
-5. Run `npm run handbook:index` against the deployed origin to create and activate the first generation.
-6. Set the app build setting `FLASHCARD_API_BASE_URL` to the deployed HTTPS worker origin.
+4. Store the app caller token with `npx wrangler secret put FLASHCARD_APP_TOKEN`.
+5. Deploy with `npm run deploy`. Wrangler provisions the `HANDBOOK_INDEX_STATE` KV namespace declared in `wrangler.jsonc` when it is not already bound.
+6. Run `npm run handbook:index` against the deployed origin to create and activate the first generation.
+7. Set the app build setting `FLASHCARD_API_BASE_URL` to the deployed HTTPS worker origin.
+8. Set the app build setting `FLASHCARD_APP_TOKEN` in a local `Secrets.xcconfig` (ignored by Git) so the token is never committed.
+
+## Request protection
+
+`POST /flashcards/generate` spends OpenAI credit, so it is closed by default:
+
+- **Caller token.** Requests need `Authorization: Bearer $FLASHCARD_APP_TOKEN`, compared timing-safely. The route returns 503 when the token is not configured, so a misconfigured deploy fails closed rather than serving anonymous traffic.
+- **Rate limit.** The `FLASHCARD_RATE_LIMIT` binding allows 20 requests per minute per client IP and returns 429 beyond that.
+- **Input bounds.** Bodies over 256 KB are rejected with 413 before parsing, and `validateRequest` caps every free-text field (see `REQUEST_LIMITS`). The caps are sized against the largest real handbook section (104 blocks, ~24k characters).
+
+The app token ships inside the app binary and is extractable by a determined attacker; it stops casual abuse and bounds cost, but it is not a substitute for App Attest if abuse becomes a real problem.
 
 Do not put `OPENAI_API_KEY` or `HANDBOOK_INGEST_TOKEN` in the app target, `Info.plist`, an `.xcconfig` used by the app, or this repository. Before a public launch, protect the flashcard endpoint with the app's user authentication and server-side rate limits.

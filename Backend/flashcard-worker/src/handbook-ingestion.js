@@ -1,5 +1,6 @@
 import { ACTIVE_INDEX_KEY, runKey, versionKey } from "./handbook-knowledge.js";
 import { attachHandbookFile, deleteOpenAIFile, listHandbookFiles, searchHandbook, uploadHandbookFile } from "./openai-client.js";
+import { isAuthorized } from "./auth.js";
 
 const MAX_CHUNKS_PER_REQUEST = 10;
 const MAX_CLEANUP_FILES = 500;
@@ -176,22 +177,6 @@ async function cleanupFiles(files, env, fetchImpl) {
   }
   if (files.length > MAX_CLEANUP_FILES) warnings.push(`${files.length - MAX_CLEANUP_FILES} old derived files remain for a later cleanup pass.`);
   return warnings;
-}
-
-export async function isAuthorized(request, expectedToken) {
-  const authorization = request.headers.get("Authorization") || "";
-  const providedToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-  const encoder = new TextEncoder();
-  const [providedHash, expectedHash] = await Promise.all([
-    crypto.subtle.digest("SHA-256", encoder.encode(providedToken)),
-    crypto.subtle.digest("SHA-256", encoder.encode(expectedToken))
-  ]);
-  if (typeof crypto.subtle.timingSafeEqual === "function") return crypto.subtle.timingSafeEqual(providedHash, expectedHash);
-  const left = new Uint8Array(providedHash);
-  const right = new Uint8Array(expectedHash);
-  let difference = 0;
-  for (let index = 0; index < left.length; index += 1) difference |= left[index] ^ right[index];
-  return difference === 0;
 }
 
 function validateStartRequest(input) {

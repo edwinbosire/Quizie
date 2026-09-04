@@ -338,6 +338,47 @@ struct FlashcardSessionTests {
         #expect(catalog.revisedCount(for: .chapter(2), memory: memory) == 0)
     }
 
+    @Test("Landing statistics match the per-deck counts they replace")
+    func landingStatisticsMatchPerDeckCounts() {
+        let guideCards = (1...5).map { chapter in
+            Flashcard(
+                id: "chapter-\(chapter)",
+                prompt: "Question \(chapter)?",
+                answer: "Answer \(chapter)",
+                topic: "Chapter \(chapter)",
+                chapter: chapter,
+                year: chapter == 3 ? "1215" : nil
+            )
+        }
+        let issues = PersistenceIssueCenter()
+        let memory = FlashcardMemory(store: InMemoryFlashcardMemoryStore(), issues: issues)
+        let catalog = FlashcardCatalog(cards: guideCards)
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+
+        memory.record(.known, for: guideCards[0], at: now)
+        memory.record(.learning, for: guideCards[1], at: now)
+        memory.createCard(prompt: "When was Magna Carta agreed?", answer: "1215", chapter: 3, isDateCard: true)
+
+        let statistics = catalog.landingStatistics(memory: memory, at: now)
+
+        // The single pass must agree with the per-deck methods for every deck
+        // the landing page renders, including the custom and dates decks.
+        for deck in catalog.chapterNumbers.map(FlashcardDeck.chapter) + [.dates, .custom] {
+            let expected = FlashcardDeckStatistics(
+                total: catalog.totalCount(for: deck, memory: memory),
+                mastered: catalog.masteredCount(for: deck, memory: memory),
+                revised: catalog.revisedCount(for: deck, memory: memory),
+                available: catalog.cards(for: deck, memory: memory, at: now).count
+            )
+            #expect(statistics.statistics(for: deck) == expected, "deck \(deck.id)")
+        }
+
+        let allCards = catalog.allCards(memory: memory)
+        #expect(statistics.newCardCount == allCards.filter { memory.review(for: $0.id) == nil }.count)
+        #expect(statistics.dueCount == allCards.filter { memory.isDue($0, at: now) }.count)
+        #expect(statistics.summary == catalog.progressSummary(memory: memory))
+    }
+
     @Test("Custom cards are saved into the selected deck")
     func customCardCreation() {
         let issues = PersistenceIssueCenter()

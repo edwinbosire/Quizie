@@ -24,11 +24,10 @@ struct FlashcardsView: View {
     }
 
     private var landingPage: some View {
-        ScrollView {
+        let statistics = dependencies.catalog.landingStatistics(memory: dependencies.memory, at: dependencies.clock.now)
+        return ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
-                FlashcardStatisticsCard(
-                    summary: dependencies.catalog.progressSummary(memory: dependencies.memory)
-                )
+                FlashcardStatisticsCard(summary: statistics.summary)
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("STUDY")
@@ -51,26 +50,26 @@ struct FlashcardsView: View {
                     NavigationLink(value: FlashcardDeck.newCards) {
                         FlashcardActionRow(
                             title: "Learn new flashcards",
-                            detail: newCardsDetail,
+                            detail: newCardsDetail(statistics.newCardCount),
                             icon: "sparkles.rectangle.stack",
                             accent: Color(hex: "#512E5F")
                         )
                     }
                     .buttonStyle(.plain)
-                    .disabled(newCardCount == 0)
-                    .opacity(newCardCount == 0 ? 0.55 : 1)
+                    .disabled(statistics.newCardCount == 0)
+                    .opacity(statistics.newCardCount == 0 ? 0.55 : 1)
 
                     NavigationLink(value: FlashcardDeck.due) {
                         FlashcardActionRow(
                             title: "Practice upcoming flashcards",
-                            detail: dueCardsDetail,
+                            detail: dueCardsDetail(statistics.dueCount),
                             icon: "clock.arrow.circlepath",
                             accent: Color(hex: "#9B4A20")
                         )
                     }
                     .buttonStyle(.plain)
-                    .disabled(dueCount == 0)
-                    .opacity(dueCount == 0 ? 0.55 : 1)
+                    .disabled(statistics.dueCount == 0)
+                    .opacity(statistics.dueCount == 0 ? 0.55 : 1)
                     .accessibilityIdentifier("flashcards.upcoming")
                 }
 
@@ -80,13 +79,13 @@ struct FlashcardsView: View {
                         .foregroundStyle(Color.hbTextMuted)
 
                     ForEach(dependencies.catalog.chapterNumbers, id: \.self) { chapter in
-                        deckRow(for: .chapter(chapter), icon: "book.closed.fill", chapter: chapter)
+                        deckRow(for: .chapter(chapter), icon: "book.closed.fill", chapter: chapter, statistics: statistics)
                     }
 
-                    deckRow(for: .dates, icon: "calendar", chapter: nil)
+                    deckRow(for: .dates, icon: "calendar", chapter: nil, statistics: statistics)
 
                     if !dependencies.memory.customCards.isEmpty {
-                        deckRow(for: .custom, icon: "person.crop.rectangle.stack", chapter: nil)
+                        deckRow(for: .custom, icon: "person.crop.rectangle.stack", chapter: nil, statistics: statistics)
                     }
                 }
             }
@@ -97,15 +96,12 @@ struct FlashcardsView: View {
         .accessibilityIdentifier("flashcards.landing")
     }
 
-    private func deckRow(for deck: FlashcardDeck, icon: String, chapter: Int?) -> some View {
-        let total = dependencies.catalog.totalCount(for: deck, memory: dependencies.memory)
-        let mastered = dependencies.catalog.masteredCount(for: deck, memory: dependencies.memory)
-        let revised = dependencies.catalog.revisedCount(for: deck, memory: dependencies.memory)
-        let available = dependencies.catalog.cards(
-            for: deck,
-            memory: dependencies.memory,
-            at: dependencies.clock.now
-        ).count
+    private func deckRow(for deck: FlashcardDeck, icon: String, chapter: Int?, statistics: FlashcardLandingStatistics) -> some View {
+        let deckStatistics = statistics.statistics(for: deck)
+        let total = deckStatistics.total
+        let mastered = deckStatistics.mastered
+        let revised = deckStatistics.revised
+        let available = deckStatistics.available
         let theme = chapter.map { ChapterTheme.forChapter(max(0, $0 - 1)) }
 
         return NavigationLink(value: deck) {
@@ -157,23 +153,11 @@ struct FlashcardsView: View {
         .accessibilityIdentifier(deck.accessibilityIdentifier)
     }
 
-    private var allCards: [Flashcard] {
-        dependencies.catalog.allCards(memory: dependencies.memory)
-    }
-
-    private var newCardCount: Int {
-        allCards.filter { dependencies.memory.review(for: $0.id) == nil }.count
-    }
-
-    private var dueCount: Int {
-        allCards.filter { dependencies.memory.isDue($0, at: dependencies.clock.now) }.count
-    }
-
-    private var newCardsDetail: String {
+    private func newCardsDetail(_ newCardCount: Int) -> String {
         newCardCount == 0 ? "You’ve learned every available card" : "Start a focused set of up to \(min(newCardCount, FlashcardCatalog.newSessionLimit)) cards"
     }
 
-    private var dueCardsDetail: String {
+    private func dueCardsDetail(_ dueCount: Int) -> String {
         dueCount == 0 ? "Nothing is due right now" : "\(dueCount) learning \(dueCount == 1 ? "card is" : "cards are") ready"
     }
 }

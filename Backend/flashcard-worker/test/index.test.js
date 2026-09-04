@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { REQUEST_LIMITS, SYSTEM_INSTRUCTIONS, createOpenAIRequest, flashcardSchema, isAtomicQuestion, isMinimalAnswer, isSingleSentence, validateGeneratedResult, validateRequest } from "../src/flashcards.js";
+import { REQUEST_LIMITS, SYSTEM_INSTRUCTIONS, createOpenAIRequest, describeGeneratedResult, flashcardSchema, partitionGeneratedCards, isAtomicQuestion, isMinimalAnswer, isSingleSentence, validateGeneratedResult, validateRequest } from "../src/flashcards.js";
 import { createWorker } from "../src/index.js";
 
 const APP_TOKEN = "test-app-token";
@@ -68,6 +68,11 @@ test("requires one self-contained recall target and one minimal answer", () => {
   assert.equal(isMinimalAnswer("A by-election is held"), false);
   assert.equal(isMinimalAnswer("Cnut, also called Canute"), false);
   assert.equal(isMinimalAnswer("DWP (Department for Work and Pensions)"), false);
+
+  // A digit group separator is not a list separator.
+  assert.equal(isMinimalAnswer("About 10,000 years ago"), true);
+  assert.equal(isMinimalAnswer("10,000"), true);
+  assert.equal(isMinimalAnswer("Law, customs and expectations"), false);
 });
 
 test("forces file search against the configured handbook vector store", () => {
@@ -237,6 +242,74 @@ function generateRequest({ headers = { Authorization: `Bearer ${APP_TOKEN}` }, b
     body: JSON.stringify(body)
   });
 }
+
+test("names the rule that rejected a generated card", () => {
+  const card = (overrides = {}) => ({ cards: [{ question: "Who signed Magna Carta?", answer: "King John.", sourceBlockIds: ["block-1"], ...overrides }] });
+
+  assert.equal(describeGeneratedResult(card(), validRequest), null);
+  assert.match(describeGeneratedResult({ cards: [] }, validRequest), /empty card list/);
+  assert.match(describeGeneratedResult(card({ question: "Which of these is correct?" }), validRequest), /not an atomic recall prompt/);
+  assert.match(describeGeneratedResult(card({ answer: "England and Wales" }), validRequest), /not a minimal retrieval unit/);
+  assert.match(describeGeneratedResult(card({ sourceBlockIds: ["other-block"] }), validRequest), /unknown source blocks: other-block/);
+  assert.match(describeGeneratedResult(card({ sourceBlockIds: [] }), validRequest), /no sourceBlockIds/);
+
+  // The reason quotes the offending text so a 502 is diagnosable from the logs.
+  assert.match(describeGeneratedResult(card({ question: "Who signed it?" }), validRequest), /"Who signed it\?"/);
+});
+
+test("keeps the good cards when the model mixes in a weak one", () => {
+  const good = { question: "Who signed Magna Carta?", answer: "King John.", sourceBlockIds: ["block-1"] };
+  const weak = { question: "What must residents do?", answer: "Respect and support them", sourceBlockIds: ["block-1"] };
+
+  const mixed = partitionGeneratedCards({ cards: [weak, good] }, { ...validRequest, maxCards: 3 });
+  assert.deepEqual(mixed.cards, [good]);
+  assert.equal(mixed.rejections.length, 1);
+  assert.match(mixed.rejections[0], /not a minimal retrieval unit/);
+
+  // Nothing salvageable still reports every reason rather than only the first.
+  const none = partitionGeneratedCards({ cards: [weak, weak] }, { ...validRequest, maxCards: 3 });
+  assert.equal(none.cards.length, 0);
+  assert.equal(none.rejections.length, 2);
+});
+
+test("returns only the surviving cards to the app", async () => {
+  const worker = createWorker({
+    fetchImpl: async () => Response.json({
+      output: [
+        { type: "file_search_call", results: [{ attributes: { generation_id: "v1-abc123", block_ids: '["block-1"]' } }] },
+        { type: "message", content: [{ type: "output_text", text: JSON.stringify({ cards: [
+          { question: "What must residents do?", answer: "Respect and support them", sourceBlockIds: ["block-1"] },
+          { question: "Who signed Magna Carta?", answer: "King John.", sourceBlockIds: ["block-1"] }
+        ] }) }] }
+      ]
+    })
+  });
+  const state = new MemoryKV({ "handbook:index:active": { generationID: "v1-abc123" } });
+  const response = await worker.fetch(generateRequest({ body: { ...validRequest, maxCards: 3 } }), { OPENAI_API_KEY: "key", FLASHCARD_APP_TOKEN: APP_TOKEN, HANDBOOK_VECTOR_STORE_ID: "vs_test", HANDBOOK_INDEX_STATE: state });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.cards.length, 1);
+  assert.equal(body.cards[0].answer, "King John.");
+});
+
+test("fails only when no card survives", async () => {
+  const worker = createWorker({
+    fetchImpl: async () => Response.json({
+      output: [
+        { type: "file_search_call", results: [{ attributes: { generation_id: "v1-abc123", block_ids: '["block-1"]' } }] },
+        { type: "message", content: [{ type: "output_text", text: JSON.stringify({ cards: [
+          { question: "What must residents do?", answer: "Respect and support them", sourceBlockIds: ["block-1"] }
+        ] }) }] }
+      ]
+    })
+  });
+  const state = new MemoryKV({ "handbook:index:active": { generationID: "v1-abc123" } });
+  const response = await worker.fetch(generateRequest(), { OPENAI_API_KEY: "key", FLASHCARD_APP_TOKEN: APP_TOKEN, HANDBOOK_VECTOR_STORE_ID: "vs_test", HANDBOOK_INDEX_STATE: state });
+
+  assert.equal(response.status, 502);
+  assert.match((await response.json()).error, /No testable facts/);
+});
 
 class MemoryKV {
   constructor(values = {}) {

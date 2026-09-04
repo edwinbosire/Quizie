@@ -52,15 +52,53 @@ export function createOpenAIRequest(input, env, activeIndex) {
 }
 
 export function validateGeneratedResult(result, input) {
-  if (!result || !Array.isArray(result.cards) || !result.cards.length || result.cards.length > input.maxCards) return false;
+  return describeGeneratedResult(result, input) === null;
+}
+
+/// Splits the model's cards into the ones Quizie will keep and the reasons the
+/// rest were dropped. A single weak card should not cost the user the whole
+/// batch, so the caller fails only when nothing survives. This mirrors the
+/// filter the iOS client already applies to the response.
+export function partitionGeneratedCards(result, input) {
+  if (!result || !Array.isArray(result.cards) || !result.cards.length) {
+    return { cards: [], rejections: [describeGeneratedResult(result, input) || "The model returned no cards."] };
+  }
+  const cards = [];
+  const rejections = [];
+  for (const [index, card] of result.cards.slice(0, input.maxCards).entries()) {
+    const reason = describeCard(card, index, new Set(input.blocks.map(block => block.id)));
+    if (reason) rejections.push(reason); else cards.push(card);
+  }
+  return { cards, rejections };
+}
+
+/// Returns null when the result is acceptable, otherwise a short reason naming
+/// the rule that rejected it. Card rejection is the most common failure mode
+/// here, so the reason is what makes a 502 diagnosable from the logs.
+export function describeGeneratedResult(result, input) {
+  if (!result || !Array.isArray(result.cards)) return "The model returned no cards array.";
+  if (!result.cards.length) return "The model returned an empty card list.";
+  if (result.cards.length > input.maxCards) return `The model returned ${result.cards.length} cards for a maxCards of ${input.maxCards}.`;
+
   const allowedBlockIds = new Set(input.blocks.map(block => block.id));
-  return result.cards.every(card =>
-    typeof card.question === "string" && card.question.trim() &&
-    typeof card.answer === "string" && card.answer.trim() &&
-    isAtomicQuestion(card.question) && isMinimalAnswer(card.answer) &&
-    Array.isArray(card.sourceBlockIds) && card.sourceBlockIds.length > 0 &&
-    card.sourceBlockIds.every(blockId => allowedBlockIds.has(blockId))
-  );
+  for (const [index, card] of result.cards.entries()) {
+    const reason = describeCard(card, index, allowedBlockIds);
+    if (reason) return reason;
+  }
+  return null;
+}
+
+function describeCard(card, index, allowedBlockIds) {
+  const label = `Card ${index + 1}`;
+  if (!card || typeof card !== "object") return `${label} is not an object.`;
+  if (typeof card.question !== "string" || !card.question.trim()) return `${label} has no question.`;
+  if (typeof card.answer !== "string" || !card.answer.trim()) return `${label} has no answer.`;
+  if (!isAtomicQuestion(card.question)) return `${label} question is not an atomic recall prompt: ${JSON.stringify(card.question)}.`;
+  if (!isMinimalAnswer(card.answer)) return `${label} answer is not a minimal retrieval unit: ${JSON.stringify(card.answer)}.`;
+  if (!Array.isArray(card.sourceBlockIds) || !card.sourceBlockIds.length) return `${label} has no sourceBlockIds.`;
+  const unknown = card.sourceBlockIds.filter(blockId => !allowedBlockIds.has(blockId));
+  if (unknown.length) return `${label} cites unknown source blocks: ${unknown.join(", ")}.`;
+  return null;
 }
 
 export function flashcardSchema(maxCards, allowedBlockIds) {
@@ -108,7 +146,9 @@ export function isAtomicQuestion(value) {
 export function isMinimalAnswer(value) {
   const trimmed = value.trim();
   if (!isSingleSentence(trimmed) || wordCount(trimmed) > 8) return false;
-  const withoutTerminator = trimmed.replace(/[.!?]+$/g, "");
+  // Digit group separators are not list separators: "About 10,000 years ago"
+  // is a minimal answer, so strip them before the punctuation check.
+  const withoutTerminator = trimmed.replace(/[.!?]+$/g, "").replace(/(?<=\d),(?=\d)/g, "");
   return !ANSWER_ANTI_PATTERNS.some(pattern => pattern.test(withoutTerminator));
 }
 

@@ -1,5 +1,5 @@
 import { isAuthorized } from "./auth.js";
-import { createOpenAIRequest, validateGeneratedResult, validateRequest } from "./flashcards.js";
+import { createOpenAIRequest, partitionGeneratedCards, validateRequest } from "./flashcards.js";
 import { extractHandbookSearchResults, getActiveHandbookIndex, retrievalSupportsSelection } from "./handbook-knowledge.js";
 import { handleHandbookAdminRequest } from "./handbook-ingestion.js";
 import { OpenAIRequestError, openAIJSON } from "./openai-client.js";
@@ -59,13 +59,20 @@ export function createWorker({ fetchImpl = globalThis.fetch } = {}) {
         .find(content => content.type === "output_text")?.text;
       if (!outputText) return json({ error: "OpenAI returned no structured flashcards." }, 502);
 
+      let result;
       try {
-        const result = JSON.parse(outputText);
-        if (!validateGeneratedResult(result, input)) return json({ error: "OpenAI returned flashcards without valid handbook source blocks." }, 502);
-        return json(result);
+        result = JSON.parse(outputText);
       } catch {
         return json({ error: "OpenAI returned an invalid structured response." }, 502);
       }
+      const { cards, rejections } = partitionGeneratedCards(result, input);
+      if (rejections.length) {
+        console.error(JSON.stringify({ event: "flashcard_cards_rejected", kept: cards.length, rejections, chapter: input.chapter, section: input.section }));
+      }
+      if (!cards.length) {
+        return json({ error: "No testable facts were found in this selection. Try selecting a little more handbook text." }, 502);
+      }
+      return json({ cards });
     }
   };
 }
